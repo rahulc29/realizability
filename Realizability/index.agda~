@@ -1,4 +1,0 @@
-{-# OPTIONS --cubical #-}
-module index where
-
-open import Partiality

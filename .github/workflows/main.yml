@@ -12,7 +12,7 @@ jobs:
       uses: ayberkt/agda-github-action@v1.1
       with:
         main-file: index.agda
-        source-dir: Realizability
+        source-dir: src
     - name: Upload HTML
       id: html-upload
       uses: actions/upload-artifact@v1
