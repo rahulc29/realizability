@@ -5,12 +5,14 @@ open import Cubical.Foundations.HLevels
 open import Cubical.Relation.Nullary
 open import Cubical.Data.Vec
 open import Cubical.Data.Nat
+open import Cubical.Data.Nat.Order
 open import Cubical.Data.Fin
 
 module Realizability.PartialApplicativeStructure {𝓢} where
 
 open import Realizability.Partiality {𝓢}
 open ♯_
+infixl 20 _⨾_
 record PartialApplicativeStructure {ℓ} (A : Type ℓ) : Type (ℓ-max ℓ (ℓ-suc 𝓢)) where
   field
     isSetA : isSet A
@@ -19,11 +21,16 @@ record PartialApplicativeStructure {ℓ} (A : Type ℓ) : Type (ℓ-max ℓ (ℓ
 module _ {ℓ} {A : Type ℓ} (pas : PartialApplicativeStructure A) where
   open PartialApplicativeStructure pas
   infix 22 `_
-  infix 23 _̇_
-  data Term : ℕ → Type ℓ where
-    # : ∀ {n} → Fin n → Term n
-    `_ : A → Term zero
-    _̇_ : ∀ {n m} → Term m → Term n → Term (max m n)
+  infixl 23 _̇_
+  data Term (n : ℕ) : Type ℓ where
+    # : Fin n → Term n
+    `_ : A → Term n
+    _̇_ : Term n → Term n → Term n
+
+  upgrade : ∀ {n m} → n < m → Term n → Term m
+  upgrade _ (` a) = ` a
+  upgrade {n} {m} n<m (# k) = # (k .fst , <-trans (k .snd) n<m)
+  upgrade {n} {m} n<m (a ̇ b) = upgrade n<m a ̇ upgrade n<m b
 
   foo : ∀ a → Term 0
   foo a = ` a
@@ -32,10 +39,10 @@ module _ {ℓ} {A : Type ℓ} (pas : PartialApplicativeStructure A) where
   bar = # fzero
 
   baz : Term 2
-  baz = (# {n = 1} fzero) ̇ (# {n = 2} fone)
+  baz = (# fzero) ̇ (# fone)
 
   baz' : Term 1
-  baz' = (# {n = 1} fzero) ̇ (# {n = 1} fzero)
+  baz' = (# fzero) ̇ (# fzero)
 
   isClosed : ∀ {n} → Term n → Type
   isClosed {n} _ = n ≡ zero
@@ -64,14 +71,13 @@ module _ {ℓ} {A : Type ℓ} (pas : PartialApplicativeStructure A) where
       b-denotes : b denotes
       denote-≡ : denotationOf a-denotes ≡ denotationOf b-denotes
 
-
-  -- Handle the case for applications later
-  postulate substitute-app : ∀ {m n} → Term m → Term n → Vec (♯ A) (max m n) → ♯ A
-
   substitute : ∀ {n} → Term n → Vec (♯ A) n → ♯ A
   substitute (` a) _ = return a
   substitute {n} (# k) subs = lookup (Fin→FinData n k) subs
-  substitute (a ̇ b) subs = substitute-app a b subs
+  substitute (a ̇ b) subs = do
+                            a ← substitute a subs
+                            b ← substitute b subs
+                            a ⨾ b
 
   -- Given an element a and a vector of elements (a₁ .. aₙ)
   -- produces the application (a a₁ .. aₙ)
@@ -106,6 +112,13 @@ module _ {ℓ} {A : Type ℓ} (pas : PartialApplicativeStructure A) where
   preS : Term 3
   preS = ((# {3} 0) ̇ (# {3} 2)) ̇ ((# {3} 1) ̇ (# {3} 2))
 
+  record Feferman : Type (ℓ-max ℓ (ℓ-suc 𝓢)) where
+    field
+      s : A
+      k : A
+      kab-supported : ∀ a b → applicationChain k (a ∷ b ∷ []) .support
+      kab≈a : ∀ a b → applicationChain k (a ∷ b ∷ []) ≈ return a
+      sabc≈ac_bc : ∀ a b c → applicationChain s (a ∷ b ∷ c ∷ []) ≈ (substitute preS (map return (a ∷ b ∷ c ∷ [])))
   -- A few elementary developments assuming combinatorial completeness
   -- In particular, we can finally prove one side of Feferman's theorem
   module _ (completeness : isCombinatoriallyComplete) where
@@ -124,3 +137,26 @@ module _ {ℓ} {A : Type ℓ} (pas : PartialApplicativeStructure A) where
 
     Sabc≈ac_bc : ∀ a b c → applicationChain S (a ∷ b ∷ c ∷ []) ≈ (substitute preS (map return (a ∷ b ∷ c ∷ [])))
     Sabc≈ac_bc a b c = completeness preS .naturality (a ∷ b ∷ c ∷ [])
+
+    open Feferman
+    
+    feferman : Feferman
+    feferman .s = S
+    feferman .k = K
+    feferman .kab-supported = Kab-supported
+    feferman .kab≈a = Kab≈a
+    feferman .sabc≈ac_bc = Sabc≈ac_bc
+
+  module _ (feferman : Feferman) where
+    open Feferman feferman
+
+    ƛ : ∀ {n} → (x : Fin (suc n)) (e : Term n) → Term (suc n)
+    ƛ x (` a) = ` a
+    ƛ {n} x (# y) with (discreteℕ (x .fst) (y .fst))
+    ... | yes _ = (` s) ̇ (` k) ̇ (` k)
+    ... | no  _ = (` k) ̇ (# {n = suc n} (y .fst , <-trans (y .snd) ≤-refl))
+    ƛ x (a ̇ b) = (` s) ̇ (ƛ x a) ̇ (ƛ x b) 
+
+  
+    
+  
