@@ -4,7 +4,7 @@ open import Cubical.Foundations.Prelude
 open import Cubical.Relation.Binary.Poset
 open import Cubical.Foundations.Powerset
 
-module DirectedCompletePartialOrder where
+module Realizability.DirectedCompletePartialOrder where
 
 module _ {ℓ ℓ'} (P' : Poset ℓ ℓ') where
   P = P' .fst

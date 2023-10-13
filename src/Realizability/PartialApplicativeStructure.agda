@@ -12,8 +12,9 @@ module Realizability.PartialApplicativeStructure {𝓢} where
 
 open import Realizability.Partiality {𝓢}
 open ♯_
-infixl 20 _⨾_
+
 record PartialApplicativeStructure {ℓ} (A : Type ℓ) : Type (ℓ-max ℓ (ℓ-suc 𝓢)) where
+  infixl 20 _⨾_
   field
     isSetA : isSet A
     _⨾_ : A → A → ♯ A
@@ -92,7 +93,7 @@ module _ {ℓ} {A : Type ℓ} (pas : PartialApplicativeStructure A) where
   record isInterpreted {n} (t : Term n) : Type (ℓ-max ℓ (ℓ-suc 𝓢)) where
     field
       interpretation : A
-      applicationChainSupported : ∀ (subs : Vec A n) → applicationChain interpretation subs .support
+      applicationChainSupported : ∀ {m} (subs : Vec A m) → applicationChain interpretation subs .support
       naturality : ∀ (subs : Vec A n) → applicationChain interpretation subs ≈ substitute t (map return subs)
 
   isCombinatoriallyComplete : Type (ℓ-max ℓ (ℓ-suc 𝓢))
@@ -113,10 +114,10 @@ module _ {ℓ} {A : Type ℓ} (pas : PartialApplicativeStructure A) where
   preS = ((# {3} 0) ̇ (# {3} 2)) ̇ ((# {3} 1) ̇ (# {3} 2))
 
   record Feferman : Type (ℓ-max ℓ (ℓ-suc 𝓢)) where
-    field
+   field
       s : A
       k : A
-      kab-supported : ∀ a b → applicationChain k (a ∷ b ∷ []) .support
+      sab-supported : ∀ a b → applicationChain s (a ∷ b ∷ []) .support
       kab≈a : ∀ a b → applicationChain k (a ∷ b ∷ []) ≈ return a
       sabc≈ac_bc : ∀ a b c → applicationChain s (a ∷ b ∷ c ∷ []) ≈ (substitute preS (map return (a ∷ b ∷ c ∷ [])))
   -- A few elementary developments assuming combinatorial completeness
@@ -129,8 +130,8 @@ module _ {ℓ} {A : Type ℓ} (pas : PartialApplicativeStructure A) where
     S : A
     S = completeness preS .interpretation
 
-    Kab-supported : ∀ a b → applicationChain K (a ∷ b ∷ []) .support
-    Kab-supported a b = completeness preK .applicationChainSupported (a ∷ b ∷ [])
+    Sab-supported : ∀ a b → applicationChain S (a ∷ b ∷ []) .support
+    Sab-supported a b = completeness preS .applicationChainSupported (a ∷ b ∷ [])
 
     Kab≈a : ∀ a b → applicationChain K (a ∷ b ∷ []) ≈ return a
     Kab≈a a b = completeness preK .naturality (a ∷ b ∷ [])
@@ -143,19 +144,45 @@ module _ {ℓ} {A : Type ℓ} (pas : PartialApplicativeStructure A) where
     feferman : Feferman
     feferman .s = S
     feferman .k = K
-    feferman .kab-supported = Kab-supported
+    feferman .sab-supported = Sab-supported
     feferman .kab≈a = Kab≈a
     feferman .sabc≈ac_bc = Sabc≈ac_bc
 
   module _ (feferman : Feferman) where
     open Feferman feferman
-
-    ƛ : ∀ {n} → (x : Fin (suc n)) (e : Term n) → Term (suc n)
-    ƛ x (` a) = ` a
-    ƛ {n} x (# y) with (discreteℕ (x .fst) (y .fst))
+    ƛ : ∀ {n} (e : Term (suc n)) → Term n
+    ƛ (` a) = (` k) ̇ (` a)
+    ƛ {n} (# y) with (discreteℕ n (y .fst))
     ... | yes _ = (` s) ̇ (` k) ̇ (` k)
-    ... | no  _ = (` k) ̇ (# {n = suc n} (y .fst , <-trans (y .snd) ≤-refl))
-    ƛ x (a ̇ b) = (` s) ̇ (ƛ x a) ̇ (ƛ x b) 
+    ... | no ¬y≡n with (y .fst)
+    ...   | zero = (` k) ̇ (# (zero , {!!}))
+    ...   | (suc m) = (` k) ̇ # (m , {!!})
+    ƛ (a ̇ b) = (` s) ̇ (ƛ a) ̇ (ƛ b)
+
+    ƛ-chainSyntax : ∀ n → Term n → Term zero
+    ƛ-chainSyntax zero t = t
+    ƛ-chainSyntax (suc n) t = ƛ-chainSyntax n (ƛ t)
+
+    ƛ-chain : ∀ n → Term n → ♯ A
+    ƛ-chain n t = substitute (ƛ-chainSyntax n t) []
+
+    ƛ-chainSupport : ∀ n → (t : Term n) → ƛ-chain n t .support
+    ƛ-chainSupport n (` a) = {!!}
+    ƛ-chainSupport n (# y) = {!!}
+    ƛ-chainSupport n (a ̇ b) = {!!}
+
+    freeVariables : ∀ {n} → Term n → ℕ
+    freeVariables {n} _ = n
+    
+    open isInterpreted
+    feferman→isCombinatoriallyComplete : isCombinatoriallyComplete
+    feferman→isCombinatoriallyComplete t .interpretation = (ƛ-chain (freeVariables t) t) .force (ƛ-chainSupport (freeVariables t) t)
+    feferman→isCombinatoriallyComplete t .applicationChainSupported subs = {!!}
+    feferman→isCombinatoriallyComplete t .naturality subs = {!!}
+
+    
+
+    
 
   
     

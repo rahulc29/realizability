@@ -5,6 +5,7 @@ open import Cubical.Foundations.Powerset
 open import Cubical.Foundations.HLevels
 open import Cubical.HITs.PropositionalTruncation
 open import Cubical.Data.Unit
+open import Cubical.Data.Vec
 
 module Realizability.PartialCombinatoryAlgebra {𝓢} where
 
@@ -16,7 +17,9 @@ record PartialCombinatoryAlgebra {ℓ} (A : Type ℓ) : Type (ℓ-max ℓ (ℓ-s
     pas : PartialApplicativeStructure A
   open PartialApplicativeStructure pas public
   field
-    fefermanStructure : Feferman pas
+    combinatorialCompleteness : isCombinatoriallyComplete pas
+  fefermanStructure : Feferman pas
+  fefermanStructure = feferman pas combinatorialCompleteness
   open Feferman fefermanStructure public
 
 module _ {ℓ} {A : Type ℓ} (pca : PartialCombinatoryAlgebra A) where
@@ -41,7 +44,7 @@ module _ {ℓ} {A : Type ℓ} (pca : PartialCombinatoryAlgebra A) where
   open AssemblyMorphism
   idMorphism : ∀ X → AssemblyMorphism X X
   idMorphism X .mapping = λ x → x
-  idMorphism X .realizer = {!!}
+  idMorphism X .realizer =  (applicationChain pas s (k ∷ k ∷ [])) .force (sab-supported k k)
   idMorphism X .realizerSupports x a a⊩x = {!!}
   idMorphism X .realizerRealizes x a a⊩x = {!!}
 
