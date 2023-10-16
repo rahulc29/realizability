@@ -89,29 +89,28 @@ module _ {ℓ} {A : Type ℓ} (as : ApplicativeStructure A) where
 
   module _ (feferman : Feferman) where
     open Feferman feferman
-    ƛ : ∀ {n} (e : Term (suc n)) → Term n
-    ƛ (` a) = ` k ̇ ` a
-    ƛ (a ̇ b) = ` s ̇ (ƛ a) ̇ (ƛ b)
-    ƛ {n} (# y) with (discreteℕ n (y .fst))
+    λ* : ∀ {n} (e : Term (suc n)) → Term n
+    λ* (` a) = ` k ̇ ` a
+    λ* (a ̇ b) = ` s ̇ (λ* a) ̇ (λ* b)
+    λ* {n} (# y) with (discreteℕ n (y .fst))
     ... | yes _ = ` s ̇ ` k ̇ ` k
     ... | no ¬y≡n with (y .fst)
     ...   | zero = ` k ̇ (# (zero , {!suc-≤-suc (zero-≤ {n = (predℕ n)})!}))
     ...   | (suc m) = ` k ̇ (# (((suc m) , {!!})))
 
-    ƛ-chainTerm : ∀ n → Term n → Term zero
-    ƛ-chainTerm zero t = t
-    ƛ-chainTerm (suc n) t = ƛ-chainTerm n (ƛ t)
+    λ*-chainTerm : ∀ n → Term n → Term zero
+    λ*-chainTerm zero t = t
+    λ*-chainTerm (suc n) t = λ*-chainTerm n (λ* t)
 
-    ƛ-chain : ∀ {n} → Term n → A
-    ƛ-chain {n} t = substitute (ƛ-chainTerm n t) []
+    λ*-chain : ∀ {n} → Term n → A
+    λ*-chain {n} t = substitute (λ*-chainTerm n t) []
 
     open isInterpreted
 
-    -- ƛ-naturality : ∀ {n} (t : Term n) (subs : Vec A n) → apply (ƛ t) subs ≡ substitute t subs
-    -- ƛ-naturality (` a) subs = ?
+    postulate λ*-naturality : ∀ {n} (t : Term n) (subs : Vec A n) → apply (λ*-chain t) subs ≡ substitute t subs
     
     feferman→completeness : isCombinatoriallyComplete
-    feferman→completeness t .interpretation = ƛ-chain t
-    feferman→completeness t .naturality subs = {!!}
+    feferman→completeness t .interpretation = λ*-chain t
+    feferman→completeness t .naturality subs = λ*-naturality t subs
     
 
