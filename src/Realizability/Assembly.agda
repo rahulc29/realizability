@@ -308,12 +308,16 @@ module Realizability.Assembly {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) w
     equalizerFactors : ((Z , zs) : Σ[ Z ∈ Type ℓ ] (Assembly Z))
                      → (ι' : AssemblyMorphism zs as)
                      → (ι' ⊚ f ≡ ι' ⊚ g)
-                     → ∃![ univ ∈ AssemblyMorphism zs equalizer ] (univ ⊚ ιequalizer ≡ ι')
+                     → ∃![ ! ∈ AssemblyMorphism zs equalizer ] (! ⊚ ιequalizer ≡ ι')
     equalizerFactors (Z , zs) ι' ι'f≡ι'g =
                      uniqueExists (λ where
                                      .map z → ι' .map z , λ i → ι'f≡ι'g i .map z
-                                     .tracker → {!!})
-                                     {!!} {!!} {!!}
+                                     .tracker → ι' .tracker)
+                                     (AssemblyMorphism≡ _ _ refl)
+                                     (λ ! → isSetAssemblyMorphism _ _ (! ⊚ ιequalizer) ι')
+                                     λ !' !'⊚ι≡ι' → AssemblyMorphism≡ _ _
+                                                    (funExt λ z → Σ≡Prop (λ x → bs .isSetX (f .map x) (g .map x))
+                                                            (λ i → !'⊚ι≡ι' (~ i) .map z))
 
   -- Exponential objects
   _⇒_ : {A B : Type ℓ} → (as : Assembly A) → (bs : Assembly B) → Assembly (AssemblyMorphism as bs)
@@ -434,8 +438,64 @@ module Realizability.Assembly {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) w
            uniqueExists (λ where
                         .map (z , x) → (((λ where
                                             .map x' → f .map (z , x')
-                                            .tracker → {!!})) , x)
+                                            .tracker → do
+                                                        (f~ , f~tracks) ← f .tracker
+                                                        (z~ , z~realizes) ← zs .⊩surjective z
+                                                        return
+                                                          (s ⨾ (k ⨾ f~) ⨾ (s ⨾ (k ⨾ (pair ⨾ z~)) ⨾ Id)
+                                                          , λ x aₓ aₓ⊩x →
+                                                            subst
+                                                              (λ k → k ⊩Y (f .map (z , x)))
+                                                              (sym (eq f~ f~tracks z (z~ , z~realizes) x aₓ aₓ⊩x))
+                                                              (pair⨾z~⨾aₓtracks f~ f~tracks z (z~ , z~realizes) x aₓ aₓ⊩x))))
+                                                        , x)
                         .tracker → {!!})
-                        (AssemblyMorphism≡ _ _ {!!})
+                        -- No idea why they are definitionally equal
+                        -- But ok
+                        -- TODO : Understand why proof by computation works
+                        (AssemblyMorphism≡ _ _ (funExt λ (z , x) → refl))
                         (λ g' → isSetAssemblyMorphism _ _ (g' ⊚ theEval) f)
-                        λ g' g'⊚eval≡f → AssemblyMorphism≡ _ _ (funExt {!!})
+                        λ g' g'⊚eval≡f →
+                             AssemblyMorphism≡ _ _
+                               (funExt λ (z , x) →
+                                         ΣPathP ((AssemblyMorphism≡ _ _ (funExt (λ x' → λ i → {!!}))) , {!!}))  where
+                          _⊩X_ = xs ._⊩_
+                          _⊩Y_ = ys ._⊩_
+                          _⊩Z_ = zs ._⊩_
+                          _⊩Z×X_ = (zs ⊗ xs) ._⊩_
+                          Z×X = Z × X
+                          module _ (f~ : A)
+                                   (f~tracks : (∀ (zx : Z×X) (r : A) (rRealizes : (r ⊩Z×X zx)) → ((f~ ⨾ r) ⊩Y (f .map zx))))
+                                   (z : Z)
+                                   (zRealizer : Σ[ z~ ∈ A ] (z~ ⊩Z z))
+                                   (x : X)
+                                   (aₓ : A)
+                                   (aₓ⊩x : aₓ ⊩X x) where
+                            z~ : A
+                            z~ = zRealizer .fst
+                            z~realizes = zRealizer .snd
+
+                            eq : s ⨾ (k ⨾ f~) ⨾ (s ⨾ (k ⨾ (pair ⨾ z~)) ⨾ Id) ⨾ aₓ ≡ f~ ⨾ (pair ⨾ z~ ⨾ aₓ)
+                            eq =
+                              s ⨾ (k ⨾ f~) ⨾ (s ⨾ (k ⨾ (pair ⨾ z~)) ⨾ Id) ⨾ aₓ
+                                ≡⟨ sabc≡ac_bc _ _ _ ⟩
+                              (k ⨾ f~ ⨾ aₓ) ⨾ (s ⨾ (k ⨾ (pair ⨾ z~)) ⨾ Id ⨾ aₓ)
+                                ≡⟨ cong (λ x → x ⨾ (s ⨾ (k ⨾ (pair ⨾ z~)) ⨾ Id ⨾ aₓ)) (kab≡a f~ aₓ) ⟩
+                              f~ ⨾ (s ⨾ (k ⨾ (pair ⨾ z~)) ⨾ Id ⨾ aₓ)
+                                ≡⟨ cong (λ x → f~ ⨾ x) (sabc≡ac_bc _ _ _) ⟩
+                              f~ ⨾ ((k ⨾ (pair ⨾ z~) ⨾ aₓ) ⨾ (Id ⨾ aₓ))
+                                ≡⟨ cong (λ x → f~ ⨾ (x ⨾ (Id ⨾ aₓ))) (kab≡a (pair ⨾ z~) aₓ) ⟩
+                              f~ ⨾ (pair ⨾ z~ ⨾ (Id ⨾ aₓ))
+                                ≡⟨ cong (λ x → f~ ⨾ (pair ⨾ z~ ⨾ x)) (Ida≡a aₓ) ⟩
+                              f~ ⨾ (pair ⨾ z~ ⨾ aₓ)
+                                ∎
+
+                            pair⨾z~⨾aₓtracks : (f~ ⨾ (pair ⨾ z~ ⨾ aₓ)) ⊩Y (f .map (z , x))
+                            pair⨾z~⨾aₓtracks =
+                              f~tracks
+                                (z , x)
+                                (pair ⨾ z~ ⨾ aₓ)
+                                ( (subst (λ y → y ⊩Z z) (sym (pr₁pxy≡x z~ aₓ)) z~realizes)
+                                , (subst (λ y → y ⊩X x) (sym (pr₂pxy≡y z~ aₓ)) aₓ⊩x))
+
+                            
