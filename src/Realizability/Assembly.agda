@@ -191,6 +191,65 @@ module Realizability.Assembly {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) w
                                      , subst (λ x → bs ._⊩_ x b) (sym (pr₂pxy≡y a~ b~)) b~realizes
                                      )
 
+  ⟪_,_⟫ : {X Y Z W : Type ℓ}
+          {xs : Assembly X}
+          {ys : Assembly Y}
+          {zs : Assembly Z}
+          {ws : Assembly W}
+          (f : AssemblyMorphism xs ys)
+          (g : AssemblyMorphism zs ws)
+          → AssemblyMorphism (xs ⊗ zs) (ys ⊗ ws)
+  ⟪ f , g ⟫ .map (x , z) = f .map x , g .map z
+  ⟪_,_⟫ {ys = ys} {ws = ws} f g .tracker = (do
+                       (f~ , f~tracks) ← f .tracker
+                       (g~ , g~tracks) ← g .tracker
+                       return (s ⨾ (s ⨾ (k ⨾ pair) ⨾ (s ⨾ (k ⨾ f~) ⨾ (s ⨾ (k ⨾ pr₁) ⨾ Id))) ⨾ (s ⨾ (k ⨾ g~) ⨾ (s ⨾ (k ⨾ pr₂) ⨾ Id))
+                              , λ xz r r⊩xz →
+                                ( subst (λ y → ys ._⊩_ y (f .map (xz .fst)))
+                                  (sym (subst _
+                                              (sym (t⨾r≡pair_fg f~ g~ r))
+                                              (pr₁pxy≡x (f~ ⨾ (pr₁ ⨾ r)) (g~ ⨾ (pr₂ ⨾ r)))))
+                                  (f~tracks (xz .fst) (pr₁ ⨾ r) (r⊩xz .fst)))
+                                , subst (λ y → ws ._⊩_ y (g .map (xz .snd)))
+                                  (sym (subst _
+                                              (sym (t⨾r≡pair_fg f~ g~ r))
+                                              (pr₂pxy≡y (f~ ⨾ (pr₁ ⨾ r)) (g~ ⨾ (pr₂ ⨾ r)))))
+                                  (g~tracks (xz .snd) (pr₂ ⨾ r) (r⊩xz .snd))))
+                                where
+                       module _ (f~ g~ r : A) where
+                         subf≡fprr : ∀ f pr → (s ⨾ (k ⨾ f) ⨾ (s ⨾ (k ⨾ pr) ⨾ Id) ⨾ r) ≡ (f ⨾ (pr ⨾ r))
+                         subf≡fprr f pr =
+                                     s ⨾ (k ⨾ f) ⨾ (s ⨾ (k ⨾ pr) ⨾ Id) ⨾ r
+                                       ≡⟨ sabc≡ac_bc _ _ _ ⟩
+                                     (k ⨾ f ⨾ r) ⨾ (s ⨾ (k ⨾ pr) ⨾ Id ⨾ r)
+                                       ≡⟨ cong (λ x → x ⨾ _) (kab≡a f r) ⟩
+                                     f ⨾ (s ⨾ (k ⨾ pr) ⨾ Id ⨾ r)
+                                       ≡⟨ cong (λ x → f ⨾ x) (sabc≡ac_bc _ _ _) ⟩
+                                     f ⨾ (k ⨾ pr ⨾ r ⨾ (Id ⨾ r))
+                                       ≡⟨ cong (λ x → f ⨾ (x ⨾ (Id ⨾ r))) (kab≡a _ _ ) ⟩
+                                     f ⨾ (pr ⨾ (Id ⨾ r))
+                                       ≡⟨ cong (λ x → f ⨾ (pr ⨾ x)) (Ida≡a r) ⟩
+                                     f ⨾ (pr ⨾ r)
+                                       ∎
+                         t⨾r≡pair_fg :
+                           s ⨾ (s ⨾ (k ⨾ pair) ⨾ (s ⨾ (k ⨾ f~) ⨾ (s ⨾ (k ⨾ pr₁) ⨾ Id))) ⨾ (s ⨾ (k ⨾ g~) ⨾ (s ⨾ (k ⨾ pr₂) ⨾ Id)) ⨾ r
+                           ≡ pair ⨾ (f~ ⨾ (pr₁ ⨾ r)) ⨾ (g~ ⨾ (pr₂ ⨾ r))
+                         t⨾r≡pair_fg =
+                           s ⨾ (s ⨾ (k ⨾ pair) ⨾ (s ⨾ (k ⨾ f~) ⨾ (s ⨾ (k ⨾ pr₁) ⨾ Id))) ⨾ (s ⨾ (k ⨾ g~) ⨾ (s ⨾ (k ⨾ pr₂) ⨾ Id)) ⨾ r
+                             ≡⟨ sabc≡ac_bc _ _ _ ⟩
+                           s ⨾ (k ⨾ pair) ⨾ (s ⨾ (k ⨾ f~) ⨾ (s ⨾ (k ⨾ pr₁) ⨾ Id)) ⨾ r ⨾ (s ⨾ (k ⨾ g~) ⨾ (s ⨾ (k ⨾ pr₂) ⨾ Id) ⨾ r)
+                             ≡⟨ cong (λ x → x ⨾ (s ⨾ (k ⨾ g~) ⨾ (s ⨾ (k ⨾ pr₂) ⨾ Id) ⨾ r)) (sabc≡ac_bc _ _ _) ⟩
+                           k ⨾ pair ⨾ r ⨾ (s ⨾ (k ⨾ f~) ⨾ (s ⨾ (k ⨾ pr₁) ⨾ Id) ⨾ r) ⨾ (s ⨾ (k ⨾ g~) ⨾ (s ⨾ (k ⨾ pr₂) ⨾ Id) ⨾ r)
+                             ≡⟨ cong (λ x → x ⨾ (s ⨾ (k ⨾ f~) ⨾ (s ⨾ (k ⨾ pr₁) ⨾ Id) ⨾ r) ⨾ (s ⨾ (k ⨾ g~) ⨾ (s ⨾ (k ⨾ pr₂) ⨾ Id) ⨾ r))
+                               (kab≡a pair r) ⟩
+                           pair ⨾ (s ⨾ (k ⨾ f~) ⨾ (s ⨾ (k ⨾ pr₁) ⨾ Id) ⨾ r) ⨾ (s ⨾ (k ⨾ g~) ⨾ (s ⨾ (k ⨾ pr₂) ⨾ Id) ⨾ r)
+                             ≡⟨ cong₂ (λ x y → pair ⨾ x ⨾ y) (subf≡fprr f~ pr₁) (subf≡fprr g~ pr₂) ⟩
+                           pair ⨾ (f~ ⨾ (pr₁ ⨾ r)) ⨾ (g~ ⨾ (pr₂ ⨾ r))
+                             ∎
+
+                         
+                       
+
   π₁ : {A B : Type ℓ} {as : Assembly A} {bs : Assembly B} → AssemblyMorphism (as ⊗ bs) as
   π₁ .map (a , b) = a
   π₁ .tracker = ∣ pr₁ , (λ (a , b) p (goal , _) → goal) ∣₁
@@ -432,39 +491,33 @@ module Realizability.Assembly {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) w
            {zs : Assembly Z}
            (f : AssemblyMorphism (zs ⊗ xs) ys) where
          theEval = eval {X} {Y} xs ys
-         ⇒isExponential : ∃![ g ∈ AssemblyMorphism (zs ⊗ xs) ((xs ⇒ ys) ⊗ xs) ]
-                          (g ⊚ theEval ≡ f)
-         ⇒isExponential =
-           uniqueExists (λ where
-                        .map (z , x) → (((λ where
-                                            .map x' → f .map (z , x')
-                                            .tracker → do
-                                                        (f~ , f~tracks) ← f .tracker
-                                                        (z~ , z~realizes) ← zs .⊩surjective z
-                                                        return
-                                                          (s ⨾ (k ⨾ f~) ⨾ (s ⨾ (k ⨾ (pair ⨾ z~)) ⨾ Id)
-                                                          , λ x aₓ aₓ⊩x →
-                                                            subst
-                                                              (λ k → k ⊩Y (f .map (z , x)))
-                                                              (sym (eq f~ f~tracks z (z~ , z~realizes) x aₓ aₓ⊩x))
-                                                              (pair⨾z~⨾aₓtracks f~ f~tracks z (z~ , z~realizes) x aₓ aₓ⊩x))))
-                                                        , x)
-                        .tracker → {!!})
-                        -- No idea why they are definitionally equal
-                        -- But ok
-                        -- TODO : Understand why proof by computation works
-                        (AssemblyMorphism≡ _ _ (funExt λ (z , x) → refl))
-                        (λ g' → isSetAssemblyMorphism _ _ (g' ⊚ theEval) f)
-                        λ g' g'⊚eval≡f →
-                             AssemblyMorphism≡ _ _
-                               (funExt λ (z , x) →
-                                         ΣPathP ((AssemblyMorphism≡ _ _ (funExt (λ x' → λ i → {!!}))) , {!!}))  where
-                          _⊩X_ = xs ._⊩_
-                          _⊩Y_ = ys ._⊩_
-                          _⊩Z_ = zs ._⊩_
-                          _⊩Z×X_ = (zs ⊗ xs) ._⊩_
-                          Z×X = Z × X
-                          module _ (f~ : A)
+         ⇒isExponential : ∃![ g ∈ AssemblyMorphism zs (xs ⇒ ys) ]
+                          ⟪ g , identityMorphism xs ⟫ ⊚ theEval ≡ f
+         ⇒isExponential = uniqueExists (λ where
+                                           .map z → λ where
+                                                        .map x → f .map (z , x)
+                                                        .tracker → do
+                                                                    (f~ , f~tracks) ← f .tracker
+                                                                    (z~ , z~realizes) ← zs .⊩surjective z
+                                                                    return ( (s ⨾ (k ⨾ f~) ⨾ (s ⨾ (k ⨾ (pair ⨾ z~)) ⨾ Id)
+                                                                           , λ x aₓ aₓ⊩x
+                                                                           → subst (λ k → k ⊩Y (f .map (z , x)))
+                                                                             (sym (eq f~ f~tracks z (z~ , z~realizes) x aₓ aₓ⊩x))
+                                                                             (pair⨾z~⨾aₓtracks f~ f~tracks z (z~ , z~realizes) x aₓ aₓ⊩x)))
+                                           .tracker → do
+                                                       (f~ , f~tracker) ← f .tracker
+                                                       return {!!})
+                                        (AssemblyMorphism≡ _ _ (funExt (λ (z , x) → refl)))
+                                        (λ g → isSetAssemblyMorphism _ _ (⟪ g , identityMorphism xs ⟫ ⊚ theEval) f)
+                                        λ g g×id⊚eval≡f → AssemblyMorphism≡ _ _
+                                                          (funExt (λ z → AssemblyMorphism≡ _ _
+                                                                         (funExt (λ x → λ i → g×id⊚eval≡f (~ i) .map (z , x))))) where
+                         _⊩X_ = xs ._⊩_
+                         _⊩Y_ = ys ._⊩_
+                         _⊩Z_ = zs ._⊩_
+                         _⊩Z×X_ = (zs ⊗ xs) ._⊩_
+                         Z×X = Z × X
+                         module _ (f~ : A)
                                    (f~tracks : (∀ (zx : Z×X) (r : A) (rRealizes : (r ⊩Z×X zx)) → ((f~ ⨾ r) ⊩Y (f .map zx))))
                                    (z : Z)
                                    (zRealizer : Σ[ z~ ∈ A ] (z~ ⊩Z z))
