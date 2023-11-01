@@ -1,6 +1,20 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
 cff-version: 1.2.0
-message: Cite as below
-authors:
-	- family-names: Chhabra
-	  given-names: Rahul
 title: Experiments with Realizability in Cubical Agda
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Rahul
+    family-names: Chhabra
+    email: iit2021096@iiita.ac.in
+    affiliation: 'Indian Institute of Information Technology, Allahabad'
+repository-code: 'https://github.com/rahulc29/realizability'
+url: 'https://rahulc29.github.io/realizability'
+abstract: >-
+  Accompanying code for realizability theory developed
+  within univalent foundations.
+license: Apache-2.0
