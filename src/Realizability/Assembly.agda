@@ -506,7 +506,7 @@ module Realizability.Assembly {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) w
                                                                              (pair⨾z~⨾aₓtracks f~ f~tracks z (z~ , z~realizes) x aₓ aₓ⊩x)))
                                            .tracker → do
                                                        (f~ , f~tracker) ← f .tracker
-                                                       return {!!})
+                                                       return ({!!} , (λ z zᵣ zᵣ⊩z x xᵣ xᵣ⊩x → {!!})))
                                         (AssemblyMorphism≡ _ _ (funExt (λ (z , x) → refl)))
                                         (λ g → isSetAssemblyMorphism _ _ (⟪ g , identityMorphism xs ⟫ ⊚ theEval) f)
                                         λ g g×id⊚eval≡f → AssemblyMorphism≡ _ _
