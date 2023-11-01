@@ -1,0 +1,6 @@
+cff-version: 1.2.0
+message: Cite as below
+authors:
+	- family-names: Chhabra
+	  given-names: Rahul
+title: Experiments with Realizability in Cubical Agda
