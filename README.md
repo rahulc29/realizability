@@ -4,25 +4,25 @@ This repository contains accompanying code for my (upcoming) Bachelor's thesis.
 
 Weak timeline :
 
-- [ x ] Combinatory Algebras
-  - [ x ] Applicative Structures
-  - [ x ] Feferman structure on an AS
-  - [ x ] Combinatorial completeness
-  - [  ] Computation rule for $\lambda*$
+- [x] Combinatory Algebras
+  - [x] Applicative Structures
+  - [x] Feferman structure on an AS
+  - [x] Combinatorial completeness
+  - [ ] Computation rule for $\lambda*$
   - Combinators
-    - [ x ] Identity, booleans, if-then-else, pairs, projections, B combinator, some Curry numerals
-    - [  ] Computation rule for pairs 
-    - [  ] Fixpoint combinators and primitive recursion combinator
-- [ x ] Category of Assemblies
-  - [ x ] Define assemblies
-  - [ x ] Define the category $\mathsf{Asm}$
-  - [ x ] Cartesian closure and similar structure
-    - [ x ] Binary products
-    - [ x ] Binary coproducts
+    - [x] Identity, booleans, if-then-else, pairs, projections, B combinator, some Curry numerals
+    - [ ] Computation rule for pairs 
+    - [ ] Fixpoint combinators and primitive recursion combinator
+- [x] Category of Assemblies
+  - [x] Define assemblies
+  - [x] Define the category $\mathsf{Asm}$
+  - [x] Cartesian closure and similar structure
+    - [x] Binary products
+    - [x] Binary coproducts
       - [ ] Universal property
-    - [ x ] Equalisers
-    - [ x ] Exponentials
-    - [ x ] Initial and terminal objects
+    - [x] Equalisers
+    - [x] Exponentials
+    - [x] Initial and terminal objects
 - [ ] $\mathsf{Asm}$ is regular
 
 # Build Instructions
