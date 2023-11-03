@@ -7,4 +7,3 @@ open import Realizability.PartialCombinatoryAlgebra
 open import Realizability.CombinatoryAlgebra
 open import Realizability.ApplicativeStructure
 open import Realizability.Assembly
-open import Realizability.DirectedCompletePartialOrder
