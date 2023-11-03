@@ -27,7 +27,7 @@ Weak timeline :
 
 # Build Instructions
 
-You will need Agda >= 2.6.3 and a [custom fork](https://github.com/rahulc29/cubical) of the Cubical library to build the code.
+You will need Agda >= 2.6.3 and a [custom fork](https://github.com/rahulc29/cubical/tree/rahulc29/realizability) of the Cubical library to build the code.
 
 The custom fork has a few additional definitions in the category theory modules. I will hopefully integrate them into the Cubical library.
 
