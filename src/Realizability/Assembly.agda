@@ -10,12 +10,15 @@ open import Cubical.Data.Sigma
 open import Cubical.Data.Sum hiding (map)
 open import Cubical.HITs.PropositionalTruncation renaming (map to ∥∥map ; map2 to ∥∥map2)
 open import Cubical.HITs.PropositionalTruncation.Monad
+open import Cubical.HITs.SetCoequalizer renaming (rec to setCoequalizerRec ; elimProp to setCoequalizerElimProp)
 open import Cubical.Relation.Binary
 open import Cubical.Categories.Category
 open import Cubical.Categories.Limits.Terminal
 open import Cubical.Categories.Limits.Initial
 open import Cubical.Categories.Limits.BinProduct
+open import Cubical.Categories.Regular.Base
 open import Cubical.Reflection.RecordEquiv
+open import Cubical.Functions.Surjection
 
 open import Realizability.CombinatoryAlgebra
 
@@ -506,6 +509,7 @@ module Realizability.Assembly {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) w
                                                                              (pair⨾z~⨾aₓtracks f~ f~tracks z (z~ , z~realizes) x aₓ aₓ⊩x)))
                                            .tracker → do
                                                        (f~ , f~tracker) ← f .tracker
+                                                       -- λ* x. λ* y. f~ ⨾ (pair ⨾ x ⨾ y)
                                                        return ({!!} , (λ z zᵣ zᵣ⊩z x xᵣ xᵣ⊩x → {!!})))
                                         (AssemblyMorphism≡ _ _ (funExt (λ (z , x) → refl)))
                                         (λ g → isSetAssemblyMorphism _ _ (⟪ g , identityMorphism xs ⟫ ⊚ theEval) f)
@@ -550,5 +554,62 @@ module Realizability.Assembly {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) w
                                 (pair ⨾ z~ ⨾ aₓ)
                                 ( (subst (λ y → y ⊩Z z) (sym (pr₁pxy≡x z~ aₓ)) z~realizes)
                                 , (subst (λ y → y ⊩X x) (sym (pr₂pxy≡y z~ aₓ)) aₓ⊩x))
+  -- ASM has coequalizers
+  module _
+    {X Y : Type ℓ}
+    (xs : Assembly X)
+    (ys : Assembly Y)
+    (f g : AssemblyMorphism xs ys)
+    where
+      private
+        _⊩X_ = xs ._⊩_
+        _⊩Y_ = ys ._⊩_
 
-                            
+      _⊩coeq_ : (a : A) (x : SetCoequalizer (f .map) (g .map)) → hProp ℓ
+      a ⊩coeq x =
+        setCoequalizerRec
+        isSetHProp
+        (λ y → (∃[ y' ∈ Y ] (inc {f = f .map} {g = g .map} y ≡ inc y') × (a ⊩Y y')) , squash₁)
+        (λ x i → (∃[ y' ∈ Y ] (coeq {f = f .map} {g = g .map} x i ≡ inc y') × (a ⊩Y y')) , squash₁)
+        x
+
+      coequalizer : Assembly (SetCoequalizer (f .map) (g .map))
+      ⊩coeqSurjective : (x : SetCoequalizer (f .map) (g .map)) → ∃[ a ∈ A ] ((a ⊩coeq x) .fst)
+   
+      coequalizer .isSetX = squash
+      coequalizer ._⊩_ a x = (a ⊩coeq x) .fst
+      coequalizer .⊩isPropValued a x = (a ⊩coeq x) .snd
+      coequalizer .⊩surjective x = {!!}
+
+      ⊩coeqSurjective x =
+        setCoequalizerElimProp
+          {C = λ b → ∃[ a ∈ A ] ((a ⊩coeq b) .fst)}
+          (λ x → squash₁)
+          (λ b → do
+                  (b~ , b~realizes) ← ys .⊩surjective b
+                  return (b~ , b~⊩coeq_inc_b b b~ b~realizes))
+          x where
+            b~⊩coeq_inc_b : (b : Y) (b~ : A) (b~realizes : b~ ⊩Y b) → (b~ ⊩coeq inc b) .fst
+            b~⊩coeq_inc_b b b~ b~realizes = {!!}
+
+  -- ASM is regular
+  module _
+    {X Y : Type ℓ}
+    (xs : Assembly X)
+    (ys : Assembly Y)
+    (e : AssemblyMorphism xs ys)
+    where
+      _⊩X_ = xs ._⊩_
+      _⊩Y_ = ys ._⊩_
+      -- First, isSurjection(e .map) and surjective tracking
+      -- together create a regular epi in ASM
+
+      tracksSurjection : (a : A) → Type ℓ
+      tracksSurjection a = ∀ y b → (b ⊩Y y) → ∃[ x ∈ X ] (e .map x ≡ y) × ((a ⨾ b) ⊩X x)
+      module _
+        (surjection : isSurjection (e .map))
+        (surjectionIsTracked : ∃[ a ∈ A ] tracksSurjection a)
+        where
+
+                
+                  
