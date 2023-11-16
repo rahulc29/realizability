@@ -4,6 +4,7 @@ open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.Function
+open import Cubical.Foundations.Equiv
 open import Cubical.Data.Unit
 open import Cubical.Data.Empty
 open import Cubical.Data.Sigma
@@ -16,9 +17,11 @@ open import Cubical.Categories.Category
 open import Cubical.Categories.Limits.Terminal
 open import Cubical.Categories.Limits.Initial
 open import Cubical.Categories.Limits.BinProduct
+open import Cubical.Categories.Limits.Coequalizers
 open import Cubical.Categories.Regular.Base
 open import Cubical.Reflection.RecordEquiv
 open import Cubical.Functions.Surjection
+open import Cubical.Functions.Image
 
 open import Realizability.CombinatoryAlgebra
 
@@ -613,8 +616,17 @@ module Realizability.Assembly {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) w
                               setCoequalizerElimProp
                               {C = λ x → setCoequalizerRec (zs .isSetX) (ι' .map) (λ x₁ i → f⊚ι'≡g⊚ι' i .map x₁) x ≡ ! .map x}
                               (λ x → zs .isSetX _ _) (λ y → λ i → ιcoequalizer⊚!≡ι' (~ i) .map y) x)
-      
+      open Coequalizer
+      open IsCoequalizer
 
+      ιIsCoequalizer : IsCoequalizer {C = ASM} f g ιcoequalizer
+      ιIsCoequalizer .glues = AssemblyMorphism≡ _ _ (funExt λ x → SetCoequalizer.coeq x)
+      ιIsCoequalizer .univProp q qGlues = coequalizerFactors _ q qGlues
+      
+      ASMCoequalizer : Coequalizer {C = ASM} f g
+      ASMCoequalizer .coapex = (SetCoequalizer (f .map) (g .map)) , coequalizer
+      Coequalizer.coeq ASMCoequalizer = ιcoequalizer
+      ASMCoequalizer .isCoequalizer = ιIsCoequalizer
   -- ASM is regular
   module _
     {X Y : Type ℓ}
@@ -624,6 +636,8 @@ module Realizability.Assembly {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) w
     where
       _⊩X_ = xs ._⊩_
       _⊩Y_ = ys ._⊩_
+      _⊩X×X_ = (xs ⊗ xs) ._⊩_
+      
       -- First, isSurjection(e .map) and surjective tracking
       -- together create a regular epi in ASM
 
@@ -634,5 +648,44 @@ module Realizability.Assembly {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) w
         (surjectionIsTracked : ∃[ a ∈ A ] tracksSurjection a)
         where
 
-                
-                  
+        kernelType : Type ℓ
+        kernelType = Σ[ x ∈ X ] Σ[ x' ∈ X ] (e .map x ≡ e .map x')
+
+        kernelAssembly : Assembly kernelType
+        kernelAssembly .isSetX = isSetΣ (xs .isSetX) (λ x → isSetΣ (xs .isSetX) (λ x' → isProp→isSet (ys .isSetX _ _)))
+        kernelAssembly ._⊩_ r (x , x' , ex≡ex') = (xs ⊗ xs) ._⊩_ r (x , x')
+        kernelAssembly .⊩isPropValued r (x , x' , ex≡ex') = (xs ⊗ xs) .⊩isPropValued r (x , x')
+        kernelAssembly .⊩surjective (x , x' , ex≡ex') = (xs ⊗ xs) .⊩surjective (x , x')
+
+        -- Kernel Pairs
+        k₁ : AssemblyMorphism kernelAssembly xs
+        k₁ .map (x , x' , ex≡ex') = x
+        k₁ .tracker = ∣ pr₁ , (λ (x , x' , ex≡ex') r r⊩xx' → r⊩xx' .fst) ∣₁
+
+        
+        k₂ : AssemblyMorphism kernelAssembly xs
+        k₂ .map (x , x' , ex≡ex') = x'
+        k₂ .tracker = ∣ pr₂ , (λ (x , x' , ex≡ex') r r⊩xx' → r⊩xx' .snd) ∣₁
+
+        -- The kernelAssembly we defined is Z in Longley's proof (page 42 of his thesis)
+        -- Rest of the proof follows his proof
+        W : Type ℓ
+        W = Image (e .map)
+
+        ws : Assembly W
+        ws .isSetX = isSetΣ (ys .isSetX) λ y → isProp→isSet (isPropIsInImage (e .map) y)
+        ws ._⊩_ r (w , wIsInImage) = ∃[ x ∈ X ] (e .map x ≡ w) × (r ⊩X x)
+        ws .⊩isPropValued r (w , wIsInImage) = squash₁
+        ws .⊩surjective (w , wIsInImage) = do
+                                           (x , ex≡y) ← surjection w
+                                           (aₓ , aₓ⊩x) ← xs .⊩surjective x
+                                           return (aₓ , ∣ x , ex≡y , aₓ⊩x ∣₁)
+
+        c : AssemblyMorphism xs ws
+        c .map x = (e .map x) , ∣ x , refl ∣₁
+        c .tracker = ∣ Id , (λ x aₓ aₓ⊩x → ∣ x , refl , subst (λ a → a ⊩X x) (sym (Ida≡a aₓ)) aₓ⊩x ∣₁) ∣₁
+
+        open IsCoequalizer
+        cIsCoequalizer : IsCoequalizer {C = ASM} k₁ k₂ c
+        cIsCoequalizer .glues = AssemblyMorphism≡ _ _ (funExt λ (x , x' , ex≡ex') → Σ≡Prop (λ y → isPropIsInImage (e .map) y) ex≡ex')
+        cIsCoequalizer .univProp {D} q qGlues = uniqueExists {!!} {!!} (λ ! → isSetAssemblyMorphism _ _ (c ⊚ !) q) λ ! → λ c⊚!≡q → {!!}
