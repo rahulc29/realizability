@@ -701,16 +701,31 @@ module Realizability.Assembly {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) w
 
                  ∃t→Σt : ∃[ t ∈ AssemblyMorphism ys ws ] (e ⊚ t ≡ q) → Σ[ t ∈ AssemblyMorphism ys ws ] (e ⊚ t ≡ q)
                  ∃t→Σt ∃t = equivFun (propTruncIdempotent≃ e⊚t≡qIsProp) ∃t
-        
+
+        -- I have cooked one ugly proof ngl 😀🔫
         open IsCoequalizer
         eIsCoequalizer : IsCoequalizer {C = ASM} k₁ k₂ e
         eIsCoequalizer .glues = AssemblyMorphism≡ _ _ (funExt λ (x , x' , ex≡ex') → ex≡ex')
         eIsCoequalizer .univProp {W , ws} q k₁q≡k₂q =
           uniqueExists {!!} {!!} {!!} {!!} where
+            _⊩W_ = ws ._⊩_
             ∃t : ∃[ t ∈ AssemblyMorphism ys ws ] (e ⊚ t ≡ q)
-            ∃t = do
+            ∃t = (do
                  (e⁻¹ , e⁻¹IsSection) ← choice X Y (e .map) surjection
-                 return (record { map = λ y → q .map (e⁻¹ y)
-                                ; tracker = do
-                                             (r , rIsSurjective) ← surjectionIsTracked
-                                             return (r , λ y b b⊩y → {!rIsSurjective y b b⊩y!}) } , {!!})
+                 return (h e⁻¹ e⁻¹IsSection , {!!})) where
+                                 module _
+                                  (e⁻¹ : Y → X)
+                                  (e⁻¹IsSection : section (e .map) e⁻¹) where     
+                                    h : AssemblyMorphism ys ws
+                                    h .map y = q .map (e⁻¹ y)
+                                    h .tracker = 
+                                      do
+                                        (q~ , q~tracks) ← q .tracker
+                                        (r , rWitness) ← surjectionIsTracked
+                                        return (s ⨾ (k ⨾ q~) ⨾ (s ⨾ (k ⨾ r) ⨾ Id) , (λ y b b⊩y → {!!}))
+
+                                    e⊚h≡q : e ⊚ h ≡ q
+                                    e⊚h≡q = AssemblyMorphism≡ _ _ (funExt λ x → {!e⁻¹IsSection (e .map x)!})
+
+                                    hy≡qx : ∀ x y → e .map x ≡ y → h .map y ≡ q .map x
+                                    hy≡qx x y ex≡y = {!e⁻¹IsSection y!}
