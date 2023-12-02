@@ -24,6 +24,7 @@ open import Cubical.Functions.Surjection
 open import Cubical.Functions.Image
 
 open import Realizability.CombinatoryAlgebra
+open import Realizability.Choice
 
 module Realizability.Assembly {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
   open CombinatoryAlgebra ca
@@ -646,6 +647,7 @@ module Realizability.Assembly {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) w
       module _
         (surjection : isSurjection (e .map))
         (surjectionIsTracked : ∃[ a ∈ A ] tracksSurjection a)
+        (choice : Choice ℓ ℓ)
         where
 
         kernelType : Type ℓ
@@ -667,25 +669,48 @@ module Realizability.Assembly {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) w
         k₂ .map (x , x' , ex≡ex') = x'
         k₂ .tracker = ∣ pr₂ , (λ (x , x' , ex≡ex') r r⊩xx' → r⊩xx' .snd) ∣₁
 
-        -- The kernelAssembly we defined is Z in Longley's proof (page 42 of his thesis)
-        -- Rest of the proof follows his proof
-        W : Type ℓ
-        W = Image (e .map)
+        module _ {W : Type ℓ}
+                 {ws : Assembly W}
+                 (q : AssemblyMorphism xs ws)
+                 (k₁q≡k₂q : k₁ ⊚ q ≡ k₂ ⊚ q) where
 
-        ws : Assembly W
-        ws .isSetX = isSetΣ (ys .isSetX) λ y → isProp→isSet (isPropIsInImage (e .map) y)
-        ws ._⊩_ r (w , wIsInImage) = ∃[ x ∈ X ] (e .map x ≡ w) × (r ⊩X x)
-        ws .⊩isPropValued r (w , wIsInImage) = squash₁
-        ws .⊩surjective (w , wIsInImage) = do
-                                           (x , ex≡y) ← surjection w
-                                           (aₓ , aₓ⊩x) ← xs .⊩surjective x
-                                           return (aₓ , ∣ x , ex≡y , aₓ⊩x ∣₁)
+                 module _
+                   (h h' : AssemblyMorphism ys ws)
+                   (e⊚h≡q : e ⊚ h ≡ q)
+                   (e⊚h'≡q : e ⊚ h' ≡ q) where
+                   hIsUnique : h ≡ h'
+                   hIsUnique =
+                     AssemblyMorphism≡ _ _
+                       (funExt λ y → equivFun (propTruncIdempotent≃ (ws .isSetX _ _))
+                         (do
+                           (x , ex≡y) ← surjection y
+                           return (h .map y
+                                     ≡⟨ sym (cong (λ t → h .map t) ex≡y) ⟩
+                                   h .map (e .map x)
+                                     ≡[ i ]⟨ e⊚h≡q i .map x ⟩
+                                  (q .map x)
+                                     ≡[ i ]⟨ e⊚h'≡q (~ i) .map x ⟩
+                                  h' .map (e .map x)
+                                     ≡⟨ cong (λ t → h' .map t) ex≡y ⟩
+                                  h' .map y
+                                     ∎)))
+                   
+                 e⊚t≡qIsProp : isProp (Σ[ t ∈ AssemblyMorphism ys ws ] (e ⊚ t ≡ q))
+                 e⊚t≡qIsProp = λ { (h , e⊚h≡q) (h' , e⊚h'≡q)
+                   → Σ≡Prop (λ x → isSetAssemblyMorphism xs ws (e ⊚ x) q) (hIsUnique h h' e⊚h≡q e⊚h'≡q ) }
 
-        c : AssemblyMorphism xs ws
-        c .map x = (e .map x) , ∣ x , refl ∣₁
-        c .tracker = ∣ Id , (λ x aₓ aₓ⊩x → ∣ x , refl , subst (λ a → a ⊩X x) (sym (Ida≡a aₓ)) aₓ⊩x ∣₁) ∣₁
-
+                 ∃t→Σt : ∃[ t ∈ AssemblyMorphism ys ws ] (e ⊚ t ≡ q) → Σ[ t ∈ AssemblyMorphism ys ws ] (e ⊚ t ≡ q)
+                 ∃t→Σt ∃t = equivFun (propTruncIdempotent≃ e⊚t≡qIsProp) ∃t
+        
         open IsCoequalizer
-        cIsCoequalizer : IsCoequalizer {C = ASM} k₁ k₂ c
-        cIsCoequalizer .glues = AssemblyMorphism≡ _ _ (funExt λ (x , x' , ex≡ex') → Σ≡Prop (λ y → isPropIsInImage (e .map) y) ex≡ex')
-        cIsCoequalizer .univProp {D} q qGlues = uniqueExists {!!} {!!} (λ ! → isSetAssemblyMorphism _ _ (c ⊚ !) q) λ ! → λ c⊚!≡q → {!!}
+        eIsCoequalizer : IsCoequalizer {C = ASM} k₁ k₂ e
+        eIsCoequalizer .glues = AssemblyMorphism≡ _ _ (funExt λ (x , x' , ex≡ex') → ex≡ex')
+        eIsCoequalizer .univProp {W , ws} q k₁q≡k₂q =
+          uniqueExists {!!} {!!} {!!} {!!} where
+            ∃t : ∃[ t ∈ AssemblyMorphism ys ws ] (e ⊚ t ≡ q)
+            ∃t = do
+                 (e⁻¹ , e⁻¹IsSection) ← choice X Y (e .map) surjection
+                 return (record { map = λ y → q .map (e⁻¹ y)
+                                ; tracker = do
+                                             (r , rIsSurjective) ← surjectionIsTracked
+                                             return (r , λ y b b⊩y → {!rIsSurjective y b b⊩y!}) } , {!!})
