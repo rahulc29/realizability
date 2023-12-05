@@ -707,11 +707,11 @@ module Realizability.Assembly {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) w
         eIsCoequalizer : IsCoequalizer {C = ASM} k₁ k₂ e
         eIsCoequalizer .glues = AssemblyMorphism≡ _ _ (funExt λ (x , x' , ex≡ex') → ex≡ex')
         eIsCoequalizer .univProp {W , ws} q k₁q≡k₂q =
-          uniqueExists {!!} {!!} {!!} {!!} where
+          uniqueExists (∃t→Σt q k₁q≡k₂q ∃t .fst) (∃t→Σt q k₁q≡k₂q ∃t .snd) (λ t → isSetAssemblyMorphism _ _ _ _) λ t e⊚t≡q → λ i → e⊚t≡qIsProp q k₁q≡k₂q (∃t→Σt q k₁q≡k₂q ∃t) (t , e⊚t≡q) i .fst where
             _⊩W_ = ws ._⊩_
             ∃t : ∃[ t ∈ AssemblyMorphism ys ws ] (e ⊚ t ≡ q)
             ∃t = (do
-                 (e⁻¹ , e⁻¹IsSection) ← choice X Y (e .map) surjection
+                 (e⁻¹ , e⁻¹IsSection) ← choice X Y (xs .isSetX) (ys .isSetX) (e .map) surjection
                  return (h e⁻¹ e⁻¹IsSection , {!!})) where
                                  module _
                                   (e⁻¹ : Y → X)

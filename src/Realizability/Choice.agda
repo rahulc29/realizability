@@ -9,4 +9,4 @@ open import Cubical.Data.Sigma
 module Realizability.Choice where
 
 Choice : ∀ ℓ ℓ' → Type (ℓ-max (ℓ-suc ℓ) (ℓ-suc ℓ'))
-Choice ℓ ℓ' = (A : Type ℓ) (B : Type ℓ') (f : A → B) → isSurjection f → ∃[ f' ∈ (B → A) ] section f f'
+Choice ℓ ℓ' = (A : Type ℓ) (B : Type ℓ') → isSet A → isSet B → (f : A → B) → isSurjection f → ∃[ f' ∈ (B → A) ] section f f'
