@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --allow-unsolved-metas #-}
 open import Cubical.Foundations.Prelude
 open import Cubical.Data.Sigma
 open import Cubical.HITs.PropositionalTruncation hiding (map)

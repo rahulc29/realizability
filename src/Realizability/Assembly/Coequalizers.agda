@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --allow-unsolved-metas #-}
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.HLevels
 open import Cubical.HITs.SetCoequalizer renaming (rec to setCoequalizerRec; elimProp to setCoequalizerElimProp)

@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --allow-unsolved-metas #-}
 open import Realizability.CombinatoryAlgebra
 open import Cubical.Foundations.Prelude
 open import Cubical.Categories.Regular.Base
