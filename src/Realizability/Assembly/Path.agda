@@ -43,5 +43,6 @@ CatIsoToPath {X , xs} {Y , ys} x∼y = ΣPathP (P , λ i → record
 IsoPathCatIsoASM : ∀ {x y} → Iso (x ≡ y) (CatIso ASM x y)
 IsoPathCatIsoASM {x} {y} = iso pathToIso CatIsoToPath {!!} {!!}
 
+-- Conjecture : ASM is univalent
 isUnivalentASM : isUnivalent ASM
 isUnivalentASM = record { univ = λ x y → isoToEquiv IsoPathCatIsoASM .snd }
