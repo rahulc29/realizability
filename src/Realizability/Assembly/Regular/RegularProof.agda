@@ -8,14 +8,9 @@ module Realizability.Assembly.Regular.RegularProof {ℓ} {A : Type ℓ} (ca : Co
 open import Realizability.Assembly.Regular.CharLemma ca
 open import Realizability.Assembly.Base ca
 open import Realizability.Assembly.Morphism ca
-
+-- See Cobase instead
 module _
-  (charLemma :
-    ∀ {X Y}
-      (xs : Assembly X)
-      (ys : Assembly Y)
-      (e : AssemblyMorphism xs ys)
-    → CharLemma xs ys e) where
+  (charLemma : CharLemma) where
 
   open IsRegular
   RegularASM : IsRegular ASM
