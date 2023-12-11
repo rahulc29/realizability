@@ -46,13 +46,19 @@ module _
 
       isPropIsSurjectivelyTracked : isProp isSurjectivelyTracked
       isPropIsSurjectivelyTracked = isPropPropTrunc
-      
-      isRegularEpicASM : Type (ℓ-suc ℓ)
-      isRegularEpicASM = isRegularEpic ASM e
 
-      CharLemma : Type (ℓ-suc ℓ)
-      CharLemma = (isRegularEpicASM → isSurjectivelyTracked) × (isSurjectivelyTracked → isRegularEpicASM)
+CharLemma : Type (ℓ-suc ℓ)
+CharLemma = ∀ {X Y} (xs : Assembly X) (ys : Assembly Y) e
+            → (isRegularEpic ASM e → isSurjectivelyTracked xs ys e)
+            × (isSurjectivelyTracked xs ys e → isRegularEpic ASM e)
 
-      module CharLemmaConsequences (cl : CharLemma) where
-        isRegularEpicASM≃isSurjectivelyTracked : isRegularEpicASM ≃ isSurjectivelyTracked
-        isRegularEpicASM≃isSurjectivelyTracked = propBiimpl→Equiv (isPropIsRegularEpic ASM e) isPropIsSurjectivelyTracked (cl .fst) (cl .snd)
+
+module CharLemmaConsequences (cl : CharLemma) where
+  isRegularEpicASM≃isSurjectivelyTracked : ∀ {X Y} (xs : Assembly X) (ys : Assembly Y) e
+                                         → isRegularEpic ASM e ≃ isSurjectivelyTracked xs ys e
+  isRegularEpicASM≃isSurjectivelyTracked xs ys e =
+    propBiimpl→Equiv
+      (isPropIsRegularEpic ASM e)
+      (isPropIsSurjectivelyTracked xs ys e)
+      (cl xs ys e .fst)
+      (cl xs ys e .snd)
