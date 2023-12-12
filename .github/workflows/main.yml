@@ -13,6 +13,7 @@ jobs:
       with:
         main-file: index.agda
         source-dir: src
+	unsafe: true
     - name: Upload HTML
       id: html-upload
       uses: actions/upload-artifact@v1
