@@ -19,11 +19,11 @@ jobs:
 			id: cache-cabal
 			with:
 			path: |
-				~/.cabal/packages
-				~/.cabal/store
-				~/.cabal/bin
-				~/.local/bin
-				dist-newstyle
+				 ~/.cabal/packages
+				 ~/.cabal/store
+				 ~/.cabal/bin
+				 ~/.local/bin
+				 dist-newstyle
 			key: ${{ runner.os }}-${{ matrix.ghc-ver }}-${{ matrix.cabal-ver }}-${{ matrix.agda-ref }}
 		- name: Install cabal
 			if: steps.cache-cabal.outputs.cache != 'true'
