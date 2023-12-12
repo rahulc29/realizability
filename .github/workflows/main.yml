@@ -32,7 +32,7 @@ jobs:
         ghc-version: ${{ matrix.ghc-ver }}
         cabal-version: ${{ matrix.cabal-ver }}
     - name: Put cabal binaries in PATH
-        run: echo "~/.cabal/bin" >> $GITHUB_PATH
+      run: echo "~/.cabal/bin" >> $GITHUB_PATH
     - name: Download Agda from Github
       if: steps.cache-cabal.outputs.cache-hit != 'true'
       uses: actions/checkout@v2
