@@ -68,10 +68,6 @@ jobs:
 
     - name: Compile main library
       run: |
-        mkdir -p ~/main-build/_build
-        cp -f -R ~/main-build/_build $GITHUB_WORKSPACE/main/_build
-        rm -r ~/main-build
         cd master
         cd src
         agda --html --html-dir=../docs index.agda
-        cp -f -R main/ ~/main-build/
