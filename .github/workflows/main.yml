@@ -9,10 +9,10 @@ jobs:
 
     strategy:
       matrix:
-        agda-ref: ["v2.6.3"]
+        agda-ref: ["v2.6.4"]
         ghc-ver: ["8.10.2"]
         cabal-ver: ["3.4.0.0"]
-        cubical-ref: ["rahulc29/realizability"]
+        cubical-ref: ["rahulc29/cubical"]
     steps:
     - uses: actions/cache@v2
       name: Cache cabal packages
