@@ -12,7 +12,7 @@ jobs:
         agda-ref: ["v2.6.4"]
         ghc-ver: ["8.10.2"]
         cabal-ver: ["3.4.0.0"]
-        cubical-ref: ["rahulc29/cubical"]
+        cubical-ref: ["rahulc29/realizability"]
     steps:
     - uses: actions/cache@v2
       name: Cache cabal packages
@@ -51,10 +51,9 @@ jobs:
         touch doc/user-manual.pdf
         cabal install --overwrite-policy=always --ghc-options='-O1 +RTS -M6G -RTS'
     - name: Checkout realizability fork of Cubical
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: rahulc29/cubical
-        path: cubical
         ref: ${{ matrix.cubical-ref }}
     - name: Put cubical library in Agda library list
       run: |
@@ -62,7 +61,7 @@ jobs:
         touch ~/.agda/libraries
         echo "$GITHUB_WORKSPACE/cubical/cubical.agda-lib" > ~/.agda/libraries
     - name: Checkout master
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         path: master
 
