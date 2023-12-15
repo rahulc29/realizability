@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --allow-unsolved-metas #-}
 
 open import Realizability.CombinatoryAlgebra
 open import Cubical.Foundations.Prelude
@@ -50,7 +50,11 @@ module
       do
         (f~ , f~tracks) ← f .tracker
         (b  , bTracksSurjectivity) ← isSurjectivelyTrackedE
-        return (s ⨾ (s ⨾ (k ⨾ pair) ⨾ (s ⨾ (k ⨾ b) ⨾ (s ⨾ (k ⨾ f~) ⨾ Id))) ⨾ Id , λ z zᵣ zᵣ⊩z → ∣ {!!} , {!!} , {!!} ∣₁)
+        return
+          (s ⨾ (s ⨾ (k ⨾ pair) ⨾ (s ⨾ (k ⨾ b) ⨾ (s ⨾ (k ⨾ f~) ⨾ Id))) ⨾ Id ,
+          λ z zᵣ zᵣ⊩z →
+            do
+              return ({!!} , {!!}))
 
 module _ (cl : CharLemma) where
   open ASMKernelPairs

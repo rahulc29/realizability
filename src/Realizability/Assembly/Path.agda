@@ -4,9 +4,11 @@ open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Univalence
+open import Cubical.Foundations.Equiv
 open import Cubical.Functions.FunExtEquiv
 open import Cubical.Data.Sigma
 open import Cubical.HITs.PropositionalTruncation hiding (map)
+open import Cubical.HITs.PropositionalTruncation.Monad
 open import Cubical.Categories.Category
 
 module Realizability.Assembly.Path {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
@@ -55,7 +57,14 @@ CatIsoToPath {X , xs} {Y , ys} x∼y = ΣPathP (P , λ i → record
           {B = λ i p' → Type ℓ}
           {f = xs ._⊩_ xᵣ}
           {g = ys ._⊩_ yᵣ}
-          λ {x y} p' → hPropExt {A = xᵣ ⊩X x} {B = yᵣ ⊩Y y} (xs .⊩isPropValued xᵣ x) (ys .⊩isPropValued yᵣ y) (λ xᵣ⊩x → {!!}) λ yᵣ⊩y → {!!}
+          λ {x y} p' →
+            hPropExt
+              {A = xᵣ ⊩X x}
+              {B = yᵣ ⊩Y y}
+              (xs .⊩isPropValued xᵣ x)
+              (ys .⊩isPropValued yᵣ y)
+              (λ xᵣ⊩x → {!!})
+              λ yᵣ⊩y → {!!}
   
   ⊩isPropValuedOverP : PathP (λ i → ∀ (a : A) (p : P i) → isProp (⊩overP i a p)) (xs .⊩isPropValued) (ys .⊩isPropValued)
   ⊩isPropValuedOverP =
