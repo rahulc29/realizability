@@ -49,6 +49,7 @@ isSetPredicate {ℓ'} {ℓ''} X = subst (λ predicateType → isSet predicateTyp
 PredicateΣ≡ : ∀ {ℓ' ℓ''} (X : Type ℓ') → (P Q : PredicateΣ {ℓ'' = ℓ''} X) → (P .fst ≡ Q .fst) → P ≡ Q
 PredicateΣ≡ X P Q ∣P∣≡∣Q∣ = Σ≡Prop (λ _ → isPropIsSet) ∣P∣≡∣Q∣
 
+
 module PredicateProperties {ℓ' ℓ''} (X : Type ℓ') where
   PredicateX = Predicate {ℓ'' = ℓ''} X
   open Predicate
@@ -247,6 +248,7 @@ module Morphism {ℓ' ℓ''} {X Y : Type ℓ'} (isSetX : isSet X) (isSetY : isSe
       (`∀isRightAdjoint← ϕ ψ f)
       (`∀isRightAdjoint→ ϕ ψ f)
 
+-- The proof is trivial but I am the reader it was left to as an exercise
 module BeckChevalley
     {ℓ' ℓ'' : Level}
     (I J K : Type ℓ')
@@ -279,12 +281,36 @@ module BeckChevalley
     module `q = Morphism' isSetL isSetK
     open `q renaming (`∃[_] to `∃[L→K][_]; `∀[_] to `∀[L→K][_])
 
+    `∃BeckChevalley→ : ∀ ϕ k a → a ⊩ ∣ g* (`∃[J→I][ f ] ϕ) ∣ k → a ⊩ ∣ `∃[L→K][ p ] (q* ϕ) ∣ k
+    `∃BeckChevalley→ ϕ k a p =
+      do
+        (j , fj≡gk , a⊩ϕj) ← p
+        return ((k , (j , (sym fj≡gk))) , (refl , a⊩ϕj))
+
+    `∃BeckChevalley← : ∀ ϕ k a → a ⊩ ∣ `∃[L→K][ p ] (q* ϕ) ∣ k → a ⊩ ∣ g* (`∃[J→I][ f ] ϕ) ∣ k
+    `∃BeckChevalley← ϕ k a p =
+      do
+        (x@(k' , j , gk'≡fj) , k'≡k , a⊩ϕqj) ← p
+        return (j , (subst (λ k → f j ≡ g k) k'≡k (sym gk'≡fj)) , a⊩ϕqj)
+
     open Iso
     `∃BeckChevalley : g* ∘ `∃[J→I][ f ] ≡ `∃[L→K][ p ] ∘ q*
     `∃BeckChevalley =
       funExt λ ϕ i →
         PredicateIsoΣ K .inv
-          (PredicateΣ≡ K ((λ k a → (∣ (g* ∘ `∃[J→I][ f ]) ϕ ∣ k a) , ((g* ∘ `∃[J→I][ f ]) ϕ .isPropValued k a)) , isSetK) ((λ k a → (∣ (`∃[L→K][ p ] ∘ q*) ϕ ∣ k a) , ((`∃[L→K][ p ] ∘ q*) ϕ .isPropValued k a)) , isSetK) (funExt₂ (λ k a → Σ≡Prop (λ x → isPropIsProp) {!!})) i)
+          (PredicateΣ≡ {ℓ'' = ℓ''} K
+            ((λ k a → (∣ (g* ∘ `∃[J→I][ f ]) ϕ ∣ k a) , ((g* ∘ `∃[J→I][ f ]) ϕ .isPropValued k a)) , isSetK)
+            ((λ k a → (∣ (`∃[L→K][ p ] ∘ q*) ϕ ∣ k a) , ((`∃[L→K][ p ] ∘ q*) ϕ .isPropValued k a)) , isSetK)
+            (funExt₂
+              (λ k a →
+                Σ≡Prop
+                  (λ x → isPropIsProp {A = x})
+                  (hPropExt
+                    (g* (`∃[J→I][ f ] ϕ) .isPropValued k a)
+                    (`∃[L→K][ p ] (q* ϕ) .isPropValued k a)
+                    (`∃BeckChevalley→ ϕ k a)
+                    (`∃BeckChevalley← ϕ k a))))
+           i)
 
     
 
