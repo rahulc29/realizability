@@ -14,6 +14,7 @@ open import Cubical.Categories.Category
 module Realizability.Assembly.Path {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
 
 open CombinatoryAlgebra ca
+open Realizability.CombinatoryAlgebra.Combinators ca renaming (i to Id; ia≡a to Ida≡a; P to PCombinator)
 open import Realizability.Assembly.Base ca
 open import Realizability.Assembly.Morphism ca
 

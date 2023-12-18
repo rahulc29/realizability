@@ -54,7 +54,7 @@ module
           (s ⨾ (s ⨾ (k ⨾ pair) ⨾ (s ⨾ (k ⨾ b) ⨾ (s ⨾ (k ⨾ f~) ⨾ Id))) ⨾ Id ,
           λ z zᵣ zᵣ⊩z →
             do
-              return ({!!} , {!!}))
+              return ({!!} , {!!} , {!!}))
 
 module _ (cl : CharLemma) where
   open ASMKernelPairs

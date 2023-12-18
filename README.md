@@ -36,6 +36,20 @@ December 2023:
 - [ ] Exact completion
     - [x] Internal equivalence relations of a category
     - [ ] Functional relations
+- [ ] Tripos
+	- [x] Heyting-valued Predicates
+	- [x] $\forall$ and $\exists$ are adjoints
+	- [x] Beck-Chevalley condition
+	- [ ] Heyting prealgebra structure
+	- [ ] Interpret intuitionistic logic
+
+# Code Organisation
+
+- At the highest level, we have combinatory algebra machinery
+- Most modules are parameterised by a combinatory algebra `ca : CombinatoryAlgebra A`
+- There are modules on the category of assemblies in `Realizability.Assembly`
+- Lemmas and stuff relating to the regularity of $\mathsf{Asm}$ is found in `Realizability.Assembly.Regular`
+- Tripos modules are to be found in `Realizability.Tripos`
 
 # Writing
 
@@ -43,7 +57,7 @@ There are some notes relating to the project on my [abstract non-sense](https://
 
 # Build Instructions
 
-You will need Agda >= 2.6.3 and a [custom fork](https://github.com/rahulc29/cubical/tree/rahulc29/realizability) of the Cubical library to build the code.
+You will need Agda >= 2.6.4 and a [custom fork](https://github.com/rahulc29/cubical/tree/rahulc29/realizability) of the Cubical library to build the code.
 
 The custom fork has a few additional definitions in the category theory modules. I will hopefully integrate them into the Cubical library.
 

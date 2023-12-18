@@ -1,7 +1,9 @@
 {-# OPTIONS --cubical #-}
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.HLevels
+open import Cubical.Foundations.Structure
 open import Cubical.Data.Sigma
+open import Cubical.HITs.PropositionalTruncation
 open import Cubical.Reflection.RecordEquiv
 open import Realizability.CombinatoryAlgebra
 
@@ -18,9 +20,11 @@ module Realizability.Assembly.Base {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra
   AssemblyΣ : Type ℓ → Type _
   AssemblyΣ X =
     Σ[ isSetX ∈ isSet X ]
-    Σ[ _⊩_ ∈ (A → X → Type ℓ) ]
-    Σ[ ⊩isPropValued ∈ (∀ a x → isProp (a ⊩ x)) ]
-    (∀ x → ∃[ a ∈ A ] a ⊩ x)
+    Σ[ _⊩_ ∈ (A → X → hProp ℓ) ]
+    (∀ x → ∃[ a ∈ A ] ⟨ a ⊩ x ⟩)
+
+  isSetAssemblyΣ : ∀ X → isSet (AssemblyΣ X)
+  isSetAssemblyΣ X = isSetΣ (isProp→isSet isPropIsSet) λ isSetX → isSetΣ (isSetΠ (λ a → isSetΠ λ x → isSetHProp)) λ _⊩_ → isSetΠ λ x → isProp→isSet isPropPropTrunc
   
   unquoteDecl AssemblyIsoΣ = declareRecordIsoΣ AssemblyIsoΣ (quote Assembly)
 
