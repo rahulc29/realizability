@@ -312,6 +312,26 @@ module BeckChevalley
                     (`∃BeckChevalley← ϕ k a))))
            i)
 
-    
+    `∀BeckChevalley→ : ∀ ϕ k a → a ⊩ ∣ g* (`∀[J→I][ f ] ϕ) ∣ k → a ⊩ ∣ `∀[L→K][ p ] (q* ϕ) ∣ k
+    `∀BeckChevalley→ ϕ k a p b (k' , j , gk'≡fj) k'≡k = p b j (sym (subst (λ k'' → g k'' ≡ f j) k'≡k gk'≡fj))
 
-  
+    `∀BeckChevalley← : ∀ ϕ k a → a ⊩ ∣ `∀[L→K][ p ] (q* ϕ) ∣ k → a ⊩ ∣ g* (`∀[J→I][ f ] ϕ) ∣ k
+    `∀BeckChevalley← ϕ k a p b j fj≡gk = p b (k , j , sym fj≡gk) refl
+
+    `∀BeckChevalley : g* ∘ `∀[J→I][ f ] ≡ `∀[L→K][ p ] ∘ q*
+    `∀BeckChevalley =
+      funExt λ ϕ i →
+        PredicateIsoΣ K .inv
+          (PredicateΣ≡ {ℓ'' = ℓ''} K
+            ((λ k a → (a ⊩ ∣ g* (`∀[J→I][ f ] ϕ) ∣ k) , (g* (`∀[J→I][ f ] ϕ) .isPropValued k a)) , isSetK)
+            ((λ k a → (a ⊩ ∣ `∀[L→K][ p ] (q* ϕ) ∣ k) , (`∀[L→K][ p ] (q* ϕ) .isPropValued k a)) , isSetK)
+            (funExt₂
+              (λ k a →
+                Σ≡Prop
+                  (λ x → isPropIsProp {A = x})
+                  (hPropExt
+                    (g* (`∀[J→I][ f ] ϕ) .isPropValued k a)
+                    (`∀[L→K][ p ] (q* ϕ) .isPropValued k a)
+                    (`∀BeckChevalley→ ϕ k a)
+                    (`∀BeckChevalley← ϕ k a))))
+          i)
