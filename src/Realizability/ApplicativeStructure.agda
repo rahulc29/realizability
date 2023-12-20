@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --allow-unsolved-metas #-}
+{-# OPTIONS --cubical --without-K --allow-unsolved-metas #-}
 open import Cubical.Core.Everything
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.HLevels
@@ -7,6 +7,7 @@ open import Cubical.Data.Nat
 open import Cubical.Data.Nat.Order
 open import Cubical.Data.Fin
 open import Cubical.Data.Vec
+open import Cubical.Data.Empty renaming (elim to ⊥elim)
 
 module Realizability.ApplicativeStructure where
 
@@ -89,14 +90,21 @@ module _ {ℓ} {A : Type ℓ} (as : ApplicativeStructure A) where
 
   module _ (feferman : Feferman) where
     open Feferman feferman
+    {-
+    This goofy definition is there to ensure that λ* computes.
+    For some reason the last branch of pattern-matching cannot definitionally equate y .fst and suc m
+    So we must postulate it.
+    But since we already know that y .fst = suc m we can use discreteℕ to get an actual proof and extract
+    it using fromYes. fromYes then gets a dummy proof
+    -}
     λ* : ∀ {n} (e : Term (suc n)) → Term n
     λ* (` a) = ` k ̇ ` a
     λ* (a ̇ b) = ` s ̇ (λ* a) ̇ (λ* b)
-    λ* {n} (# y) with (discreteℕ n (y .fst))
+    λ* {n} (# y) with (discreteℕ (y .fst) zero)
     ... | yes _ = ` s ̇ ` k ̇ ` k
-    ... | no ¬y≡n with (y .fst)
-    ...   | zero = ` k ̇ (# (zero , {!suc-≤-suc (zero-≤ {n = (predℕ n)})!}))
-    ...   | (suc m) = ` k ̇ (# (((suc m) , {!!})))
+    ... | no ¬y≡zero with (y .fst)
+    ...     | zero = ⊥elim (¬y≡zero refl)
+    ...     | (suc m) = # (m , pred-≤-pred (subst (λ y' → suc y' ≤ suc n) (fromYes fsty≡sucm (discreteℕ (y .fst) (suc m))) (y .snd))) where postulate fsty≡sucm : fst y ≡ suc m
 
     λ*-chainTerm : ∀ n → Term n → Term zero
     λ*-chainTerm zero t = t
@@ -104,6 +112,11 @@ module _ {ℓ} {A : Type ℓ} (as : ApplicativeStructure A) where
 
     λ*-chain : ∀ {n} → Term n → A
     λ*-chain {n} t = substitute (λ*-chainTerm n t) []
+
+    ⟦_⟧ : Term zero → A
+    ⟦ ` a ⟧ = a
+    ⟦ a ̇ b ⟧ = ⟦ a ⟧ ⨾ ⟦ b ⟧
+    ⟦ # x ⟧ = ⊥elim {A = λ _ → A} (¬Fin0 x)
 
     open isInterpreted
 
