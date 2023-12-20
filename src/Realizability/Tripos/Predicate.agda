@@ -1,4 +1,5 @@
 open import Realizability.CombinatoryAlgebra
+open import Realizability.ApplicativeStructure renaming (⟦_⟧ to `⟦_⟧; λ*-naturality to `λ*ComputationRule; λ*-chain to `λ*) hiding (λ*)
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
@@ -8,6 +9,8 @@ open import Cubical.Foundations.Function
 open import Cubical.Functions.FunExtEquiv
 open import Cubical.Data.Sigma
 open import Cubical.Data.Sum
+open import Cubical.Data.Fin
+open import Cubical.Data.Vec
 open import Cubical.HITs.PropositionalTruncation
 open import Cubical.HITs.PropositionalTruncation.Monad
 open import Cubical.Relation.Binary.Order
@@ -15,6 +18,9 @@ open import Cubical.Relation.Binary.Order
 module Realizability.Tripos.Predicate {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
 open CombinatoryAlgebra ca
 open Realizability.CombinatoryAlgebra.Combinators ca renaming (i to Id; ia≡a to Ida≡a)
+
+λ*ComputationRule = `λ*ComputationRule as fefermanStructure
+λ* = `λ* as fefermanStructure
 
 record Predicate {ℓ' ℓ''} (X : Type ℓ') : Type (ℓ-max (ℓ-max (ℓ-suc ℓ) (ℓ-suc ℓ')) (ℓ-suc ℓ'')) where
   field
@@ -102,6 +108,41 @@ module PredicateProperties {ℓ' ℓ''} (X : Type ℓ') where
   (ϕ ⇒ ψ) .isSetX = ϕ .isSetX
   ∣ ϕ ⇒ ψ ∣ x a = ∀ b → (b ⊩ ∣ ϕ ∣ x) → (a ⨾ b) ⊩ ∣ ψ ∣ x
   (ϕ ⇒ ψ) .isPropValued x a = isPropΠ λ a → isPropΠ λ a⊩ϕx → ψ .isPropValued _ _
+
+  -- ⇒ is Heyting implication
+
+  a⊓b≤c→a≤b⇒c : ∀ a b c → (a ⊓ b ≤ c) → a ≤ (b ⇒ c)
+  a⊓b≤c→a≤b⇒c a b c a⊓b≤c =
+    do
+      (a~ , a~proves) ← a⊓b≤c
+      let prover = (` a~ ̇ (` pair ̇ (# fzero)  ̇ (# fone)))
+      return
+        (λ* prover ,
+          λ x aₓ aₓ⊩ax bₓ bₓ⊩bx →
+            subst
+              (λ r → r ⊩ ∣ c ∣ x)
+              (sym (λ*ComputationRule prover (aₓ ∷ bₓ ∷ [])))
+              (a~proves
+                x
+                (pair ⨾ aₓ ⨾ bₓ)
+                ((subst (λ r → r ⊩ ∣ a ∣ x) (sym (pr₁pxy≡x _ _)) aₓ⊩ax) ,
+                 (subst (λ r → r ⊩ ∣ b ∣ x) (sym (pr₂pxy≡y _ _)) bₓ⊩bx))))
+
+  a≤b⇒c→a⊓b≤c : ∀ a b c → a ≤ (b ⇒ c) → (a ⊓ b ≤ c)
+  a≤b⇒c→a⊓b≤c a b c a≤b⇒c =
+    do
+      (a~ , a~proves) ← a≤b⇒c
+      let prover = ` a~ ̇ (` pr₁ ̇ (# fzero)) ̇ (` pr₂ ̇ (# fzero))
+      return
+        (λ* prover ,
+          λ { x abₓ (pr₁abₓ⊩ax , pr₂abₓ⊩bx) →
+            subst
+              (λ r → r ⊩ ∣ c ∣ x)
+              (sym (λ*ComputationRule prover (abₓ ∷ [])))
+              (a~proves x (pr₁ ⨾ abₓ) pr₁abₓ⊩ax (pr₂ ⨾ abₓ) pr₂abₓ⊩bx) })
+
+  ⇒isRightAdjointOf⊓ : ∀ a b c → (a ⊓ b ≤ c) ≡ (a ≤ b ⇒ c)
+  ⇒isRightAdjointOf⊓ a b c = hPropExt (isProp≤ (a ⊓ b) c) (isProp≤ a (b ⇒ c)) (a⊓b≤c→a≤b⇒c a b c) (a≤b⇒c→a⊓b≤c a b c)
 
 module Morphism {ℓ' ℓ''} {X Y : Type ℓ'} (isSetX : isSet X) (isSetY : isSet Y)  where
   PredicateX = Predicate {ℓ'' = ℓ''} X
