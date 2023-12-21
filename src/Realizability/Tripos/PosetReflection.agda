@@ -32,7 +32,7 @@ open IsPoset renaming
 PosetReflection : {A : Type ℓ} (_≤_ : A → A → Type ℓ') → Type (ℓ-max ℓ ℓ')
 PosetReflection {A = A} _≤_ = A / λ x y → x ≤ y × y ≤ x
 
-module _ {A : Type ℓ} (_≤_ : A → A → Type ℓ') (isPreorder : IsPreorder _≤_) where
+module Properties {A : Type ℓ} (_≤_ : A → A → Type ℓ') (isPreorder : IsPreorder _≤_) where
   _≤ᴿ_ : PosetReflection _≤_ → PosetReflection _≤_ → hProp ℓ'
   a ≤ᴿ b =
     rec2
@@ -78,5 +78,11 @@ module _ {A : Type ℓ} (_≤_ : A → A → Type ℓ') (isPreorder : IsPreorder
                      y
                      z
 
-  isPoset : IsPoset (λ x y → ⟨ x ≤ᴿ y ⟩)
-  isPoset = isposet squash/ (λ x y → (x ≤ᴿ y) .snd) isRefl≤ᴿ isTrans≤ᴿ isAntisym≤ᴿ
+  _⊑_ : PosetReflection _≤_ → PosetReflection _≤_ → Type ℓ'
+  x ⊑ y = ⟨ x ≤ᴿ y ⟩
+
+  isPropValued⊑ : ∀ x y → isProp (x ⊑ y)
+  isPropValued⊑ x y = (x ≤ᴿ y) .snd
+
+  poset⊑ : Poset _ _
+  poset⊑ = poset (PosetReflection _≤_) _⊑_ (isposet squash/ isPropValued⊑ isRefl≤ᴿ isTrans≤ᴿ isAntisym≤ᴿ)

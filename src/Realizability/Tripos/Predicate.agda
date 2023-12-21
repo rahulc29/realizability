@@ -55,6 +55,27 @@ isSetPredicate {ℓ'} {ℓ''} X = subst (λ predicateType → isSet predicateTyp
 PredicateΣ≡ : ∀ {ℓ' ℓ''} (X : Type ℓ') → (P Q : PredicateΣ {ℓ'' = ℓ''} X) → (P .fst ≡ Q .fst) → P ≡ Q
 PredicateΣ≡ X P Q ∣P∣≡∣Q∣ = Σ≡Prop (λ _ → isPropIsSet) ∣P∣≡∣Q∣
 
+Predicate≡ :
+  ∀ {ℓ' ℓ''} (X : Type ℓ')
+  → (P Q : Predicate {ℓ'' = ℓ''} X)
+  → (∀ x a → a ⊩ ∣ P ∣ x → a ⊩ ∣ Q ∣ x)
+  → (∀ x a → a ⊩ ∣ Q ∣ x → a ⊩ ∣ P ∣ x)
+  -----------------------------------
+  → P ≡ Q
+Predicate≡ {ℓ'} {ℓ''} X P Q P→Q Q→P i =
+  PredicateIsoΣ X .inv
+    (PredicateΣ≡
+      {ℓ'' = ℓ''}
+      X
+      (PredicateIsoΣ X .fun P)
+      (PredicateIsoΣ X .fun Q)
+      (funExt₂
+        (λ x a → Σ≡Prop (λ A → isPropIsProp)
+        (hPropExt
+          (P .isPropValued x a)
+          (Q .isPropValued x a)
+          (P→Q x a)
+          (Q→P x a)))) i) where open Iso
 
 module PredicateProperties {ℓ' ℓ''} (X : Type ℓ') where
   PredicateX = Predicate {ℓ'' = ℓ''} X
