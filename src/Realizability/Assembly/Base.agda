@@ -23,6 +23,15 @@ module Realizability.Assembly.Base {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra
     Σ[ _⊩_ ∈ (A → X → hProp ℓ) ]
     (∀ x → ∃[ a ∈ A ] ⟨ a ⊩ x ⟩)
 
+  AssemblyΣX→isSetX : ∀ X → AssemblyΣ X → isSet X
+  AssemblyΣX→isSetX X (isSetX , _ , _) = isSetX
+
+  AssemblyΣX→⊩ : ∀ X → AssemblyΣ X → (A → X → hProp ℓ)
+  AssemblyΣX→⊩ X (_ , ⊩ , _) = ⊩
+
+  AssemblyΣX→⊩surjective : ∀ X → (asm : AssemblyΣ X) → (∀ x → ∃[ a ∈ A ] ⟨ AssemblyΣX→⊩ X asm a x ⟩)
+  AssemblyΣX→⊩surjective X (_ , _ , ⊩surjective) = ⊩surjective
+
   isSetAssemblyΣ : ∀ X → isSet (AssemblyΣ X)
   isSetAssemblyΣ X = isSetΣ (isProp→isSet isPropIsSet) λ isSetX → isSetΣ (isSetΠ (λ a → isSetΠ λ x → isSetHProp)) λ _⊩_ → isSetΠ λ x → isProp→isSet isPropPropTrunc
   
