@@ -1,6 +1,7 @@
-{-# OPTIONS --allow-unsolved-metas #-}
+{-# OPTIONS --allow-unsolved-metas --lossy-unification #-}
 open import Realizability.CombinatoryAlgebra
 open import Realizability.Tripos.PosetReflection
+open import Realizability.Tripos.HeytingAlgebra
 open import Realizability.ApplicativeStructure renaming (λ*-naturality to `λ*ComputationRule; λ*-chain to `λ*) hiding (λ*)
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Univalence
@@ -12,11 +13,18 @@ open import Cubical.Data.Fin
 open import Cubical.Data.Sum renaming (rec to sumRec)
 open import Cubical.Data.Vec
 open import Cubical.Data.Sigma
+open import Cubical.Data.Empty
+open import Cubical.Data.Unit
 open import Cubical.HITs.PropositionalTruncation
 open import Cubical.HITs.PropositionalTruncation.Monad
 open import Cubical.HITs.SetQuotients renaming (rec to quotRec; rec2 to quotRec2)
 open import Cubical.Relation.Binary.Order.Preorder
 open import Cubical.Relation.Binary.Order.Poset
+open import Cubical.Algebra.Lattice
+open import Cubical.Algebra.Semilattice
+open import Cubical.Algebra.CommMonoid
+open import Cubical.Algebra.Monoid
+open import Cubical.Algebra.Semigroup
 
 module Realizability.Tripos.Algebra {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A)  where
 open import Realizability.Tripos.Predicate ca
@@ -27,7 +35,7 @@ open Realizability.CombinatoryAlgebra.Combinators ca renaming (i to Id; ia≡a t
 λ*ComputationRule = `λ*ComputationRule as fefermanStructure
 λ* = `λ* as fefermanStructure
 
-module AlgebraicProperties {ℓ' ℓ''} (X : Type ℓ') where
+module AlgebraicProperties {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) where
   PredicateX = Predicate {ℓ'' = ℓ''} X
   open Predicate
   open PredicateProperties {ℓ'' = ℓ''} X
@@ -203,8 +211,8 @@ module AlgebraicProperties {ℓ' ℓ''} (X : Type ℓ') where
                                  pr₂a⊩zx') })
                       a⊩x⊔z ∣₁))
 
-  _l∨_ : PredicateAlgebra → PredicateAlgebra → PredicateAlgebra
-  a l∨ b =
+  _∨l_ : PredicateAlgebra → PredicateAlgebra → PredicateAlgebra
+  a ∨l b =
     quotRec2
       squash/
       (λ x y → [ x ⊔ y ])
@@ -227,3 +235,73 @@ module AlgebraicProperties {ℓ' ℓ''} (X : Type ℓ') where
            x ⊔ y
             ◾)))
       a b
+
+  x⊓y≤x : ∀ x y → x ⊓ y ≤ x
+  x⊓y≤x x y = return (pr₁ , (λ x a a⊩x⊓y → a⊩x⊓y .fst))
+
+  x⊓y≤y : ∀ x y → x ⊓ y ≤ y
+  x⊓y≤y x y = return (pr₂ , (λ x a a⊩x⊓y → a⊩x⊓y .snd))
+
+  isLowerbound⊓ : ∀ x y → ((x ⊓ y) ≤ x) × ((x ⊓ y) ≤ y)
+  isLowerbound⊓ x y = x⊓y≤x x y , x⊓y≤y x y
+
+  isGreatestLowerbound⊓ : ∀ x y z → (z ≤ x) → (z ≤ y) → (z ≤ (x ⊓ y))
+  isGreatestLowerbound⊓ x y z z≤x z≤y =
+    do
+      (z≤x~ , z≤x~proves) ← z≤x
+      (z≤y~ , z≤y~proves) ← z≤y
+      let
+        prover : Term as 1
+        prover = ` pair ̇ (` z≤x~ ̇ # fzero) ̇ (` z≤y~ ̇ # fzero)
+      return
+        (λ* prover ,
+          λ x' a a⊩zx →
+            subst
+              (λ witness → witness ⊩ ∣ x ⊓ y ∣ x')
+              (sym (λ*ComputationRule prover (a ∷ [])))
+              ((subst (λ witness → witness ⊩ ∣ x ∣ x') (sym (pr₁pxy≡x _ _)) (z≤x~proves x' a a⊩zx)) ,
+                subst (λ witness → witness ⊩ ∣ y ∣ x') (sym (pr₂pxy≡y _ _)) (z≤y~proves x' a a⊩zx)))
+
+  _∧l_ : PredicateAlgebra → PredicateAlgebra → PredicateAlgebra
+  a ∧l b =
+    quotRec2
+      squash/
+      (λ x y → [ x ⊓ y ])
+      (λ x y z (x≤y , y≤x) →
+        eq/
+          (x ⊓ z)
+          (y ⊓ z)
+          (isGreatestLowerbound⊓ y z (x ⊓ z) (x ⊓ z ≲⟨ x⊓y≤x x z ⟩ x ≲⟨ x≤y ⟩ y ◾) (x⊓y≤y x z) ,
+           isGreatestLowerbound⊓ x z (y ⊓ z) (y ⊓ z ≲⟨ x⊓y≤x y z ⟩ y ≲⟨ y≤x ⟩ x ◾) (x⊓y≤y y z)))
+      (λ x y z (y≤z , z≤y) →
+        eq/
+          (x ⊓ y)
+          (x ⊓ z)
+          ((isGreatestLowerbound⊓ x z (x ⊓ y) (x⊓y≤x x y) (x ⊓ y ≲⟨ x⊓y≤y x y ⟩ y ≲⟨ y≤z ⟩ z ◾)) ,
+            isGreatestLowerbound⊓ x y (x ⊓ z) (x⊓y≤x x z) (x ⊓ z ≲⟨ x⊓y≤y x z ⟩ z ≲⟨ z≤y ⟩ y ◾)))
+      a b
+
+  _→l_ : PredicateAlgebra → PredicateAlgebra → PredicateAlgebra
+  a →l b = {!!}
+
+  0predicate : PredicateAlgebra
+  0predicate = [ record { isSetX = isSetX' ; ∣_∣ = λ x a → ⊥* ; isPropValued = λ _ _ → isProp⊥* } ]
+
+  1predicate : PredicateAlgebra
+  1predicate = [ record { isSetX = isSetX' ; ∣_∣ = λ x a → Unit* ; isPropValued = λ _ _ → isPropUnit* } ]
+
+  isHeytingAlgebraPredicateAlgebra : IsHeytingAlgebra 0predicate 1predicate _∨l_ _∧l_ _→l_
+  isHeytingAlgebraPredicateAlgebra =
+    isHeytingAlgebra
+      squash/
+      (islattice
+        (issemilattice
+          (iscommmonoid
+            (ismonoid
+              (issemigroup squash/ {!!}) {!!} {!!}) {!!}) {!!})
+        (issemilattice
+          (iscommmonoid
+            (ismonoid
+              (issemigroup squash/ {!!}) {!!} {!!}) {!!}) {!!})
+        {!!})
+      {!!}
