@@ -16,19 +16,10 @@ open Realizability.CombinatoryAlgebra.Combinators ca renaming (i to Id; ia≡a t
 open import Realizability.Assembly.Base ca
 open import Realizability.Assembly.Morphism ca
 
-AssemblyStr : (X : Type ℓ) → Type _
-AssemblyStr X = AssemblyΣ X
-
-AssemblyStrEquiv : StrEquiv AssemblyStr _
-AssemblyStrEquiv =
-  λ {
-    (X , isSetX , _⊩X_ , ⊩Xsurjective)
-    (Y , isSetY , _⊩Y_ , ⊩Ysurjective) e →
-      ∀ (x : X) (r : A) → ⟨ r ⊩X x ⟩ ≃ ⟨ r ⊩Y (equivFun e x) ⟩  }
-
-AssemblyStrEquiv→PathP : ∀ {X Y} → (e : ⟨ X ⟩ ≃ ⟨ Y ⟩) → AssemblyStrEquiv X Y e → PathP (λ i → AssemblyStr (ua e i)) (str X) (str Y)
-AssemblyStrEquiv→PathP asmX@{X , isSetX , _⊩X_ , ⊩Xsurjective} asmY@{Y , isSetY , _⊩Y_ , ⊩Ysurjective} e strEquiv i
-  = isProp→PathP {B = λ j → isSet (ua e j)} (λ i → isPropIsSet) isSetX isSetY i , (λ a p → {!!} , {!!}) , {!!}
-
-AssemblyStrUnivalent : UnivalentStr AssemblyStr AssemblyStrEquiv
-AssemblyStrUnivalent {A = X} {B = Y} e = {!!}
+Assembly≡ : ∀ {X Y : Type ℓ}
+          → (asmX : Assembly X)
+          → (asmY : Assembly Y)
+          → (P : X ≡ Y)
+          → (⊩overP : PathP (λ i → ∀ (a : A) (p : P i) → Type ℓ) (asmX ._⊩_) (asmY ._⊩_))
+          → PathP (λ i → Assembly (P i)) asmX asmY
+Assembly≡ {X} {Y} asmX asmY P ⊩overP = {!AssemblyIsoΣ!}
