@@ -281,8 +281,159 @@ module AlgebraicProperties {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) wher
             isGreatestLowerbound⊓ x y (x ⊓ z) (x⊓y≤x x z) (x ⊓ z ≲⟨ x⊓y≤y x z ⟩ z ≲⟨ z≤y ⟩ y ◾)))
       a b
 
+  antiSym→a⇒c≤b⇒c : ∀ a b c → a ≤ b → b ≤ a → (a ⇒ c) ≤ (b ⇒ c)
+  antiSym→a⇒c≤b⇒c a b c a≤b b≤a =
+    do
+      (α , αProves) ← a≤b
+      (β , βProves) ← b≤a
+      let
+        prover : Term as 2
+        prover = (# fzero) ̇ (` β ̇ # fone)
+      return
+        (λ* prover ,
+          (λ x r r⊩a⇒c r' r'⊩b →
+            subst
+              (λ witness → witness ⊩ ∣ c ∣ x)
+              (sym (λ*ComputationRule prover (r ∷ r' ∷ [])))
+              (r⊩a⇒c (β ⨾ r') (βProves x r' r'⊩b))))
+
+  antiSym→a⇒b≤a⇒c : ∀ a b c → b ≤ c → c ≤ b → (a ⇒ b) ≤ (a ⇒ c)
+  antiSym→a⇒b≤a⇒c a b c b≤c c≤b =
+    do
+      (β , βProves) ← b≤c
+      (γ , γProves) ← c≤b
+      let
+        prover : Term as 2
+        prover = ` β ̇ ((# fzero) ̇ (# fone))
+      return
+        (λ* prover ,
+          (λ x α α⊩a⇒b a' a'⊩a →
+            subst
+              (λ r → r ⊩ ∣ c ∣ x)
+              (sym (λ*ComputationRule prover (α ∷ a' ∷ [])))
+              (βProves x (α ⨾ a') (α⊩a⇒b a' a'⊩a))))
+
   _→l_ : PredicateAlgebra → PredicateAlgebra → PredicateAlgebra
-  a →l b = {!!}
+  a →l b =
+    quotRec2
+      squash/
+      (λ a b → [ a ⇒ b ])
+      (λ a b c (a≤b , b≤a) → eq/ (a ⇒ c) (b ⇒ c) (antiSym→a⇒c≤b⇒c a b c a≤b b≤a , antiSym→a⇒c≤b⇒c b a c b≤a a≤b))
+      (λ a b c (b≤c , c≤b) → eq/ (a ⇒ b) (a ⇒ c) (antiSym→a⇒b≤a⇒c a b c b≤c c≤b , antiSym→a⇒b≤a⇒c a c b c≤b b≤c))
+      a b
+
+  module ⊔Assoc (x y z : Predicate {ℓ'' = ℓ''} X) where
+    →proverTerm : Term as 1
+    →proverTerm =
+            ` Id ̇
+            (` pr₁ ̇ (# fzero)) ̇
+            (` pair ̇ ` true ̇ (` pair ̇ ` true ̇ (` pr₂ ̇ (# fzero)))) ̇
+            (` Id ̇
+              (` pr₁ ̇ (` pr₂ ̇ (# fzero))) ̇
+              (` pair ̇ ` true ̇ (` pair ̇ ` false ̇ (` pr₂ ̇ ` pr₂ ̇ # fzero))) ̇
+              (` pair ̇ ` false ̇ (` pr₂ ̇ (` pr₂ ̇ # fzero))))
+
+    →prover = λ* →proverTerm
+
+    module _
+      (a : A)
+      (pr₁a≡true : pr₁ ⨾ a ≡ true) where
+
+      proof = →prover ⨾ a
+
+      proof≡pair⨾true⨾pair⨾true⨾pr₂a : proof ≡ pair ⨾ true ⨾ (pair ⨾ true ⨾ (pr₂ ⨾ a))
+      proof≡pair⨾true⨾pair⨾true⨾pr₂a =
+        proof
+          ≡⟨ λ*ComputationRule →proverTerm (a ∷ []) ⟩
+        (Id ⨾
+         (pr₁ ⨾ a) ⨾
+         (pair ⨾ true ⨾ (pair ⨾ true ⨾ (pr₂ ⨾ a))) ⨾
+         (Id ⨾
+           (pr₁ ⨾ (pr₂ ⨾ a)) ⨾
+           (pair ⨾ true ⨾ (pair ⨾ false ⨾ (pr₂ ⨾ pr₂ ⨾ a))) ⨾
+           (pair ⨾ false ⨾ (pr₂ ⨾ (pr₂ ⨾ a)))))
+           ≡⟨  cong (λ x →
+                     (Id ⨾
+                       x ⨾
+                       (pair ⨾ true ⨾ (pair ⨾ true ⨾ (pr₂ ⨾ a))) ⨾
+                       (Id ⨾
+                         (pr₁ ⨾ (pr₂ ⨾ a)) ⨾
+                         (pair ⨾ true ⨾ (pair ⨾ false ⨾ (pr₂ ⨾ pr₂ ⨾ a))) ⨾
+                         (pair ⨾ false ⨾ (pr₂ ⨾ (pr₂ ⨾ a))))))
+                pr₁a≡true ⟩
+         (Id ⨾
+           k ⨾
+           (pair ⨾ true ⨾ (pair ⨾ true ⨾ (pr₂ ⨾ a))) ⨾
+           (Id ⨾
+             (pr₁ ⨾ (pr₂ ⨾ a)) ⨾
+             (pair ⨾ true ⨾ (pair ⨾ false ⨾ (pr₂ ⨾ pr₂ ⨾ a))) ⨾
+             (pair ⨾ false ⨾ (pr₂ ⨾ (pr₂ ⨾ a)))))
+            ≡⟨ ifTrueThen _ _ ⟩
+          pair ⨾ true ⨾ (pair ⨾ true ⨾ (pr₂ ⨾ a))
+            ∎
+
+      pr₁⨾proof≡true : pr₁ ⨾ (→prover ⨾ a) ≡ true
+      pr₁⨾proof≡true =
+                     (pr₁ ⨾ (→prover ⨾ a))
+                       ≡⟨ cong (λ x → pr₁ ⨾ x) proof≡pair⨾true⨾pair⨾true⨾pr₂a ⟩
+                     pr₁ ⨾ (pair ⨾ true ⨾ (pair ⨾ true ⨾ (pr₂ ⨾ a)))
+                       ≡⟨ pr₁pxy≡x _ _ ⟩
+                     true
+                        ∎
+
+      pr₁pr₂proof≡true : pr₁ ⨾ (pr₂ ⨾ (→prover ⨾ a)) ≡ true
+      pr₁pr₂proof≡true =
+        pr₁ ⨾ (pr₂ ⨾ proof)
+          ≡⟨ cong (λ x → pr₁ ⨾ (pr₂ ⨾ x)) proof≡pair⨾true⨾pair⨾true⨾pr₂a ⟩
+        pr₁ ⨾ (pr₂ ⨾ (pair ⨾ true ⨾ (pair ⨾ true ⨾ (pr₂ ⨾ a))))
+          ≡⟨ cong (λ x → pr₁ ⨾ x) (pr₂pxy≡y _ _) ⟩
+        pr₁ ⨾ (pair ⨾ true ⨾ (pr₂ ⨾ a))
+          ≡⟨ pr₁pxy≡x _ _ ⟩
+        true
+           ∎
+
+  x⊔_y⊔z≤x⊔y_⊔z : ∀ x y z → (x ⊔ (y ⊔ z)) ≤ ((x ⊔ y) ⊔ z)
+  x⊔_y⊔z≤x⊔y_⊔z x y z =
+    do
+      let
+        {-
+        if pr₁ a then
+          ⟨ true , ⟨ true , pr₂ a ⟩⟩
+        else
+          if pr₁ (pr₂ a) then
+            ⟨ true , ⟨ false , pr₂ (pr₂ a) ⟩⟩
+          else
+            ⟨ false , pr₂ (pr₂ a) ⟩
+        -}
+        prover : Term as 1
+        prover =
+          ` Id ̇
+            (` pr₁ ̇ (# fzero)) ̇
+            (` pair ̇ ` true ̇ (` pair ̇ ` true ̇ (` pr₂ ̇ (# fzero)))) ̇
+            (` Id ̇
+              (` pr₁ ̇ (` pr₂ ̇ (# fzero))) ̇
+              (` pair ̇ ` true ̇ (` pair ̇ ` false ̇ (` pr₂ ̇ ` pr₂ ̇ # fzero))) ̇
+              (` pair ̇ ` false ̇ (` pr₂ ̇ (` pr₂ ̇ # fzero))))
+      return
+        (λ* prover ,
+          λ x' a a⊩x⊔_y⊔z →
+            transport
+              (propTruncIdempotent (((x ⊔ y) ⊔ z) .isPropValued x' (λ* prover ⨾ a)))
+              (a⊩x⊔_y⊔z >>= (λ { (inl (pr₁a≡true , pr₁a⊩x))
+                                 → ∣ ∣ inl ( ⊔Assoc.pr₁⨾proof≡true x y z a pr₁a≡true ,
+                                       transport
+                                         (propTruncIdempotent isPropPropTrunc)
+                                         ∣ a⊩x⊔_y⊔z
+                                           >>= (λ { (inl (pr₁a≡k , pr₂a⊩x)) → ∣ inl (⊔Assoc.pr₁pr₂proof≡true x y z a pr₁a≡true , {!!}) ∣₁ ; (inr (pr₁a≡k , pr₂a⊩y⊔z)) → {!!} }) ∣₁) ∣₁ ∣₁
+                               ; (inr (pr₁a≡false , pr₂a⊩y⊔z)) → {!!}
+                                })))
+
+  ∨lAssoc : ∀ x y z → x ∨l (y ∨l z) ≡ ((x ∨l y) ∨l z)
+  ∨lAssoc x y z =
+    elimProp3
+      (λ x y z → squash/ (x ∨l (y ∨l z)) ((x ∨l y) ∨l z))
+      (λ x y z → eq/ _ _ ({!!} , {!!}))
+      x y z
 
   0predicate : PredicateAlgebra
   0predicate = [ record { isSetX = isSetX' ; ∣_∣ = λ x a → ⊥* ; isPropValued = λ _ _ → isProp⊥* } ]
