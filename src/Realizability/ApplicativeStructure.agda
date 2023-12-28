@@ -118,6 +118,20 @@ module _ {ℓ} {A : Type ℓ} (as : ApplicativeStructure A) where
     ⟦ a ̇ b ⟧ = ⟦ a ⟧ ⨾ ⟦ b ⟧
     ⟦ # x ⟧ = ⊥elim {A = λ _ → A} (¬Fin0 x)
 
+    λ*Computation : ∀ (T : Term 1) (e : Term zero) → ⟦ λ* T ⟧ ⨾ ⟦ e ⟧ ≡ substitute T (⟦ e ⟧ ∷ [])
+    λ*Computation (# x) e = {!subst (λ x≡zero → ⟦ λ* (# x) ⟧ ⨾ ⟦ e ⟧ ≡ lookup (Fin→FinData 1 x) (⟦ e ⟧ ∷ [])) ? ?!}
+    λ*Computation (` x) e = kab≡a x ⟦ e ⟧
+    λ*Computation (U ̇ V) e =
+      s ⨾ ⟦ λ* U ⟧ ⨾ ⟦ λ* V ⟧ ⨾ ⟦ e ⟧
+        ≡⟨ sabc≡ac_bc _ _ _ ⟩
+       (⟦ λ* U ⟧ ⨾ ⟦ e ⟧) ⨾ (⟦ λ* V ⟧ ⨾ ⟦ e ⟧)
+        ≡⟨ cong (λ x → x ⨾ _) (λ*Computation U e) ⟩
+        (substitute U (⟦ e ⟧ ∷ [])) ⨾ (⟦ λ* V ⟧ ⨾ ⟦ e ⟧)
+        ≡⟨ cong (λ x → _ ⨾ x) (λ*Computation V e) ⟩
+        (substitute U (⟦ e ⟧ ∷ [])) ⨾ (substitute V (⟦ e ⟧ ∷ []))
+        ∎
+    
+
     open isInterpreted
 
     postulate λ*-naturality : ∀ {n} (t : Term n) (subs : Vec A n) → apply (λ*-chain t) subs ≡ substitute t subs

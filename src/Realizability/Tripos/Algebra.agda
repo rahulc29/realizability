@@ -496,6 +496,43 @@ module AlgebraicProperties {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) (isN
             ≡⟨ pr₂pxy≡y _ _ ⟩
           pr₂ ⨾ (pr₂ ⨾ a)
             ∎
+
+      module _ (pr₁pr₂a≡false : pr₁ ⨾ (pr₂ ⨾ a) ≡ false) where
+
+        proof≡pair⨾false⨾pr₂pr₂a : proof ≡ pair ⨾ false ⨾ (pr₂ ⨾ (pr₂ ⨾ a))
+        proof≡pair⨾false⨾pr₂pr₂a =
+          proof
+            ≡⟨ proof≡y⊔z ⟩
+          Id ⨾
+            (pr₁ ⨾ (pr₂ ⨾ a)) ⨾
+            (pair ⨾ true ⨾ (pair ⨾ false ⨾ (pr₂ ⨾ (pr₂ ⨾ a)))) ⨾
+            (pair ⨾ false ⨾ (pr₂ ⨾ (pr₂ ⨾ a)))
+            ≡⟨ cong
+               (λ x →
+                 Id ⨾
+                 x ⨾
+                 (pair ⨾ true ⨾ (pair ⨾ false ⨾ (pr₂ ⨾ (pr₂ ⨾ a)))) ⨾
+                 (pair ⨾ false ⨾ (pr₂ ⨾ (pr₂ ⨾ a))))
+                 pr₁pr₂a≡false ⟩
+          ifFalseElse _ _
+
+        pr₁proof≡false : pr₁ ⨾ proof ≡ false
+        pr₁proof≡false =
+          pr₁ ⨾ proof
+            ≡⟨ cong (λ x → pr₁ ⨾ x) proof≡pair⨾false⨾pr₂pr₂a ⟩
+          pr₁ ⨾ (pair ⨾ false ⨾ (pr₂ ⨾ (pr₂ ⨾ a)))
+            ≡⟨ pr₁pxy≡x _ _ ⟩
+          false
+            ∎
+
+        pr₂proof≡pr₂pr₂a : pr₂ ⨾ proof ≡ pr₂ ⨾ (pr₂ ⨾ a)
+        pr₂proof≡pr₂pr₂a =
+          pr₂ ⨾ proof
+            ≡⟨ cong (λ x → pr₂ ⨾ x) proof≡pair⨾false⨾pr₂pr₂a ⟩
+          pr₂ ⨾ (pair ⨾ false ⨾ (pr₂ ⨾ (pr₂ ⨾ a)))
+            ≡⟨ pr₂pxy≡y _ _ ⟩
+          pr₂ ⨾ (pr₂ ⨾ a)
+            ∎
             
 
   x⊔_y⊔z≤x⊔y_⊔z : ∀ x y z → (x ⊔ (y ⊔ z)) ≤ ((x ⊔ y) ⊔ z)
@@ -551,21 +588,35 @@ module AlgebraicProperties {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) (isN
                                 (sym (Pr₁a≡false.pr₂pr₂proof≡pr₂pr₂a a pr₁a≡false pr₁pr₂a≡k))
                                 pr₂pr₂a⊩y) ∣₁) ∣₁
                           ; (inr (pr₁pr₂a≡k' , pr₂pr₂a⊩z)) →
-                            ∣ inr ({!!} , {!!}) ∣₁ }) ∣₁
+                            ∣ inr (
+                              Pr₁a≡false.pr₁proof≡false a pr₁a≡false pr₁pr₂a≡k' ,
+                              subst
+                                (λ r → r ⊩ ∣ z ∣ x')
+                                (sym (Pr₁a≡false.pr₂proof≡pr₂pr₂a a pr₁a≡false pr₁pr₂a≡k'))
+                                pr₂pr₂a⊩z) ∣₁ }) ∣₁
                                 })))) where open ⊔Assoc x y z
+
+  x⊔y_⊔z≤x⊔_y⊔z : ∀ x y z → ((x ⊔ y) ⊔ z) ≤ (x ⊔ (y ⊔ z))
+  x⊔y_⊔z≤x⊔_y⊔z x y z = {!!}
 
   ∨lAssoc : ∀ x y z → x ∨l (y ∨l z) ≡ ((x ∨l y) ∨l z)
   ∨lAssoc x y z =
     elimProp3
       (λ x y z → squash/ (x ∨l (y ∨l z)) ((x ∨l y) ∨l z))
-      (λ x y z → eq/ _ _ (x⊔_y⊔z≤x⊔y_⊔z x y z , {!!}))
+      (λ x y z → eq/ _ _ (x⊔_y⊔z≤x⊔y_⊔z x y z , x⊔y_⊔z≤x⊔_y⊔z x y z))
       x y z
 
+  0predicate' : Predicate {ℓ'' = ℓ''} X
+  0predicate' = record { isSetX = isSetX' ; ∣_∣ = λ x a → ⊥* ; isPropValued = λ _ _ → isProp⊥* }
+
   0predicate : PredicateAlgebra
-  0predicate = [ record { isSetX = isSetX' ; ∣_∣ = λ x a → ⊥* ; isPropValued = λ _ _ → isProp⊥* } ]
+  0predicate = [ 0predicate' ]
 
   1predicate : PredicateAlgebra
   1predicate = [ record { isSetX = isSetX' ; ∣_∣ = λ x a → Unit* ; isPropValued = λ _ _ → isPropUnit* } ]
+
+  x∨l0≡x : ∀ x → x ∨l 0predicate ≡ x
+  x∨l0≡x x = elimProp (λ x → squash/ (x ∨l 0predicate) x) (λ x → eq/ (x ⊔ 0predicate') x ({!!} , {!!})) x
 
   isHeytingAlgebraPredicateAlgebra : IsHeytingAlgebra 0predicate 1predicate _∨l_ _∧l_ _→l_
   isHeytingAlgebraPredicateAlgebra =

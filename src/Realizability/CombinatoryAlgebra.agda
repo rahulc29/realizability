@@ -1,6 +1,8 @@
 {-# OPTIONS --cubical #-}
 open import Cubical.Core.Everything
 open import Cubical.Foundations.Prelude
+open import Cubical.Data.Empty
+open import Cubical.Data.Unit
 open import Cubical.Data.Nat
 
 open import Realizability.ApplicativeStructure hiding (S;K)
@@ -159,5 +161,35 @@ module Combinators {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
                g ⨾ (f ⨾ a)
                  ∎
 
+
+module Trivial {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
+  open CombinatoryAlgebra ca
+  open Combinators ca
+  module _ (isNonTrivial : s ≡ k → ⊥) where
+
+    k≠k' : k ≡ k' → ⊥
+    k≠k' k≡k' = isNonTrivial s≡k where
+      cond = if true then s else k
+      cond' = if false then s else k
+      condEq : cond ≡ cond'
+      condEq = cong (λ x → if x then s else k) k≡k'
   
-                  
+      cond≡s : cond ≡ s
+      cond≡s = ifTrueThen _ _
+
+      cond'≡k : cond' ≡ k
+      cond'≡k = ifFalseElse _ _
+
+      cond≡k : cond ≡ k
+      cond≡k = subst (λ x → x ≡ k) (sym condEq) cond'≡k
+
+      s≡k : s ≡ k
+      s≡k =
+        s
+          ≡⟨ sym cond≡s ⟩
+        cond
+          ≡⟨ cond≡k ⟩
+        k
+          ∎
+        
+
