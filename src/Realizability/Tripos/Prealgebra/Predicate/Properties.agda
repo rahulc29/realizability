@@ -8,6 +8,8 @@ open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.Function
 open import Cubical.Functions.FunExtEquiv
 open import Cubical.Data.Sigma
+open import Cubical.Data.Empty
+open import Cubical.Data.Unit
 open import Cubical.Data.Sum
 open import Cubical.HITs.PropositionalTruncation
 open import Cubical.HITs.PropositionalTruncation.Monad
@@ -21,9 +23,9 @@ open import Realizability.Tripos.Prealgebra.Predicate.Base ca
 
 open CombinatoryAlgebra ca
 open Realizability.CombinatoryAlgebra.Combinators ca renaming (i to Id; ia≡a to Ida≡a)
-open Predicate hiding (isSetX)
+open Predicate
 module PredicateProperties {ℓ' ℓ''} (X : Type ℓ') where
-  PredicateX = Predicate {ℓ'' = ℓ''} X
+  private PredicateX = Predicate {ℓ'' = ℓ''} X
   open Predicate
   _≤_ : Predicate {ℓ'' = ℓ''} X → Predicate {ℓ'' = ℓ''} X → Type (ℓ-max (ℓ-max ℓ ℓ') ℓ'')
   ϕ ≤ ψ = ∃[ b ∈ A ] (∀ (x : X) (a : A) → a ⊩ (∣ ϕ ∣ x) → (b ⨾ a) ⊩ ∣ ψ ∣ x)
@@ -87,8 +89,8 @@ module Morphism {ℓ' ℓ''} {X Y : Type ℓ'} (isSetX : isSet X) (isSetY : isSe
   PredicateY = Predicate {ℓ'' = ℓ''} Y
   module PredicatePropertiesX = PredicateProperties {ℓ'' = ℓ''} X
   module PredicatePropertiesY = PredicateProperties {ℓ'' = ℓ''} Y
-  open PredicatePropertiesX hiding (PredicateX) renaming (_≤_ to _≤X_ ; isProp≤ to isProp≤X)
-  open PredicatePropertiesY hiding (PredicateX) renaming (_≤_ to _≤Y_ ; isProp≤ to isProp≤Y)
+  open PredicatePropertiesX renaming (_≤_ to _≤X_ ; isProp≤ to isProp≤X)
+  open PredicatePropertiesY renaming (_≤_ to _≤Y_ ; isProp≤ to isProp≤Y)
   open Predicate hiding (isSetX)
 
   ⋆_ : (X → Y) → (PredicateY → PredicateX)
