@@ -21,7 +21,7 @@ private λ*ComputationRule = `λ*ComputationRule as fefermanStructure
 private λ* = `λ* as fefermanStructure
 
 module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) (isNonTrivial : s ≡ k → ⊥) where
-  PredicateX = Predicate {ℓ'' = ℓ''} X
+  private PredicateX = Predicate {ℓ'' = ℓ''} X
   open Predicate
   open PredicateProperties {ℓ'' = ℓ''} X
 

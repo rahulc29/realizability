@@ -1,5 +1,6 @@
+{-# OPTIONS --allow-unsolved-metas #-}
 open import Cubical.Foundations.Prelude
-open import Cubical.Data.Empty renaming (elim to ⊥elim)
+open import Cubical.Data.Empty renaming (rec to ⊥rec)
 open import Cubical.Data.Fin
 open import Cubical.Data.Vec
 open import Cubical.Data.Sum
@@ -13,11 +14,12 @@ open import Realizability.Tripos.Prealgebra.Predicate ca
 open CombinatoryAlgebra ca
 open Realizability.CombinatoryAlgebra.Combinators ca renaming (i to Id; ia≡a to Ida≡a)
 
-λ*ComputationRule = `λ*ComputationRule as fefermanStructure
-λ* = `λ* as fefermanStructure
+private
+  λ*ComputationRule = `λ*ComputationRule as fefermanStructure
+  λ* = `λ* as fefermanStructure
 
 module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) (isNonTrivial : s ≡ k → ⊥) where
-  PredicateX = Predicate {ℓ'' = ℓ''} X
+  private PredicateX = Predicate {ℓ'' = ℓ''} X
   open Predicate
   open PredicateProperties {ℓ'' = ℓ''} X
 
@@ -275,7 +277,7 @@ module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) (isNonTrivial : s ≡ 
                                               (λ r → r ⊩ ∣ x ∣ x')
                                               (sym (Pr₁a≡true.pr₂pr₂proof≡pr₂a a pr₁a≡true))
                                               pr₂a⊩x) ∣₁
-                                      ; (inr (pr₁a≡k' , pr₂a⊩y⊔z)) → ⊥elim (Trivial.k≠k' ca isNonTrivial (k ≡⟨ sym pr₁a≡true ⟩ pr₁ ⨾ a ≡⟨ pr₁a≡k' ⟩ k' ∎)) }) ∣₁) ∣₁ ∣₁
+                                      ; (inr (pr₁a≡k' , pr₂a⊩y⊔z)) → ⊥rec (Trivial.k≠k' ca isNonTrivial (k ≡⟨ sym pr₁a≡true ⟩ pr₁ ⨾ a ≡⟨ pr₁a≡k' ⟩ k' ∎)) }) ∣₁) ∣₁ ∣₁
                        ; (inr (pr₁a≡false , pr₂a⊩y⊔z))
                      → ∣ pr₂a⊩y⊔z >>=
                        (λ { (inl (pr₁pr₂a≡k  , pr₂pr₂a⊩y)) →
