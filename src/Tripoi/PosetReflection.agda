@@ -8,7 +8,7 @@ open import Cubical.Relation.Binary.Order.Preorder
 open import Cubical.Relation.Binary.Order.Poset
 open import Cubical.HITs.SetQuotients
 
-module Realizability.Tripos.PosetReflection where
+module Tripoi.PosetReflection where
 
 private
   variable

@@ -1,4 +1,4 @@
-module Realizability.Tripos.HeytingAlgebra where
+module Tripoi.HeytingAlgebra where
 
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Univalence

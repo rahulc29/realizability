@@ -1,7 +1,7 @@
 {-# OPTIONS --allow-unsolved-metas --lossy-unification #-}
 open import Realizability.CombinatoryAlgebra
-open import Realizability.Tripos.PosetReflection
-open import Realizability.Tripos.HeytingAlgebra
+open import Tripoi.PosetReflection
+open import Tripoi.HeytingAlgebra
 open import Realizability.ApplicativeStructure renaming (λ*-naturality to `λ*ComputationRule; λ*-chain to `λ*) hiding (λ*)
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Univalence
