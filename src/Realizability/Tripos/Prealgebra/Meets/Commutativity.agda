@@ -57,3 +57,21 @@ module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) where
               (sym (λ*ComputationRule proof (a ∷ [])))
               ((subst (λ r → r ⊩ ∣ y ∣ x') (sym (pr₁pxy≡x _ _)) (f⊩x≤y x' (pr₁ ⨾ a) (a⊩x⊓z .fst))) ,
                (subst (λ r → r ⊩ ∣ z ∣ x') (sym (pr₂pxy≡y _ _)) (a⊩x⊓z .snd)))))
+
+
+  antiSym→x⊓y≤x⊓z : ∀ x y z → y ≤ z → z ≤ y → x ⊓ y ≤ x ⊓ z
+  antiSym→x⊓y≤x⊓z x y z y≤z z≤y =
+    do
+      (f , f⊩y≤z) ← y≤z
+      (g , g⊩z≤y) ← z≤y
+      let
+        proof : Term as 1
+        proof = ` pair ̇ (`  pr₁ ̇ # fzero) ̇ (` f ̇ (` pr₂ ̇ # fzero))
+      return
+        ((λ* proof) ,
+          (λ { x' a (pr₁a⊩x , pr₂a⊩y) →
+            subst
+              (λ r → r ⊩ ∣ x ⊓ z ∣ x')
+              (sym (λ*ComputationRule proof (a ∷ [])))
+              ((subst (λ r → r ⊩ ∣ x ∣ x') (sym (pr₁pxy≡x _ _)) pr₁a⊩x) ,
+               (subst (λ r → r ⊩ ∣ z ∣ x') (sym (pr₂pxy≡y _ _)) (f⊩y≤z x' (pr₂ ⨾ a) pr₂a⊩y))) }))

@@ -36,6 +36,7 @@ open import Realizability.Tripos.Prealgebra.Meets.Commutativity ca
 open import Realizability.Tripos.Prealgebra.Meets.Identity ca
 open import Realizability.Tripos.Prealgebra.Meets.Idempotency ca
 open import Realizability.Tripos.Prealgebra.Meets.Associativity ca
+open import Realizability.Tripos.Prealgebra.Absorbtion ca
 
 open CombinatoryAlgebra ca
 open Realizability.CombinatoryAlgebra.Combinators ca renaming (i to Id; ia≡a to Ida≡a)
@@ -155,7 +156,7 @@ module AlgebraicProperties {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) (isN
       squash/
       (λ a b → [ a ⊓ b ])
       (λ { a b c (a≤b , b≤a) → eq/ (a ⊓ c) (b ⊓ c) ((antiSym→x⊓z≤y⊓z X isSetX' a b c a≤b b≤a) , (antiSym→x⊓z≤y⊓z X isSetX' b a c b≤a a≤b)) })
-      (λ { a b c (b≤c , c≤b) → eq/ (a ⊓ b) (a ⊓ c) ({!!} , {!!}) })
+      (λ { a b c (b≤c , c≤b) → eq/ (a ⊓ b) (a ⊓ c) (antiSym→x⊓y≤x⊓z X isSetX' a b c b≤c c≤b , antiSym→x⊓y≤x⊓z X isSetX' a c b c≤b b≤c) })
       a b
 
   PredicateAlgebra∧SemigroupStr : SemigroupStr PredicateAlgebra
@@ -179,7 +180,7 @@ module AlgebraicProperties {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) (isN
   IsMonoid.·IdR (MonoidStr.isMonoid PredicateAlgebra∧MonoidStr) x =
     elimProp (λ x → squash/ (x ∧l 1predicate) x) (λ x → eq/ (x ⊓ pre1') x ((x⊓1≤x X isSetX' isNonTrivial x) , (x≤x⊓1 X isSetX' isNonTrivial x))) x
   IsMonoid.·IdL (MonoidStr.isMonoid PredicateAlgebra∧MonoidStr) x =
-    elimProp (λ x → squash/ (1predicate ∧l x) x) (λ x → eq/ (pre1' ⊓ x) x {!!}) x
+    elimProp (λ x → squash/ (1predicate ∧l x) x) (λ x → eq/ (pre1' ⊓ x) x (1⊓x≤x X isSetX' isNonTrivial x , x≤1⊓x X isSetX' isNonTrivial x)) x
 
   PredicateAlgebra∧CommMonoidStr : CommMonoidStr PredicateAlgebra
   CommMonoidStr.ε PredicateAlgebra∧CommMonoidStr = 1predicate
@@ -195,6 +196,14 @@ module AlgebraicProperties {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) (isN
   IsSemilattice.idem (SemilatticeStr.isSemilattice PredicateAlgebra∧SemilatticeStr) x =
     elimProp (λ x → squash/ (x ∧l x) x) (λ x → eq/ (x ⊓ x) x ((x⊓x≤x X isSetX' isNonTrivial x) , (x≤x⊓x X isSetX' isNonTrivial x))) x
 
+  absorb∨ : ∀ x y → x ∨l (x ∧l y) ≡ x
+  absorb∨ x y =
+    elimProp2 (λ x y → squash/ (x ∨l (x ∧l y)) x) (λ x y → eq/ (x ⊔ (x ⊓ y)) x (absorb⊔≤x X isSetX' isNonTrivial x y , x≤absorb⊔ X isSetX' isNonTrivial x y)) x y
+
+  absorb∧ : ∀ x y → x ∧l (x ∨l y) ≡ x
+  absorb∧ x y =
+    elimProp2 (λ x y → squash/ (x ∧l (x ∨l y)) x) (λ x y → eq/ (x ⊓ (x ⊔ y)) x (absorb⊓≤x X isSetX' isNonTrivial x y , x≤absorb⊓ X isSetX' isNonTrivial x y)) x y
+
   PredicateAlgebraLatticeStr : LatticeStr PredicateAlgebra
   LatticeStr.0l PredicateAlgebraLatticeStr = 0predicate
   LatticeStr.1l PredicateAlgebraLatticeStr = 1predicate
@@ -202,5 +211,5 @@ module AlgebraicProperties {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) (isN
   LatticeStr._∧l_ PredicateAlgebraLatticeStr = _∧l_
   IsLattice.joinSemilattice (LatticeStr.isLattice PredicateAlgebraLatticeStr) = SemilatticeStr.isSemilattice PredicateAlgebra∨SemilatticeStr
   IsLattice.meetSemilattice (LatticeStr.isLattice PredicateAlgebraLatticeStr) = SemilatticeStr.isSemilattice PredicateAlgebra∧SemilatticeStr
-  IsLattice.absorb (LatticeStr.isLattice PredicateAlgebraLatticeStr) x y = {!!}
+  IsLattice.absorb (LatticeStr.isLattice PredicateAlgebraLatticeStr) x y = absorb∨ x y , absorb∧ x y
   

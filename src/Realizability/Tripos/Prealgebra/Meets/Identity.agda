@@ -40,4 +40,34 @@ module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) (isNonTrivial : s ≡ 
       let
         proof : Term as 1
         proof = ` pair ̇ # fzero ̇ ` true
-      return ((λ* proof) , (λ x' a a⊩x → subst (λ r → ∣ x ⊓ pre1 ∣ x' r) (sym (λ*ComputationRule proof (a ∷ []))) (subst (λ r → r ⊩ ∣ x ∣ x') (sym (pr₁pxy≡x _ _)) a⊩x , tt*)))
+      return
+        ((λ* proof) ,
+          (λ x' a a⊩x →
+            subst
+              (λ r → ∣ x ⊓ pre1 ∣ x' r)
+              (sym (λ*ComputationRule proof (a ∷ [])))
+              (subst
+                (λ r → r ⊩ ∣ x ∣ x')
+                (sym (pr₁pxy≡x _ _))
+                a⊩x , tt*)))
+
+  1⊓x≤x : ∀ x → pre1 ⊓ x ≤ x
+  1⊓x≤x x = ∣ pr₂ , (λ x' a a⊩1⊓x → a⊩1⊓x .snd) ∣₁
+
+  x≤1⊓x : ∀ x → x ≤ pre1 ⊓ x
+  x≤1⊓x x =
+    do
+      let
+        proof : Term as 1
+        proof = ` pair ̇ ` false ̇ # fzero
+      return
+        ((λ* proof) ,
+          (λ x' a a⊩x →
+            subst
+              (λ r → r ⊩ ∣ pre1 ⊓ x ∣ x')
+              (sym (λ*ComputationRule proof (a ∷ [])))
+              (tt* ,
+              (subst
+                (λ r → r ⊩ ∣ x ∣ x')
+                (sym (pr₂pxy≡y _ _))
+                a⊩x))))
