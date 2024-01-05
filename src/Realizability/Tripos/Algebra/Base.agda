@@ -104,7 +104,7 @@ module AlgebraicProperties {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) (isN
         eq/
           (x ⊔ (y ⊔ z)) ((x ⊔ y) ⊔ z)
           (x⊔_y⊔z≤x⊔y_⊔z X isSetX' isNonTrivial x y z ,
-          {!!}))
+          x⊔y_⊔z≤x⊔_y⊔z X isSetX' isNonTrivial x y z))
       x y z
 
   private pre0' = pre0 {ℓ'' = ℓ''} X isSetX' isNonTrivial
