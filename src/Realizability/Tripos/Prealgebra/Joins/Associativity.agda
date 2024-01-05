@@ -296,3 +296,199 @@ module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) (isNonTrivial : s ≡ 
                                 (sym (Pr₁a≡false.pr₂proof≡pr₂pr₂a a pr₁a≡false pr₁pr₂a≡k'))
                                 pr₂pr₂a⊩z) ∣₁ }) ∣₁
                                 })))) where open →⊔Assoc x y z
+
+  `if_then_else_ : ∀ {n} → Term as n → Term as n → Term as n → Term as n
+  `if c then t else e = ` Id ̇ c ̇ t ̇ e
+
+  x⊔y_⊔z≤x⊔_y⊔z : ∀ x y z → (x ⊔ y) ⊔ z ≤ x ⊔ (y ⊔ z)
+  x⊔y_⊔z≤x⊔_y⊔z x y z =
+    do
+      let
+        proof : Term as 1
+        proof =
+          `if ` pr₁ ̇ # fzero then
+            `if ` pr₁ ̇ (` pr₂ ̇ (# fzero)) then
+              ` pair ̇ ` true  ̇ (` pr₂ ̇ (` pr₂ ̇ # fzero))
+            else
+              (` pair ̇ ` false ̇ (` pair ̇ ` true ̇ (` pr₂ ̇ (` pr₂ ̇ # fzero))))
+          else
+            (` pair ̇ ` false ̇ (` pair ̇ ` false ̇ (` pr₂ ̇ # fzero)))
+      return
+        (λ* proof ,
+          (λ x' a a⊩x⊔y_⊔z →
+            a⊩x⊔y_⊔z >>=
+              let
+                mainThen =
+                  if (pr₁ ⨾ (pr₂ ⨾ a)) then
+                    (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a)))
+                  else
+                    (pair ⨾ false ⨾ (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a))))
+
+                mainElse =
+                  (pair ⨾ false ⨾ (pair ⨾ false ⨾ (pr₂ ⨾ a)))
+              in
+              λ { (inl (pr₁a≡k , pr₂a⊩x⊔y)) →
+                           
+                           let
+                             proofEq :
+                               (λ* proof ⨾ a) ≡ if (pr₁ ⨾ (pr₂ ⨾ a)) then (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a))) else (pair ⨾ false ⨾ (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a))))
+                             proofEq =
+                               λ* proof ⨾ a
+                                 ≡⟨ λ*ComputationRule proof (a ∷ []) ⟩
+                               if (pr₁ ⨾ a) then
+                                 if (pr₁ ⨾ (pr₂ ⨾ a)) then
+                                   (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a)))
+                                 else
+                                   (pair ⨾ false ⨾ (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a))))
+                               else
+                                 (pair ⨾ false ⨾ (pair ⨾ false ⨾ (pr₂ ⨾ a)))
+                                 ≡⟨ cong (λ x → if x then mainThen else mainElse) pr₁a≡k ⟩
+                               if true then
+                                 if (pr₁ ⨾ (pr₂ ⨾ a)) then
+                                   (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a)))
+                                 else
+                                   (pair ⨾ false ⨾ (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a))))
+                               else
+                                 (pair ⨾ false ⨾ (pair ⨾ false ⨾ (pr₂ ⨾ a)))
+                                 ≡⟨ ifTrueThen _ _ ⟩
+                               refl
+                           in
+                           pr₂a⊩x⊔y >>=
+                             λ { (inl (pr₁pr₂a≡k , pr₂pr₂a⊩x)) →
+                               let
+                                 proof≡pair : λ* proof ⨾ a ≡ pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a))
+                                 proof≡pair =
+                                   λ* proof ⨾ a
+                                     ≡⟨ proofEq ⟩
+                                   (if (pr₁ ⨾ (pr₂ ⨾ a)) then (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a))) else (pair ⨾ false ⨾ (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a)))))
+                                     ≡⟨ cong (λ x → if x then (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a))) else (pair ⨾ false ⨾ (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a))))) pr₁pr₂a≡k ⟩
+                                   (if true then (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a))) else (pair ⨾ false ⨾ (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a)))))
+                                     ≡⟨ ifTrueThen _ _ ⟩
+                                   pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a))
+                                     ∎
+                                 
+                                 pr₁proofEq : pr₁ ⨾ (λ* proof ⨾ a) ≡ k
+                                 pr₁proofEq =
+                                   pr₁ ⨾ (λ* proof ⨾ a)
+                                     ≡⟨ cong (λ x → pr₁ ⨾ x) proof≡pair ⟩
+                                   pr₁ ⨾ (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a)))
+                                     ≡⟨ pr₁pxy≡x _ _ ⟩
+                                   true
+                                     ∎
+
+                                 pr₂proofEq : pr₂ ⨾ (λ* proof ⨾ a) ≡ pr₂ ⨾ (pr₂ ⨾ a)
+                                 pr₂proofEq =
+                                   pr₂ ⨾ (λ* proof ⨾ a)
+                                     ≡⟨ cong (λ x → pr₂ ⨾ x) proof≡pair ⟩
+                                   pr₂ ⨾ (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a)))
+                                     ≡⟨ pr₂pxy≡y _ _ ⟩
+                                   pr₂ ⨾ (pr₂ ⨾ a)
+                                     ∎
+                               in ∣ inl (pr₁proofEq , subst (λ r → r ⊩ ∣ x ∣ x') (sym pr₂proofEq) pr₂pr₂a⊩x) ∣₁
+                               ; (inr (pr₁pr₂a≡k' , pr₂pr₂a⊩y)) →
+                               let
+                                 proof≡pair : λ* proof ⨾ a ≡ pair ⨾ false ⨾ (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a)))
+                                 proof≡pair =
+                                   λ* proof ⨾ a
+                                     ≡⟨ proofEq ⟩
+                                   (if (pr₁ ⨾ (pr₂ ⨾ a)) then (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a))) else (pair ⨾ false ⨾ (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a)))))
+                                     ≡⟨ cong (λ x → if x then (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a))) else (pair ⨾ false ⨾ (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a))))) pr₁pr₂a≡k' ⟩
+                                   (if false then (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a))) else (pair ⨾ false ⨾ (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a)))))
+                                     ≡⟨ ifFalseElse _ _ ⟩
+                                   pair ⨾ false ⨾ (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a)))
+                                     ∎
+
+                                 pr₁proofEq : pr₁ ⨾ (λ* proof ⨾ a) ≡ k'
+                                 pr₁proofEq =
+                                   pr₁ ⨾ (λ* proof ⨾ a)
+                                     ≡⟨ cong (λ x → pr₁ ⨾ x) proof≡pair ⟩
+                                   pr₁ ⨾ (pair ⨾ false ⨾ (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a))))
+                                     ≡⟨ pr₁pxy≡x _ _ ⟩
+                                   false
+                                     ∎
+
+                                 pr₁pr₂proofEq : pr₁ ⨾ (pr₂ ⨾ (λ* proof ⨾ a)) ≡ true
+                                 pr₁pr₂proofEq =
+                                   pr₁ ⨾ (pr₂ ⨾ (λ* proof ⨾ a))
+                                     ≡⟨ cong (λ x → pr₁ ⨾ (pr₂ ⨾ x)) proof≡pair ⟩
+                                   pr₁ ⨾ (pr₂ ⨾ (pair ⨾ false ⨾ (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a)))))
+                                     ≡⟨ cong (λ x → pr₁ ⨾ x) (pr₂pxy≡y _ _) ⟩
+                                   pr₁ ⨾ (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a)))
+                                     ≡⟨ pr₁pxy≡x _ _ ⟩
+                                   true
+                                     ∎
+
+                                 pr₂pr₂proofEq : pr₂ ⨾ (pr₂ ⨾ (λ* proof ⨾ a)) ≡ pr₂ ⨾ (pr₂ ⨾ a)
+                                 pr₂pr₂proofEq =
+                                   pr₂ ⨾ (pr₂ ⨾ (λ* proof ⨾ a))
+                                     ≡⟨ cong (λ x → pr₂ ⨾ (pr₂ ⨾ x)) proof≡pair ⟩
+                                   pr₂ ⨾ (pr₂ ⨾ (pair ⨾ false ⨾ (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a)))))
+                                     ≡⟨ cong (λ x → pr₂ ⨾ x) (pr₂pxy≡y _ _) ⟩
+                                   pr₂ ⨾ (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a)))
+                                     ≡⟨ pr₂pxy≡y _ _ ⟩
+                                   pr₂ ⨾ (pr₂ ⨾ a)
+                                     ∎
+                               in ∣ inr (pr₁proofEq , ∣ inl (pr₁pr₂proofEq , subst (λ r → r ⊩ ∣ y ∣ x') (sym pr₂pr₂proofEq) pr₂pr₂a⊩y) ∣₁) ∣₁ }
+                           ; (inr (pr₁a≡k' , pr₂a⊩z)) →
+                           let
+                             proof≡pair : λ* proof ⨾ a ≡ pair ⨾ false ⨾ (pair ⨾ false ⨾ (pr₂ ⨾ a))
+                             proof≡pair =
+                               λ* proof ⨾ a
+                                 ≡⟨ λ*ComputationRule proof (a ∷ []) ⟩
+                               if (pr₁ ⨾ a) then
+                                 if (pr₁ ⨾ (pr₂ ⨾ a)) then
+                                   (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a)))
+                                 else
+                                   (pair ⨾ false ⨾ (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a))))
+                               else
+                                 (pair ⨾ false ⨾ (pair ⨾ false ⨾ (pr₂ ⨾ a)))
+                                 ≡⟨ cong (λ x → if x then mainThen else mainElse) pr₁a≡k' ⟩
+                               if false then
+                                 if (pr₁ ⨾ (pr₂ ⨾ a)) then
+                                   (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a)))
+                                 else
+                                   (pair ⨾ false ⨾ (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a))))
+                               else
+                                 (pair ⨾ false ⨾ (pair ⨾ false ⨾ (pr₂ ⨾ a)))
+                                 ≡⟨ ifFalseElse _ _ ⟩
+                               (pair ⨾ false ⨾ (pair ⨾ false ⨾ (pr₂ ⨾ a)))
+                                 ∎
+
+                             pr₁proof≡false : pr₁ ⨾ (λ* proof ⨾ a) ≡ false
+                             pr₁proof≡false =
+                               pr₁ ⨾ (λ* proof ⨾ a)
+                                 ≡⟨ cong (λ x → pr₁ ⨾ x) proof≡pair ⟩
+                               pr₁ ⨾ (pair ⨾ false ⨾ (pair ⨾ false ⨾ (pr₂ ⨾ a)))
+                                 ≡⟨ pr₁pxy≡x _ _ ⟩
+                               false
+                                 ∎
+
+                             pr₂proof≡pair : pr₂ ⨾ (λ* proof ⨾ a) ≡ (pair ⨾ false ⨾ (pr₂ ⨾ a))
+                             pr₂proof≡pair =
+                               (pr₂ ⨾ (λ* proof ⨾ a))
+                                 ≡⟨ cong (λ x → (pr₂ ⨾ x)) proof≡pair ⟩
+                               (pr₂ ⨾ (pair ⨾ false ⨾ (pair ⨾ false ⨾ (pr₂ ⨾ a))))
+                                 ≡⟨ (pr₂pxy≡y _ _) ⟩
+                               (pair ⨾ false ⨾ (pr₂ ⨾ a))
+                                 ∎
+
+                             pr₁pr₂proof≡false : pr₁ ⨾ (pr₂ ⨾ (λ* proof ⨾ a)) ≡ false
+                             pr₁pr₂proof≡false =
+                               pr₁ ⨾ (pr₂ ⨾ (λ* proof ⨾ a))
+                                 ≡⟨ cong (λ x → pr₁ ⨾ (pr₂ ⨾ x)) proof≡pair ⟩
+                               pr₁ ⨾ (pr₂ ⨾ (pair ⨾ false ⨾ (pair ⨾ false ⨾ (pr₂ ⨾ a))))
+                                 ≡⟨ cong (λ x → pr₁ ⨾ x) (pr₂pxy≡y _ _) ⟩
+                               pr₁ ⨾ (pair ⨾ false ⨾ (pr₂ ⨾ a))
+                                 ≡⟨ pr₁pxy≡x _ _ ⟩
+                               false
+                                 ∎
+
+                             pr₂pr₂proof≡pr₂a : pr₂ ⨾ (pr₂ ⨾ (λ* proof ⨾ a)) ≡ pr₂ ⨾ a
+                             pr₂pr₂proof≡pr₂a =
+                               pr₂ ⨾ (pr₂ ⨾ (λ* proof ⨾ a))
+                                 ≡⟨ cong (λ x → pr₂ ⨾ x ) pr₂proof≡pair ⟩
+                               pr₂ ⨾ (pair ⨾ false ⨾ (pr₂ ⨾ a))
+                                 ≡⟨ pr₂pxy≡y _ _ ⟩
+                               pr₂ ⨾ a
+                                 ∎
+                           in ∣ inr (pr₁proof≡false , ∣ inr (pr₁pr₂proof≡false , subst (λ r → r ⊩ ∣ z ∣ x') (sym pr₂pr₂proof≡pr₂a) pr₂a⊩z) ∣₁) ∣₁ } ))
