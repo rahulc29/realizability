@@ -27,7 +27,7 @@ data _∈_ : Sort → Context → Type (ℓ-suc ℓ) where
 
 data Term : Context → Sort → Type (ℓ-suc ℓ) where
   var : ∀ {Γ A} → A ∈ Γ → Term Γ A
-  _،_ : ∀ {Γ A B} → Term Γ A → Term Γ B → Term Γ (A `× B)
+  _`,_ : ∀ {Γ A B} → Term Γ A → Term Γ B → Term Γ (A `× B)
   π₁ : ∀ {Γ A B} → Term Γ (A `× B) → Term Γ A
   π₂ : ∀ {Γ A B} → Term Γ (A `× B) → Term Γ B
   fun : ∀ {Γ A B} → (⟦ A ⟧ˢ .fst → ⟦ B ⟧ˢ .fst) → Term Γ A → Term Γ B
@@ -35,7 +35,6 @@ data Term : Context → Sort → Type (ℓ-suc ℓ) where
 data Formula : Context → Type (ℓ-suc ℓ) where
   ⊤ᵗ : ∀ {Γ} → Formula Γ
   ⊥ᵗ : ∀ {Γ} → Formula Γ
-  _`×_ : ∀ {Γ A B} → Term Γ A → Term Γ B → Formula Γ
   _`∨_ : ∀ {Γ} → Formula Γ → Formula Γ → Formula Γ 
   _`∧_ : ∀ {Γ} → Formula Γ → Formula Γ → Formula Γ 
   _`→_ : ∀ {Γ} → Formula Γ → Formula Γ → Formula Γ 
