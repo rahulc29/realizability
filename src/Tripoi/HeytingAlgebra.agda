@@ -8,7 +8,6 @@ private
   variable
     ℓ ℓ' : Level
 record IsHeytingAlgebra {H : Type ℓ} (0l 1l : H) (_∨l_  _∧l_ _→l_ : H → H → H) : Type ℓ where
-  constructor isHeytingAlgebra
   field
     isSetH : isSet H
     lattice : IsLattice 0l 1l _∨l_ _∧l_
@@ -81,4 +80,22 @@ record IsHeytingAlgebra {H : Type ℓ} (0l 1l : H) (_∨l_  _∧l_ _→l_ : H �
   field
     →isHeytingImplication : ∀ x y z → (x ∧l y) ≤ z → x ≤ (y →l z)
     
+record HeytingAlgebraStr (A : Type ℓ) : Type ℓ where
+  field
+    0l : A
+    1l : A
+    _∨l_ : A → A → A
+    _∧l_ : A → A → A
+    _→l_ : A → A → A
+    isHeytingAlgebra : IsHeytingAlgebra 0l 1l _∨l_ _∧l_ _→l_
 
+record IsHeytingAlgebraHom {A : Type ℓ} {B : Type ℓ'} (strA : HeytingAlgebraStr A) (f : A → B) (strB : HeytingAlgebraStr B) : Type (ℓ-max ℓ ℓ') where
+  private
+    module A = HeytingAlgebraStr strA
+    module B = HeytingAlgebraStr strB
+  field
+    pres0 : f A.0l ≡ B.0l
+    pres1 : f A.1l ≡ B.1l
+    pres∨l : ∀ x y → f (x A.∨l y) ≡ (f x B.∨l f y)
+    pres∧l : ∀ x y → f (x A.∧l y) ≡ (f x B.∧l f y)
+    pres→l : ∀ x y → f (x A.→l y) ≡ (f x B.→l f y)
