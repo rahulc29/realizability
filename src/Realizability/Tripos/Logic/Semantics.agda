@@ -12,6 +12,9 @@ open import Cubical.Data.Sigma
 open import Cubical.Data.Empty
 open import Cubical.Data.Unit
 open import Cubical.Data.Sum
+open import Cubical.Data.Vec
+open import Cubical.Data.Nat
+open import Cubical.Data.Fin
 open import Cubical.HITs.PropositionalTruncation
 open import Cubical.HITs.PropositionalTruncation.Monad
 open import Cubical.Relation.Binary.Order.Preorder
@@ -31,7 +34,11 @@ open PredicateProperties
 open Morphism {ℓ' = ℓ'} {ℓ'' = ℓ''}
 Predicate = Predicate' {ℓ' = ℓ'} {ℓ'' = ℓ''}
 
-module Interpretation (𝓛 : (s : Sort) → Predicate (⟦ s ⟧ˢ .fst)) (isNonTrivial : s ≡ k → ⊥) where
+module Interpretation
+  {n : ℕ}
+  (relSym : Vec Sort n)
+  (⟦_⟧ʳ : ∀ i → Predicate (⟦ lookup i relSym ⟧ˢ .fst)) (isNonTrivial : s ≡ k → ⊥) where
+  open Relational relSym
 
   ⟦_⟧ᶜ : Context → hSet ℓ'
   ⟦ [] ⟧ᶜ = Unit* , isSetUnit* 
@@ -71,6 +78,7 @@ module Interpretation (𝓛 : (s : Sort) → Predicate (⟦ s ⟧ˢ .fst)) (isNo
     isSetUnit*
     fst
     ⟦ f ⟧ᶠ
+  ⟦_⟧ᶠ {[]} (rel R t) = ⋆_ isSetUnit* (str ⟦ lookup R relSym ⟧ˢ) ⟦ t ⟧ᵗ ⟦ R ⟧ʳ
   ⟦_⟧ᶠ {Γ ′ x} ⊤ᵗ = pre1 (⟦ Γ ⟧ᶜ .fst × ⟦ x ⟧ˢ .fst) (isSet× (⟦ Γ ⟧ᶜ .snd) (⟦ x ⟧ˢ .snd)) isNonTrivial
   ⟦_⟧ᶠ {Γ ′ x} ⊥ᵗ = pre0 (⟦ Γ ⟧ᶜ .fst × ⟦ x ⟧ˢ .fst) (isSet× (⟦ Γ ⟧ᶜ .snd) (⟦ x ⟧ˢ .snd)) isNonTrivial
   ⟦_⟧ᶠ {Γ ′ x} (f `∨ f₁) = _⊔_ (⟦ Γ ⟧ᶜ .fst × ⟦ x ⟧ˢ .fst) ⟦ f ⟧ᶠ ⟦ f₁ ⟧ᶠ
@@ -93,3 +101,4 @@ module Interpretation (𝓛 : (s : Sort) → Predicate (⟦ s ⟧ˢ .fst)) (isNo
     (isSet× (⟦ Γ ⟧ᶜ .snd) (⟦ x ⟧ˢ .snd))
     fst
     (⟦ f ⟧ᶠ)
+  ⟦_⟧ᶠ {Γ ′ x} (rel R t) = ⋆_ (str ⟦ Γ ′ x ⟧ᶜ) (str ⟦ lookup R relSym ⟧ˢ) ⟦ t ⟧ᵗ ⟦ R ⟧ʳ
