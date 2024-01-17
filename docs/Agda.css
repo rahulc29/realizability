@@ -372,3 +372,9 @@ h6 {
     border-radius: .2em;
     background-color: #650099
 }
+@import url('https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap');
+
+pre {
+  font-family: 'Fira Mono', monospace;
+  font-size: 10pt;
+}
