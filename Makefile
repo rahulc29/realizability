@@ -1,10 +1,7 @@
-check:
-	cd src
-	agda --html --html-dir=docs ./index.agda
-
-commit_message = Commit [Automated by Make]
-commit:
-	git add . && git commit -m '${commit_message}'
-
-push : commit
+HTML_DIR=docs
+build:
+	agda --html --html-dir=${HTML_DIR} src/index.agda
+pipe: build
+	git add .
+	git commit -m "Complete render"
 	git push origin master
