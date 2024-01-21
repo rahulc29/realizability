@@ -97,4 +97,15 @@ module Relational {n} (relSym : Vec Sort n) where
    `∃ : ∀ {Γ B} → Formula (Γ ′ B) → Formula Γ
    `∀ : ∀ {Γ B} → Formula (Γ ′ B) → Formula Γ
    rel : ∀ {Γ} (k : Fin n) → Term Γ (lookup k relSym) → Formula Γ
-   
+
+ substitutionFormula : ∀ {Γ Δ} → Substitution Γ Δ → Formula Δ → Formula Γ
+ substitutionFormula {Γ} {Δ} subs ⊤ᵗ = ⊤ᵗ
+ substitutionFormula {Γ} {Δ} subs ⊥ᵗ = ⊥ᵗ
+ substitutionFormula {Γ} {Δ} subs (form `∨ form₁) = substitutionFormula subs form `∨ substitutionFormula subs form₁
+ substitutionFormula {Γ} {Δ} subs (form `∧ form₁) = substitutionFormula subs form `∧ substitutionFormula subs form₁
+ substitutionFormula {Γ} {Δ} subs (form `→ form₁) = substitutionFormula subs form `→ substitutionFormula subs form₁
+ substitutionFormula {Γ} {Δ} subs (`¬ form) = `¬ substitutionFormula subs form
+ substitutionFormula {Γ} {Δ} subs (`∃ form) = `∃ (substitutionFormula (var here , drop subs) form )
+ substitutionFormula {Γ} {Δ} subs (`∀ form) = `∀ (substitutionFormula (var here , drop subs) form)
+ substitutionFormula {Γ} {Δ} subs (rel k x) = rel k (substitutionTerm subs x)
+

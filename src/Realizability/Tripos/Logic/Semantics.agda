@@ -10,7 +10,7 @@ open import Cubical.Foundations.Function
 open import Cubical.Foundations.Structure
 open import Cubical.Functions.FunExtEquiv
 open import Cubical.Data.Sigma
-open import Cubical.Data.Empty
+open import Cubical.Data.Empty renaming (elim to ⊥elim ; rec* to ⊥rec*)
 open import Cubical.Data.Unit
 open import Cubical.Data.Sum
 open import Cubical.Data.Vec
@@ -58,52 +58,15 @@ module Interpretation
   ⟦_⟧ᵗ {Γ} {s} (fun x t) ⟦Γ⟧ = x (⟦ t ⟧ᵗ ⟦Γ⟧)
 
   ⟦_⟧ᶠ : ∀ {Γ} → Formula Γ → Predicate ⟨ ⟦ Γ ⟧ᶜ ⟩
-  ⟦_⟧ᶠ {[]} ⊤ᵗ = pre1 Unit* isSetUnit* isNonTrivial
-  ⟦_⟧ᶠ {[]} ⊥ᵗ = pre0 Unit* isSetUnit* isNonTrivial
-  ⟦_⟧ᶠ {[]} (f `∨ f₁) = _⊔_ Unit* ⟦ f ⟧ᶠ ⟦ f₁ ⟧ᶠ
-  ⟦_⟧ᶠ {[]} (f `∧ f₁) = _⊓_ Unit* ⟦ f ⟧ᶠ ⟦ f₁ ⟧ᶠ
-  ⟦_⟧ᶠ {[]} (f `→ f₁) = _⇒_ Unit* ⟦ f ⟧ᶠ ⟦ f₁ ⟧ᶠ
-  ⟦_⟧ᶠ {[]} (`¬ f) = _⇒_ Unit* ⟦ f ⟧ᶠ ⟦ ⊥ᵗ {Γ = []} ⟧ᶠ
-  ⟦_⟧ᶠ {[]} (`∃ {B = B} f) =
-    `∃[_]
-    {X = Unit* × ⟦ B ⟧ˢ .fst}
-    {Y = Unit*}
-    (isSet× isSetUnit* (⟦ B ⟧ˢ .snd))
-    isSetUnit*
-    fst
-    ⟦ f ⟧ᶠ
-  ⟦_⟧ᶠ {[]} (`∀ {B = B} f) =
-    `∀[_]
-    {X = Unit* × ⟦ B ⟧ˢ .fst}
-    {Y = Unit*}
-    (isSet× isSetUnit* (⟦ B ⟧ˢ .snd))
-    isSetUnit*
-    fst
-    ⟦ f ⟧ᶠ
-  ⟦_⟧ᶠ {[]} (rel R t) = ⋆_ isSetUnit* (str ⟦ lookup R relSym ⟧ˢ) ⟦ t ⟧ᵗ ⟦ R ⟧ʳ
-  ⟦_⟧ᶠ {Γ ′ x} ⊤ᵗ = pre1 (⟦ Γ ⟧ᶜ .fst × ⟦ x ⟧ˢ .fst) (isSet× (⟦ Γ ⟧ᶜ .snd) (⟦ x ⟧ˢ .snd)) isNonTrivial
-  ⟦_⟧ᶠ {Γ ′ x} ⊥ᵗ = pre0 (⟦ Γ ⟧ᶜ .fst × ⟦ x ⟧ˢ .fst) (isSet× (⟦ Γ ⟧ᶜ .snd) (⟦ x ⟧ˢ .snd)) isNonTrivial
-  ⟦_⟧ᶠ {Γ ′ x} (f `∨ f₁) = _⊔_ (⟦ Γ ⟧ᶜ .fst × ⟦ x ⟧ˢ .fst) ⟦ f ⟧ᶠ ⟦ f₁ ⟧ᶠ
-  ⟦_⟧ᶠ {Γ ′ x} (f `∧ f₁) = _⊓_ (⟦ Γ ⟧ᶜ .fst × ⟦ x ⟧ˢ .fst) ⟦ f ⟧ᶠ ⟦ f₁ ⟧ᶠ
-  ⟦_⟧ᶠ {Γ ′ x} (f `→ f₁) = _⇒_ (⟦ Γ ⟧ᶜ .fst × ⟦ x ⟧ˢ .fst) ⟦ f ⟧ᶠ ⟦ f₁ ⟧ᶠ
-  ⟦_⟧ᶠ {Γ ′ x} (`¬ f) = _⇒_ (⟦ Γ ⟧ᶜ .fst × ⟦ x ⟧ˢ .fst) ⟦ f ⟧ᶠ ⟦ ⊥ᵗ {Γ = Γ ′ x} ⟧ᶠ
-  ⟦_⟧ᶠ {Γ ′ x} (`∃ {B = B} f) =
-    `∃[_]
-    {X = (⟦ Γ ⟧ᶜ .fst × ⟦ x ⟧ˢ .fst) × ⟦ B ⟧ˢ .fst}
-    {Y = ⟦ Γ ⟧ᶜ .fst × ⟦ x ⟧ˢ .fst}
-    (isSet× (isSet× (⟦ Γ ⟧ᶜ .snd) (⟦ x ⟧ˢ .snd)) (⟦ B ⟧ˢ .snd))
-    (isSet× (⟦ Γ ⟧ᶜ .snd) (⟦ x ⟧ˢ .snd))
-    fst
-    (⟦ f ⟧ᶠ)
-  ⟦_⟧ᶠ {Γ ′ x} (`∀ {B = B} f) =
-    `∀[_]
-    {X = (⟦ Γ ⟧ᶜ .fst × ⟦ x ⟧ˢ .fst) × ⟦ B ⟧ˢ .fst}
-    {Y = ⟦ Γ ⟧ᶜ .fst × ⟦ x ⟧ˢ .fst}
-    (isSet× (isSet× (⟦ Γ ⟧ᶜ .snd) (⟦ x ⟧ˢ .snd)) (⟦ B ⟧ˢ .snd))
-    (isSet× (⟦ Γ ⟧ᶜ .snd) (⟦ x ⟧ˢ .snd))
-    fst
-    (⟦ f ⟧ᶠ)
-  ⟦_⟧ᶠ {Γ ′ x} (rel R t) = ⋆_ (str ⟦ Γ ′ x ⟧ᶜ) (str ⟦ lookup R relSym ⟧ˢ) ⟦ t ⟧ᵗ ⟦ R ⟧ʳ
+  ⟦_⟧ᶠ {Γ} ⊤ᵗ = pre1 ⟨ ⟦ Γ ⟧ᶜ ⟩ (str ⟦ Γ ⟧ᶜ) isNonTrivial
+  ⟦_⟧ᶠ {Γ} ⊥ᵗ = pre0 ⟨ ⟦ Γ ⟧ᶜ ⟩ (str ⟦ Γ ⟧ᶜ) isNonTrivial
+  ⟦_⟧ᶠ {Γ} (form `∨ form₁) = _⊔_ ⟨ ⟦ Γ ⟧ᶜ ⟩ ⟦ form ⟧ᶠ ⟦ form₁ ⟧ᶠ
+  ⟦_⟧ᶠ {Γ} (form `∧ form₁) = _⊓_ ⟨ ⟦ Γ ⟧ᶜ ⟩ ⟦ form ⟧ᶠ ⟦ form₁ ⟧ᶠ
+  ⟦_⟧ᶠ {Γ} (form `→ form₁) = _⇒_ ⟨ ⟦ Γ ⟧ᶜ ⟩ ⟦ form ⟧ᶠ ⟦ form₁ ⟧ᶠ
+  ⟦_⟧ᶠ {Γ} (`¬ form) = _⇒_ ⟨ ⟦ Γ ⟧ᶜ ⟩ ⟦ form ⟧ᶠ ⟦ ⊥ᵗ {Γ = Γ} ⟧ᶠ
+  ⟦_⟧ᶠ {Γ} (`∃ {B = B} form) = `∃[_] (isSet× (str ⟦ Γ ⟧ᶜ) (str ⟦ B ⟧ˢ)) (str ⟦ Γ ⟧ᶜ) (λ { (⟦Γ⟧ , ⟦B⟧) → ⟦Γ⟧ }) ⟦ form ⟧ᶠ
+  ⟦_⟧ᶠ {Γ} (`∀ {B = B} form) = `∀[_] (isSet× (str ⟦ Γ ⟧ᶜ) (str ⟦ B ⟧ˢ)) (str ⟦ Γ ⟧ᶜ) (λ { (⟦Γ⟧ , ⟦B⟧) → ⟦Γ⟧ }) ⟦ form ⟧ᶠ
+  ⟦_⟧ᶠ {Γ} (rel R t) = ⋆_ (str ⟦ Γ ⟧ᶜ) (str ⟦ lookup R relSym ⟧ˢ) ⟦ t ⟧ᵗ ⟦ R ⟧ʳ
 
   -- R for renamings and r for relations
   ⟦_⟧ᴿ : ∀ {Γ Δ} → Renaming Γ Δ → ⟨ ⟦ Γ ⟧ᶜ ⟩ → ⟨ ⟦ Δ ⟧ᶜ ⟩
@@ -159,6 +122,35 @@ module Interpretation
   substitutionTermSound {Γ} {Δ} {s} subs (π₁ t) = funExt λ x i → substitutionTermSound subs t i x .fst
   substitutionTermSound {Γ} {Δ} {s} subs (π₂ t) = funExt λ x i → substitutionTermSound subs t i x .snd
   substitutionTermSound {Γ} {Δ} {s} subs (fun f t) = funExt λ x i → f (substitutionTermSound subs t i x)
+
+  substitutionFormulaSound : ∀ {Γ Δ} → (subs : Substitution Γ Δ) → (f : Formula Δ) → ⟦ substitutionFormula subs f ⟧ᶠ ≡ ⋆_ (str ⟦ Γ ⟧ᶜ) (str ⟦ Δ ⟧ᶜ) ⟦ subs ⟧ᴮ ⟦ f ⟧ᶠ
+  substitutionFormulaSound {Γ} {Δ} subs ⊤ᵗ =
+    Predicate≡
+      ⟨ ⟦ Γ ⟧ᶜ ⟩
+      (pre1 ⟨ ⟦ Γ ⟧ᶜ ⟩ (str ⟦ Γ ⟧ᶜ) isNonTrivial)
+      (⋆_ (str ⟦ Γ ⟧ᶜ) (str ⟦ Δ ⟧ᶜ) ⟦ subs ⟧ᴮ (pre1 ⟨ ⟦ Δ ⟧ᶜ ⟩ (str ⟦ Δ ⟧ᶜ) isNonTrivial))
+      (λ ⟦Γ⟧ a tt* → tt*)
+      λ ⟦Γ⟧ a tt* → tt*
+  substitutionFormulaSound {Γ} {Δ} subs ⊥ᵗ =
+    Predicate≡
+      ⟨ ⟦ Γ ⟧ᶜ ⟩
+      (pre0 ⟨ ⟦ Γ ⟧ᶜ ⟩ (str ⟦ Γ ⟧ᶜ) isNonTrivial)
+      (⋆_ (str ⟦ Γ ⟧ᶜ) (str ⟦ Δ ⟧ᶜ) ⟦ subs ⟧ᴮ (pre0 ⟨ ⟦ Δ ⟧ᶜ ⟩ (str ⟦ Δ ⟧ᶜ) isNonTrivial))
+      (λ ⟦Γ⟧ a bot → ⊥rec* bot)
+      λ ⟦Γ⟧ a bot → bot
+  substitutionFormulaSound {Γ} {Δ} subs (f `∨ f₁) =
+    Predicate≡
+      ⟨ ⟦ Γ ⟧ᶜ ⟩
+      (_⊔_ ⟨ ⟦ Γ ⟧ᶜ ⟩ ⟦ substitutionFormula subs f ⟧ᶠ ⟦ substitutionFormula subs f₁ ⟧ᶠ)
+      (⋆_ (str ⟦ Γ ⟧ᶜ) (str ⟦ Δ ⟧ᶜ) ⟦ subs ⟧ᴮ (_⊔_ ⟨ ⟦ Δ ⟧ᶜ ⟩ ⟦ f ⟧ᶠ ⟦ f₁ ⟧ᶠ))
+      (λ ⟦Γ⟧ a a⊩f'⊔f₁' → {!!})
+      {!!}
+  substitutionFormulaSound {Γ} {Δ} subs (f `∧ f₁) = {!!}
+  substitutionFormulaSound {Γ} {Δ} subs (f `→ f₁) = {!!}
+  substitutionFormulaSound {Γ} {Δ} subs (`¬ f) = {!!}
+  substitutionFormulaSound {Γ} {Δ} subs (`∃ f) = {!!}
+  substitutionFormulaSound {Γ} {Δ} subs (`∀ f) = {!!}
+  substitutionFormulaSound {Γ} {Δ} subs (rel k₁ x) = {!!}
 
 module Soundness
   {n}
