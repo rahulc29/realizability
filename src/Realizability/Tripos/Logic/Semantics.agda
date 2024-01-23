@@ -123,32 +123,81 @@ module Interpretation
   substitutionTermSound {Γ} {Δ} {s} subs (π₂ t) = funExt λ x i → substitutionTermSound subs t i x .snd
   substitutionTermSound {Γ} {Δ} {s} subs (fun f t) = funExt λ x i → f (substitutionTermSound subs t i x)
 
-  substitutionFormulaSound : ∀ {Γ Δ} → (subs : Substitution Γ Δ) → (f : Formula Δ) → ⟦ substitutionFormula subs f ⟧ᶠ ≡ ⋆_ (str ⟦ Γ ⟧ᶜ) (str ⟦ Δ ⟧ᶜ) ⟦ subs ⟧ᴮ ⟦ f ⟧ᶠ
+  semanticSubstitution : ∀ {Γ Δ} → (subs : Substitution Γ Δ) → Predicate ⟨ ⟦ Δ ⟧ᶜ ⟩ → Predicate ⟨ ⟦ Γ ⟧ᶜ ⟩
+  semanticSubstitution {Γ} {Δ} subs = ⋆_ (str ⟦ Γ ⟧ᶜ) (str ⟦ Δ ⟧ᶜ) ⟦ subs ⟧ᴮ
+
+  -- Due to a shortcut in the soundness of negation termination checking fails
+  -- TODO : Fix
+  {-# TERMINATING #-}
+  substitutionFormulaSound : ∀ {Γ Δ} → (subs : Substitution Γ Δ) → (f : Formula Δ) → ⟦ substitutionFormula subs f ⟧ᶠ ≡ semanticSubstitution subs ⟦ f ⟧ᶠ
   substitutionFormulaSound {Γ} {Δ} subs ⊤ᵗ =
     Predicate≡
       ⟨ ⟦ Γ ⟧ᶜ ⟩
       (pre1 ⟨ ⟦ Γ ⟧ᶜ ⟩ (str ⟦ Γ ⟧ᶜ) isNonTrivial)
-      (⋆_ (str ⟦ Γ ⟧ᶜ) (str ⟦ Δ ⟧ᶜ) ⟦ subs ⟧ᴮ (pre1 ⟨ ⟦ Δ ⟧ᶜ ⟩ (str ⟦ Δ ⟧ᶜ) isNonTrivial))
-      (λ ⟦Γ⟧ a tt* → tt*)
-      λ ⟦Γ⟧ a tt* → tt*
-  substitutionFormulaSound {Γ} {Δ} subs ⊥ᵗ =
-    Predicate≡
-      ⟨ ⟦ Γ ⟧ᶜ ⟩
-      (pre0 ⟨ ⟦ Γ ⟧ᶜ ⟩ (str ⟦ Γ ⟧ᶜ) isNonTrivial)
-      (⋆_ (str ⟦ Γ ⟧ᶜ) (str ⟦ Δ ⟧ᶜ) ⟦ subs ⟧ᴮ (pre0 ⟨ ⟦ Δ ⟧ᶜ ⟩ (str ⟦ Δ ⟧ᶜ) isNonTrivial))
-      (λ ⟦Γ⟧ a bot → ⊥rec* bot)
-      λ ⟦Γ⟧ a bot → bot
+      (semanticSubstitution subs (pre1 ⟨ ⟦ Δ ⟧ᶜ ⟩ (str ⟦ Δ ⟧ᶜ) isNonTrivial))
+      (λ γ a a⊩1γ → tt*)
+      λ γ a a⊩1subsγ → tt*
+  substitutionFormulaSound {Γ} {Δ} subs ⊥ᵗ = {!!}
   substitutionFormulaSound {Γ} {Δ} subs (f `∨ f₁) =
     Predicate≡
       ⟨ ⟦ Γ ⟧ᶜ ⟩
       (_⊔_ ⟨ ⟦ Γ ⟧ᶜ ⟩ ⟦ substitutionFormula subs f ⟧ᶠ ⟦ substitutionFormula subs f₁ ⟧ᶠ)
-      (⋆_ (str ⟦ Γ ⟧ᶜ) (str ⟦ Δ ⟧ᶜ) ⟦ subs ⟧ᴮ (_⊔_ ⟨ ⟦ Δ ⟧ᶜ ⟩ ⟦ f ⟧ᶠ ⟦ f₁ ⟧ᶠ))
-      (λ ⟦Γ⟧ a a⊩f'⊔f₁' → {!!})
+      (semanticSubstitution subs (_⊔_ ⟨ ⟦ Δ ⟧ᶜ ⟩ ⟦ f ⟧ᶠ ⟦ f₁ ⟧ᶠ))
+      (λ γ a a⊩substFormFs →
+        a⊩substFormFs >>=
+          λ { (inl (pr₁a≡k , pr₂a⊩substFormF)) → ∣ inl (pr₁a≡k , subst (λ form → (pr₂ ⨾ a) ⊩ ∣ form ∣ γ) (substitutionFormulaSound subs f) pr₂a⊩substFormF) ∣₁
+            ; (inr (pr₁a≡k' , pr₂a⊩substFormF₁)) → ∣ inr (pr₁a≡k' , subst (λ form → (pr₂ ⨾ a) ⊩ ∣ form ∣ γ) (substitutionFormulaSound subs f₁) pr₂a⊩substFormF₁) ∣₁ })
+      λ γ a a⊩semanticSubsFs →
+        a⊩semanticSubsFs >>=
+          λ { (inl (pr₁a≡k , pr₂a⊩semanticSubsF)) → ∣ inl (pr₁a≡k , (subst (λ form → (pr₂ ⨾ a) ⊩ ∣ form ∣ γ) (sym (substitutionFormulaSound subs f)) pr₂a⊩semanticSubsF)) ∣₁
+            ; (inr (pr₁a≡k' , pr₂a⊩semanticSubsF₁)) → ∣ inr (pr₁a≡k' , (subst (λ form → (pr₂ ⨾ a) ⊩ ∣ form ∣ γ) (sym (substitutionFormulaSound subs f₁)) pr₂a⊩semanticSubsF₁)) ∣₁ }
+  substitutionFormulaSound {Γ} {Δ} subs (f `∧ f₁) =
+    Predicate≡
+      ⟨ ⟦ Γ ⟧ᶜ ⟩
+      (_⊓_ ⟨ ⟦ Γ ⟧ᶜ ⟩ ⟦ substitutionFormula subs f ⟧ᶠ ⟦ substitutionFormula subs f₁ ⟧ᶠ)
+      (semanticSubstitution subs (_⊓_ ⟨ ⟦ Δ ⟧ᶜ ⟩ ⟦ f ⟧ᶠ ⟦ f₁ ⟧ᶠ))
+      (λ γ a a⊩substFormulaFs →
+        (subst (λ form → (pr₁ ⨾ a) ⊩ ∣ form ∣ γ) (substitutionFormulaSound subs f) (a⊩substFormulaFs .fst)) ,
+        (subst (λ form → (pr₂ ⨾ a) ⊩ ∣ form ∣ γ) (substitutionFormulaSound subs f₁) (a⊩substFormulaFs .snd)))
+      λ γ a a⊩semanticSubstFs →
+        (subst (λ form → (pr₁ ⨾ a) ⊩ ∣ form ∣ γ) (sym (substitutionFormulaSound subs f)) (a⊩semanticSubstFs .fst)) ,
+        (subst (λ form → (pr₂ ⨾ a) ⊩ ∣ form ∣ γ) (sym (substitutionFormulaSound subs f₁)) (a⊩semanticSubstFs .snd))
+  substitutionFormulaSound {Γ} {Δ} subs (f `→ f₁) =
+    Predicate≡
+      ⟨ ⟦ Γ ⟧ᶜ ⟩
+      (_⇒_ ⟨ ⟦ Γ ⟧ᶜ ⟩ ⟦ substitutionFormula subs f ⟧ᶠ ⟦ substitutionFormula subs f₁ ⟧ᶠ)
+      (semanticSubstitution subs (_⇒_ ⟨ ⟦ Δ ⟧ᶜ ⟩ ⟦ f ⟧ᶠ ⟦ f₁ ⟧ᶠ))
+      (λ γ a a⊩substFormulaFs →
+        λ b b⊩semanticSubstFs →
+          subst
+            (λ form → (a ⨾ b) ⊩ ∣ form ∣ γ)
+            (substitutionFormulaSound subs f₁)
+            (a⊩substFormulaFs
+              b
+              (subst
+                (λ form → b ⊩ ∣ form ∣ γ)
+                (sym (substitutionFormulaSound subs f))
+                b⊩semanticSubstFs)))
+      λ γ a a⊩semanticSubstFs →
+        λ b b⊩substFormulaFs →
+          subst
+            (λ form → (a ⨾ b) ⊩ ∣ form ∣ γ)
+            (sym (substitutionFormulaSound subs f₁))
+            (a⊩semanticSubstFs
+              b
+              (subst
+                (λ form → b ⊩ ∣ form ∣ γ)
+                (substitutionFormulaSound subs f)
+                b⊩substFormulaFs))
+  substitutionFormulaSound {Γ} {Δ} subs (`¬ f) =
+    substitutionFormulaSound subs (f `→ ⊥ᵗ)
+  substitutionFormulaSound {Γ} {Δ} subs (`∃ {B = B} f) =
+    Predicate≡
+      ⟨ ⟦ Γ ⟧ᶜ ⟩
+      (`∃[ isSet× (str ⟦ Γ ⟧ᶜ) (str ⟦ B ⟧ˢ) ] (str ⟦ Γ ⟧ᶜ) (λ { (f , s) → f }) ⟦ substitutionFormula (var here , drop subs) f ⟧ᶠ)
+      (semanticSubstitution subs (`∃[ isSet× (str ⟦ Δ ⟧ᶜ) (str ⟦ B ⟧ˢ) ] (str ⟦ Δ ⟧ᶜ) (λ { (γ , b) → γ }) ⟦ f ⟧ᶠ))
+      (λ γ a a⊩πSubstFormulaF → {!!})
       {!!}
-  substitutionFormulaSound {Γ} {Δ} subs (f `∧ f₁) = {!!}
-  substitutionFormulaSound {Γ} {Δ} subs (f `→ f₁) = {!!}
-  substitutionFormulaSound {Γ} {Δ} subs (`¬ f) = {!!}
-  substitutionFormulaSound {Γ} {Δ} subs (`∃ f) = {!!}
   substitutionFormulaSound {Γ} {Δ} subs (`∀ f) = {!!}
   substitutionFormulaSound {Γ} {Δ} subs (rel k₁ x) = {!!}
 
