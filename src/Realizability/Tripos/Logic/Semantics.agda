@@ -196,7 +196,8 @@ module Interpretation
       ⟨ ⟦ Γ ⟧ᶜ ⟩
       (`∃[ isSet× (str ⟦ Γ ⟧ᶜ) (str ⟦ B ⟧ˢ) ] (str ⟦ Γ ⟧ᶜ) (λ { (f , s) → f }) ⟦ substitutionFormula (var here , drop subs) f ⟧ᶠ)
       (semanticSubstitution subs (`∃[ isSet× (str ⟦ Δ ⟧ᶜ) (str ⟦ B ⟧ˢ) ] (str ⟦ Δ ⟧ᶜ) (λ { (γ , b) → γ }) ⟦ f ⟧ᶠ))
-      (λ γ a a⊩πSubstFormulaF → {!!})
+      (λ γ a a⊩πSubstFormulaF →
+        a⊩πSubstFormulaF >>= λ { (γ' , γ'≡γ , a⊩substFormFγ') → {!!} })
       {!!}
   substitutionFormulaSound {Γ} {Δ} subs (`∀ f) = {!!}
   substitutionFormulaSound {Γ} {Δ} subs (rel k₁ x) = {!!}
@@ -210,19 +211,20 @@ module Soundness
   open Interpretation relSym ⟦_⟧ʳ isNonTrivial
 
   infix 24 _⊨_
+  
+  module PredProps = PredicateProperties
+  
+  _⊨_ : ∀ {Γ} → Formula Γ → Formula Γ → Type (ℓ-max (ℓ-max ℓ ℓ'') ℓ')
+  _⊨_ {Γ} ϕ ψ = ⟦ ϕ ⟧ᶠ ≤ ⟦ ψ ⟧ᶠ where open PredProps ⟨ ⟦ Γ ⟧ᶜ ⟩
 
-  module _ {Γ : Context} where
+  private
+    variable
+      Γ Δ : Context
+      ϕ ψ : Formula Γ
+      θ χ : Formula Δ
 
-    open PredicateProperties {ℓ'' = ℓ''} ⟨ ⟦ Γ ⟧ᶜ ⟩
+  cut : ∀ {Γ} {ϕ ψ θ : Formula Γ} → ϕ ⊨ ψ → ψ ⊨ θ → ϕ ⊨ θ
+  cut {Γ} {ϕ} {ψ} {θ} ϕ⊨ψ ψ⊨θ = isTrans≤ ⟦ ϕ ⟧ᶠ ⟦ ψ ⟧ᶠ ⟦ θ ⟧ᶠ ϕ⊨ψ ψ⊨θ where open PredProps ⟨ ⟦ Γ ⟧ᶜ ⟩
 
-    _⊨_ : Formula Γ → Formula Γ → Type _
-    ϕ ⊨ ψ = ⟦ ϕ ⟧ᶠ ≤ ⟦ ψ ⟧ᶠ
-
-    private
-      variable
-        ϕ ψ θ χ : Formula Γ
-
-    cut : ∀ {ϕ ψ θ} → ϕ ⊨ ψ → ψ ⊨ θ → ϕ ⊨ θ
-    cut {ϕ} {ψ} {θ} ϕ⊨ψ ψ⊨θ = isTrans≤ ⟦ ϕ ⟧ᶠ ⟦ ψ ⟧ᶠ ⟦ θ ⟧ᶠ ϕ⊨ψ ψ⊨θ
 
     
