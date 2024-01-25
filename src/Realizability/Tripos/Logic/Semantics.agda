@@ -1,6 +1,6 @@
 {-# OPTIONS --allow-unsolved-metas #-}
 open import Realizability.CombinatoryAlgebra
-open import Realizability.ApplicativeStructure renaming (Term to ApplStrTerm)
+open import Realizability.ApplicativeStructure renaming (Term to ApplStrTerm; λ*-naturality to `λ*ComputationRule; λ*-chain to `λ*) hiding (λ*)
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Equiv
@@ -23,12 +23,15 @@ open import Cubical.Relation.Binary.Order.Preorder
 module
   Realizability.Tripos.Logic.Semantics
   {ℓ ℓ' ℓ''} {A : Type ℓ} (ca : CombinatoryAlgebra A)  where
+open CombinatoryAlgebra ca
+private λ*ComputationRule = `λ*ComputationRule as fefermanStructure
+private λ* = `λ* as fefermanStructure
+
 open import Realizability.Tripos.Prealgebra.Predicate.Base ca renaming (Predicate to Predicate')
 open import Realizability.Tripos.Prealgebra.Predicate.Properties ca
 open import Realizability.Tripos.Prealgebra.Meets.Identity ca
 open import Realizability.Tripos.Prealgebra.Joins.Identity ca
 open import Realizability.Tripos.Logic.Syntax {ℓ = ℓ'}
-open CombinatoryAlgebra ca
 open Realizability.CombinatoryAlgebra.Combinators ca renaming (i to Id; ia≡a to Ida≡a)
 open Predicate'
 open PredicateProperties hiding (_≤_ ; isTrans≤)
@@ -107,8 +110,8 @@ module Interpretation
     -- TODO : Fix unsolved constraints
     funExt
       λ { x@(⟦Γ⟧ , ⟦s⟧) →
-        ⟦ substitutionVar (drop subs) t ⟧ᵗ (⟦Γ⟧ , ⟦s⟧)
-          ≡[ i ]⟨  renamingTermSound (drop id) (substitutionVar subs t) i (⟦Γ⟧ , ⟦s⟧)  ⟩
+        ⟦ substitutionVar (drop subs) t ⟧ᵗ x
+          ≡[ i ]⟨  renamingTermSound (drop id) (substitutionVar subs t) i x  ⟩
         ⟦ substitutionVar subs t ⟧ᵗ (⟦ drop id ⟧ᴿ x)
           ≡⟨ refl ⟩
         ⟦ substitutionVar subs t ⟧ᵗ ⟦Γ⟧
@@ -128,6 +131,7 @@ module Interpretation
 
   -- Due to a shortcut in the soundness of negation termination checking fails
   -- TODO : Fix
+  {-# TERMINATING #-}
   substitutionFormulaSound : ∀ {Γ Δ} → (subs : Substitution Γ Δ) → (f : Formula Δ) → ⟦ substitutionFormula subs f ⟧ᶠ ≡ semanticSubstitution subs ⟦ f ⟧ᶠ
   substitutionFormulaSound {Γ} {Δ} subs ⊤ᵗ =
     Predicate≡
@@ -136,7 +140,13 @@ module Interpretation
       (semanticSubstitution subs (pre1 ⟨ ⟦ Δ ⟧ᶜ ⟩ (str ⟦ Δ ⟧ᶜ) isNonTrivial))
       (λ γ a a⊩1γ → tt*)
       λ γ a a⊩1subsγ → tt*
-  substitutionFormulaSound {Γ} {Δ} subs ⊥ᵗ = {!!}
+  substitutionFormulaSound {Γ} {Δ} subs ⊥ᵗ =
+    Predicate≡
+      ⟨ ⟦ Γ ⟧ᶜ ⟩
+      (pre0 ⟨ ⟦ Γ ⟧ᶜ ⟩ (str ⟦ Γ ⟧ᶜ) isNonTrivial)
+      (semanticSubstitution subs (pre0 ⟨ ⟦ Δ ⟧ᶜ ⟩ (str ⟦ Δ ⟧ᶜ) isNonTrivial))
+      (λ _ _ bot → ⊥rec* bot)
+      λ _ _ bot → bot
   substitutionFormulaSound {Γ} {Δ} subs (f `∨ f₁) =
     Predicate≡
       ⟨ ⟦ Γ ⟧ᶜ ⟩
@@ -144,12 +154,16 @@ module Interpretation
       (semanticSubstitution subs (_⊔_ ⟨ ⟦ Δ ⟧ᶜ ⟩ ⟦ f ⟧ᶠ ⟦ f₁ ⟧ᶠ))
       (λ γ a a⊩substFormFs →
         a⊩substFormFs >>=
-          λ { (inl (pr₁a≡k , pr₂a⊩substFormF)) → ∣ inl (pr₁a≡k , subst (λ form → (pr₂ ⨾ a) ⊩ ∣ form ∣ γ) (substitutionFormulaSound subs f) pr₂a⊩substFormF) ∣₁
-            ; (inr (pr₁a≡k' , pr₂a⊩substFormF₁)) → ∣ inr (pr₁a≡k' , subst (λ form → (pr₂ ⨾ a) ⊩ ∣ form ∣ γ) (substitutionFormulaSound subs f₁) pr₂a⊩substFormF₁) ∣₁ })
+          λ { (inl (pr₁a≡k , pr₂a⊩substFormF)) →
+                   ∣ inl (pr₁a≡k , subst (λ form → (pr₂ ⨾ a) ⊩ ∣ form ∣ γ) (substitutionFormulaSound subs f) pr₂a⊩substFormF) ∣₁
+            ; (inr (pr₁a≡k' , pr₂a⊩substFormF₁)) →
+                   ∣ inr (pr₁a≡k' , subst (λ form → (pr₂ ⨾ a) ⊩ ∣ form ∣ γ) (substitutionFormulaSound subs f₁) pr₂a⊩substFormF₁) ∣₁ })
       λ γ a a⊩semanticSubsFs →
         a⊩semanticSubsFs >>=
-          λ { (inl (pr₁a≡k , pr₂a⊩semanticSubsF)) → ∣ inl (pr₁a≡k , (subst (λ form → (pr₂ ⨾ a) ⊩ ∣ form ∣ γ) (sym (substitutionFormulaSound subs f)) pr₂a⊩semanticSubsF)) ∣₁
-            ; (inr (pr₁a≡k' , pr₂a⊩semanticSubsF₁)) → ∣ inr (pr₁a≡k' , (subst (λ form → (pr₂ ⨾ a) ⊩ ∣ form ∣ γ) (sym (substitutionFormulaSound subs f₁)) pr₂a⊩semanticSubsF₁)) ∣₁ }
+          λ { (inl (pr₁a≡k , pr₂a⊩semanticSubsF)) →
+                   ∣ inl (pr₁a≡k , (subst (λ form → (pr₂ ⨾ a) ⊩ ∣ form ∣ γ) (sym (substitutionFormulaSound subs f)) pr₂a⊩semanticSubsF)) ∣₁
+            ; (inr (pr₁a≡k' , pr₂a⊩semanticSubsF₁)) →
+                   ∣ inr (pr₁a≡k' , (subst (λ form → (pr₂ ⨾ a) ⊩ ∣ form ∣ γ) (sym (substitutionFormulaSound subs f₁)) pr₂a⊩semanticSubsF₁)) ∣₁ }
   substitutionFormulaSound {Γ} {Δ} subs (f `∧ f₁) =
     Predicate≡
       ⟨ ⟦ Γ ⟧ᶜ ⟩
@@ -189,7 +203,7 @@ module Interpretation
                 (substitutionFormulaSound subs f)
                 b⊩substFormulaFs))
   substitutionFormulaSound {Γ} {Δ} subs (`¬ f) =
-    {!!}
+    substitutionFormulaSound subs (f `→ ⊥ᵗ)
   substitutionFormulaSound {Γ} {Δ} subs (`∃ {B = B} f) =
     Predicate≡
       ⟨ ⟦ Γ ⟧ᶜ ⟩
@@ -213,8 +227,38 @@ module Interpretation
                   (λ form → a ⊩ ∣ form ∣ (γ , b))
                   (sym (substitutionFormulaSound (var here , drop subs) f))
                   (subst (λ x → a ⊩ ∣ ⟦ f ⟧ᶠ ∣ (x , b)) δ≡subsγ a⊩fx))) ∣₁
-  substitutionFormulaSound {Γ} {Δ} subs (`∀ f) = {!!}
-  substitutionFormulaSound {Γ} {Δ} subs (rel R t) = {!!}
+  substitutionFormulaSound {Γ} {Δ} subs (`∀ {B = B} f) =
+    Predicate≡
+      ⟨ ⟦ Γ ⟧ᶜ ⟩
+      (`∀[ isSet× (str ⟦ Γ ⟧ᶜ) (str ⟦ B ⟧ˢ) ] (str ⟦ Γ ⟧ᶜ) (λ { (f , s) → f }) ⟦ substitutionFormula (var here , drop subs) f ⟧ᶠ)
+      (semanticSubstitution subs (`∀[ isSet× (str ⟦ Δ ⟧ᶜ) (str ⟦ B ⟧ˢ) ] (str ⟦ Δ ⟧ᶜ) (λ { (f , s) → f }) ⟦ f ⟧ᶠ))
+      (λ γ a a⊩substFormF →
+        λ { r x@(δ , b) δ≡subsγ →
+          subst
+            (λ g → (a ⨾ r) ⊩ ∣ ⟦ f ⟧ᶠ ∣ (g , b))
+            (sym δ≡subsγ)
+            (subst
+              (λ form → (a ⨾ r) ⊩ ∣ form ∣ (γ , b))
+              (substitutionFormulaSound (var here , drop subs) f)
+              (a⊩substFormF r (γ , b) refl)) })
+      λ γ a a⊩semanticSubsF →
+        λ { r x@(γ' , b) γ'≡γ →
+          subst
+            (λ form → (a ⨾ r) ⊩ ∣ form ∣ (γ' , b))
+            (sym (substitutionFormulaSound (var here , drop subs) f))
+            (subst
+              (λ g → (a ⨾ r) ⊩ ∣ ⟦ f ⟧ᶠ ∣ (g , b))
+              (cong ⟦ subs ⟧ᴮ (sym γ'≡γ))
+              (a⊩semanticSubsF r (⟦ subs ⟧ᴮ γ , b) refl)) }
+  substitutionFormulaSound {Γ} {Δ} subs (rel R t) =
+    Predicate≡
+      ⟨ ⟦ Γ ⟧ᶜ ⟩
+      (⋆_ (str ⟦ Γ ⟧ᶜ) (str ⟦ lookup R relSym ⟧ˢ) ⟦ substitutionTerm subs t ⟧ᵗ ⟦ R ⟧ʳ)
+      (semanticSubstitution subs (⋆_ (str ⟦ Δ ⟧ᶜ) (str ⟦ lookup R relSym ⟧ˢ) ⟦ t ⟧ᵗ ⟦ R ⟧ʳ))
+      (λ γ a a⊩substTR →
+        subst (λ transform → a ⊩ ∣ ⟦ R ⟧ʳ ∣ (transform γ)) (substitutionTermSound subs t) a⊩substTR)
+      λ γ a a⊩semSubst →
+        subst (λ transform → a ⊩ ∣ ⟦ R ⟧ʳ ∣ (transform γ)) (sym (substitutionTermSound subs t)) a⊩semSubst
 
 module Soundness
   {n}
@@ -223,22 +267,72 @@ module Soundness
   (⟦_⟧ʳ : RelationInterpretation relSym) where
   open Relational relSym
   open Interpretation relSym ⟦_⟧ʳ isNonTrivial
-
-  infix 24 _⊨_
+  -- Acknowledgements : 1lab's "the internal logic of a regular hyperdoctrine"
+  infix 35 _⊨_
   
   module PredProps = PredicateProperties
   
   _⊨_ : ∀ {Γ} → Formula Γ → Formula Γ → Type (ℓ-max (ℓ-max ℓ ℓ'') ℓ')
   _⊨_ {Γ} ϕ ψ = ⟦ ϕ ⟧ᶠ ≤ ⟦ ψ ⟧ᶠ where open PredProps ⟨ ⟦ Γ ⟧ᶜ ⟩
 
+  entails = _⊨_
+
   private
     variable
       Γ Δ : Context
-      ϕ ψ : Formula Γ
-      θ χ : Formula Δ
+      ϕ ψ θ : Formula Γ
+      χ μ ν : Formula Δ
 
   cut : ∀ {Γ} {ϕ ψ θ : Formula Γ} → ϕ ⊨ ψ → ψ ⊨ θ → ϕ ⊨ θ
   cut {Γ} {ϕ} {ψ} {θ} ϕ⊨ψ ψ⊨θ = isTrans≤ ⟦ ϕ ⟧ᶠ ⟦ ψ ⟧ᶠ ⟦ θ ⟧ᶠ ϕ⊨ψ ψ⊨θ where open PredProps ⟨ ⟦ Γ ⟧ᶜ ⟩
+
+  substitutionEntailment : ∀ {Γ Δ} (subs : Substitution Γ Δ) → {ϕ ψ : Formula Δ} → ϕ ⊨ ψ → substitutionFormula subs ϕ ⊨ substitutionFormula subs ψ
+  substitutionEntailment {Γ} {Δ} subs {ϕ} {ψ} ϕ⊨ψ =
+    subst2
+      (λ ϕ' ψ' → ϕ' ≤Γ ψ')
+      (sym (substitutionFormulaSound subs ϕ))
+      (sym (substitutionFormulaSound subs ψ))
+      (ϕ⊨ψ >>=
+        λ { (a , a⊩ϕ≤ψ) →
+          ∣ a , (λ γ b b⊩ϕsubsγ → a⊩ϕ≤ψ (⟦ subs ⟧ᴮ γ) b b⊩ϕsubsγ) ∣₁ }) where
+      open PredProps {ℓ'' = ℓ''} ⟨ ⟦ Γ ⟧ᶜ ⟩ renaming (_≤_ to _≤Γ_)
+      open PredProps {ℓ'' = ℓ''} ⟨ ⟦ Δ ⟧ᶜ ⟩ renaming (_≤_ to _≤Δ_)
+
+  `∧intro : ∀ {Γ} {ϕ ψ θ : Formula Γ} → ϕ ⊨ ψ → entails ϕ θ → entails ϕ (ψ `∧ θ)
+  `∧intro {Γ} {ϕ} {ψ} {θ} ϕ⊨ψ ϕ⊨θ =
+    do
+      (a , a⊩ϕ⊨ψ) ← ϕ⊨ψ
+      (b , b⊩ϕ⊨θ) ← ϕ⊨θ
+      let
+        prover : ApplStrTerm as 1
+        prover = ` pair ̇ (` a ̇ # fzero) ̇ (` b ̇ # fzero)
+      return
+        (λ* prover ,
+          λ γ r r⊩ϕγ →
+            let
+              proofEq : λ* prover ⨾ r ≡ pair ⨾ (a ⨾ r) ⨾ (b ⨾ r)
+              proofEq = λ*ComputationRule prover (r ∷ [])
+
+              pr₁proofEq : pr₁ ⨾ (λ* prover ⨾ r) ≡ a ⨾ r
+              pr₁proofEq =
+                pr₁ ⨾ (λ* prover ⨾ r)
+                  ≡⟨ cong (λ x → pr₁ ⨾ x) proofEq ⟩
+                pr₁ ⨾ (pair ⨾ (a ⨾ r) ⨾ (b ⨾ r))
+                  ≡⟨ pr₁pxy≡x _ _ ⟩
+                a ⨾ r
+                  ∎
+
+              pr₂proofEq : pr₂ ⨾ (λ* prover ⨾ r) ≡ b ⨾ r
+              pr₂proofEq =
+                pr₂ ⨾ (λ* prover ⨾ r)
+                  ≡⟨ cong (λ x → pr₂ ⨾ x) proofEq ⟩
+                pr₂ ⨾ (pair ⨾ (a ⨾ r) ⨾ (b ⨾ r))
+                  ≡⟨ pr₂pxy≡y _ _ ⟩
+                b ⨾ r
+                  ∎
+            in
+            subst (λ r → r ⊩ ∣ ⟦ ψ ⟧ᶠ ∣ γ) (sym pr₁proofEq) (a⊩ϕ⊨ψ γ r r⊩ϕγ) ,
+            subst (λ r → r ⊩ ∣ ⟦ θ ⟧ᶠ ∣ γ) (sym pr₂proofEq) (b⊩ϕ⊨θ γ r r⊩ϕγ))
 
 
     
