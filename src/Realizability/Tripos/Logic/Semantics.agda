@@ -128,7 +128,6 @@ module Interpretation
 
   -- Due to a shortcut in the soundness of negation termination checking fails
   -- TODO : Fix
-  {-# TERMINATING #-}
   substitutionFormulaSound : ∀ {Γ Δ} → (subs : Substitution Γ Δ) → (f : Formula Δ) → ⟦ substitutionFormula subs f ⟧ᶠ ≡ semanticSubstitution subs ⟦ f ⟧ᶠ
   substitutionFormulaSound {Γ} {Δ} subs ⊤ᵗ =
     Predicate≡
@@ -190,17 +189,32 @@ module Interpretation
                 (substitutionFormulaSound subs f)
                 b⊩substFormulaFs))
   substitutionFormulaSound {Γ} {Δ} subs (`¬ f) =
-    substitutionFormulaSound subs (f `→ ⊥ᵗ)
+    {!!}
   substitutionFormulaSound {Γ} {Δ} subs (`∃ {B = B} f) =
     Predicate≡
       ⟨ ⟦ Γ ⟧ᶜ ⟩
       (`∃[ isSet× (str ⟦ Γ ⟧ᶜ) (str ⟦ B ⟧ˢ) ] (str ⟦ Γ ⟧ᶜ) (λ { (f , s) → f }) ⟦ substitutionFormula (var here , drop subs) f ⟧ᶠ)
       (semanticSubstitution subs (`∃[ isSet× (str ⟦ Δ ⟧ᶜ) (str ⟦ B ⟧ˢ) ] (str ⟦ Δ ⟧ᶜ) (λ { (γ , b) → γ }) ⟦ f ⟧ᶠ))
       (λ γ a a⊩πSubstFormulaF →
-        a⊩πSubstFormulaF >>= λ { (γ' , γ'≡γ , a⊩substFormFγ') → {!!} })
-      {!!}
+        a⊩πSubstFormulaF >>=
+          λ { ((γ' , b) , γ'≡γ , a⊩substFormFγ') →
+            ∣ ((⟦ subs ⟧ᴮ γ') , b) ,
+              ((cong ⟦ subs ⟧ᴮ γ'≡γ) ,
+                (subst
+                  (λ form → a ⊩ ∣ form ∣ (γ' , b))
+                  (substitutionFormulaSound (var here , drop subs) f)
+                  a⊩substFormFγ' )) ∣₁ })
+      λ γ a a⊩semanticSubstF →
+        a⊩semanticSubstF >>=
+          λ (x@(δ , b) , δ≡subsγ , a⊩fx) →
+            ∣ (γ , b) ,
+              (refl ,
+                (subst
+                  (λ form → a ⊩ ∣ form ∣ (γ , b))
+                  (sym (substitutionFormulaSound (var here , drop subs) f))
+                  (subst (λ x → a ⊩ ∣ ⟦ f ⟧ᶠ ∣ (x , b)) δ≡subsγ a⊩fx))) ∣₁
   substitutionFormulaSound {Γ} {Δ} subs (`∀ f) = {!!}
-  substitutionFormulaSound {Γ} {Δ} subs (rel k₁ x) = {!!}
+  substitutionFormulaSound {Γ} {Δ} subs (rel R t) = {!!}
 
 module Soundness
   {n}
