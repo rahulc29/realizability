@@ -109,3 +109,5 @@ module Relational {n} (relSym : Vec Sort n) where
  substitutionFormula {Γ} {Δ} subs (`∀ form) = `∀ (substitutionFormula (var here , drop subs) form)
  substitutionFormula {Γ} {Δ} subs (rel k x) = rel k (substitutionTerm subs x)
 
+ weakenFormula : ∀ {Γ} {S} → Formula Γ → Formula (Γ ′ S)
+ weakenFormula {Γ} {S} form = substitutionFormula (drop id) form

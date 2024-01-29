@@ -260,6 +260,13 @@ module Interpretation
       λ γ a a⊩semSubst →
         subst (λ transform → a ⊩ ∣ ⟦ R ⟧ʳ ∣ (transform γ)) (sym (substitutionTermSound subs t)) a⊩semSubst
 
+  weakenFormulaMonotonic : ∀ {Γ B} → (γ : ⟨ ⟦ Γ ⟧ᶜ ⟩) → (ϕ : Formula Γ) → (a : A) → (b : ⟨ ⟦ B ⟧ˢ ⟩) → a ⊩ ∣ ⟦ ϕ ⟧ᶠ ∣ γ ≡ a ⊩ ∣ ⟦ weakenFormula {S = B} ϕ ⟧ᶠ ∣ (γ , b)
+  weakenFormulaMonotonic {Γ} {B} γ ϕ a b =
+    hPropExt
+      (⟦ ϕ ⟧ᶠ .isPropValued γ a)
+      (⟦ weakenFormula ϕ ⟧ᶠ .isPropValued (γ , b) a)
+      (λ a⊩ϕγ → subst (λ form → a ⊩ ∣ form ∣ (γ , b)) (sym (substitutionFormulaSound (drop id) ϕ)) a⊩ϕγ)
+      λ a⊩weakenϕγb → subst (λ form → a ⊩ ∣ form ∣ (γ , b)) (substitutionFormulaSound (drop id) ϕ) a⊩weakenϕγb
 module Soundness
   {n}
   {relSym : Vec Sort n}
@@ -334,5 +341,82 @@ module Soundness
             subst (λ r → r ⊩ ∣ ⟦ ψ ⟧ᶠ ∣ γ) (sym pr₁proofEq) (a⊩ϕ⊨ψ γ r r⊩ϕγ) ,
             subst (λ r → r ⊩ ∣ ⟦ θ ⟧ᶠ ∣ γ) (sym pr₂proofEq) (b⊩ϕ⊨θ γ r r⊩ϕγ))
 
+  `∧elim1 : ∀ {Γ} {ϕ ψ θ : Formula Γ} → ϕ ⊨ (ψ `∧ θ) → ϕ ⊨ ψ
+  `∧elim1 {Γ} {ϕ} {ψ} {θ} ϕ⊨ψ∧θ =
+    do
+      (a , a⊩ϕ⊨ψ∧θ) ← ϕ⊨ψ∧θ
+      let
+        prover : ApplStrTerm as 1
+        prover = ` pr₁ ̇ (` a ̇ # fzero)
+      return
+        (λ* prover ,
+          λ γ b b⊩ϕγ → subst (λ r → r ⊩ ∣ ⟦ ψ ⟧ᶠ ∣ γ) (sym (λ*ComputationRule prover (b ∷ []))) (a⊩ϕ⊨ψ∧θ γ b b⊩ϕγ .fst))
+          
+  `∧elim2 : ∀ {Γ} {ϕ ψ θ : Formula Γ} → ϕ ⊨ (ψ `∧ θ) → ϕ ⊨ θ
+  `∧elim2 {Γ} {ϕ} {ψ} {θ} ϕ⊨ψ∧θ =
+    do
+      (a , a⊩ϕ⊨ψ∧θ) ← ϕ⊨ψ∧θ
+      let
+        prover : ApplStrTerm as 1
+        prover = ` pr₂ ̇ (` a ̇ # fzero)
+      return
+        (λ* prover ,
+          λ γ b b⊩ϕγ → subst (λ r → r ⊩ ∣ ⟦ θ ⟧ᶠ ∣ γ) (sym (λ*ComputationRule prover (b ∷ []))) (a⊩ϕ⊨ψ∧θ γ b b⊩ϕγ .snd))
 
-    
+  `∃intro : ∀ {Γ} {ϕ : Formula Γ} {B} {ψ : Formula (Γ ′ B)} {t : Term Γ B} → ϕ ⊨ substitutionFormula (t , id) ψ → ϕ ⊨ `∃ ψ
+  `∃intro {Γ} {ϕ} {B} {ψ} {t} ϕ⊨ψ[t/x] =
+    do
+      (a , a⊩ϕ⊨ψ[t/x]) ← ϕ⊨ψ[t/x]
+      return
+        (a , (λ γ b b⊩ϕγ → ∣ (γ , (⟦ t ⟧ᵗ γ)) ,
+        (refl , (subst (λ form → (a ⨾ b) ⊩ ∣ form ∣ γ) (substitutionFormulaSound (t , id) ψ) (a⊩ϕ⊨ψ[t/x] γ b b⊩ϕγ))) ∣₁))
+
+  `∃elim : ∀ {Γ} {ϕ θ : Formula Γ} {B} {ψ : Formula (Γ ′ B)} → ϕ ⊨ `∃ ψ → (weakenFormula ϕ `∧ ψ) ⊨ weakenFormula θ → ϕ ⊨ θ
+  `∃elim {Γ} {ϕ} {θ} {B} {ψ} ϕ⊨∃ψ ϕ∧ψ⊨θ =
+    do
+      (a , a⊩ϕ⊨∃ψ) ← ϕ⊨∃ψ
+      (b , b⊩ϕ∧ψ⊨θ) ← ϕ∧ψ⊨θ
+      let
+        prover : ApplStrTerm as 1
+        prover = ` b ̇ (` pair ̇ # fzero ̇ (` a ̇ # fzero))
+      return
+        (λ* prover ,
+        (λ γ c c⊩ϕγ →
+          subst
+            (λ r → r ⊩ ∣ ⟦ θ ⟧ᶠ ∣ γ)
+            (sym (λ*ComputationRule prover (c ∷ [])))
+            (transport
+              (propTruncIdempotent (⟦ θ ⟧ᶠ .isPropValued γ (b ⨾ (pair ⨾ c ⨾ (a ⨾ c)))))
+              (a⊩ϕ⊨∃ψ γ c c⊩ϕγ >>=
+                λ { (x@(γ' , b') , (γ'≡γ , a⨾c⊩ψx)) →
+                  ∣ transport
+                    (sym
+                      (weakenFormulaMonotonic γ θ (b ⨾ (pair ⨾ c ⨾ (a ⨾ c))) b'))
+                    (b⊩ϕ∧ψ⊨θ
+                      (γ , b')
+                      (pair ⨾ c ⨾ (a ⨾ c))
+                      (subst
+                        (λ r → r ⊩ ∣ ⟦ weakenFormula ϕ ⟧ᶠ ∣ (γ , b'))
+                        (sym (pr₁pxy≡x _ _))
+                        (transport
+                          (weakenFormulaMonotonic γ ϕ c b') c⊩ϕγ) ,
+                      subst (λ r → r ⊩ ∣ ⟦ ψ ⟧ᶠ ∣ (γ , b')) (sym (pr₂pxy≡y _ _)) (subst (λ g → (a ⨾ c) ⊩ ∣ ⟦ ψ ⟧ᶠ ∣ (g , b')) γ'≡γ a⨾c⊩ψx)) ) ∣₁ }))))
+
+  `∀intro : ∀ {Γ} {ϕ : Formula Γ} {B} {ψ : Formula (Γ ′ B)} → weakenFormula ϕ ⊨ ψ → ϕ ⊨ `∀ ψ
+  `∀intro {Γ} {ϕ} {B} {ψ} ϕ⊨ψ =
+    do
+      (a , a⊩ϕ⊨ψ) ← ϕ⊨ψ
+      let
+        prover : ApplStrTerm as 2
+        prover = ` a ̇ # fzero
+      return
+        (λ* prover ,
+        (λ γ b b⊩ϕ → λ { c x@(γ' , b') γ'≡γ →
+          subst
+            (λ r → r ⊩ ∣ ⟦ ψ ⟧ᶠ ∣ (γ' , b'))
+            (sym (λ*ComputationRule prover (b ∷ c ∷ [])))
+            (a⊩ϕ⊨ψ
+              (γ' , b')
+              b
+              (transport (weakenFormulaMonotonic γ' ϕ b b') (subst (λ g → b ⊩ ∣ ⟦ ϕ ⟧ᶠ ∣ g) (sym γ'≡γ) b⊩ϕ))) }))
+
