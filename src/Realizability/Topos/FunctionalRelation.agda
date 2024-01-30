@@ -52,25 +52,22 @@ record FunctionalRelation (X Y : Type ℓ') : Type (ℓ-max (ℓ-max (ℓ-suc �
     relationSymbol : Vec Sort 3
     relationSymbol = (`X `× `Y) ∷ `X `× `X ∷ `Y `× `Y ∷ []
 
-    relationSymbolInterpretation : RelationInterpretation relationSymbol
-    relationSymbolInterpretation fzero = relation
-    relationSymbolInterpretation one = _~X_
-    relationSymbolInterpretation two = _~Y_
-
-    `relation : Fin 3
-    `relation = fzero
+    `F : Fin 3
+    `F = fzero
     `~X : Fin 3
     `~X = one
     `~Y : Fin 3
     `~Y = two
 
-  module RelationInterpretation = Interpretation relationSymbol relationSymbolInterpretation isNonTrivial
-  open RelationInterpretation
+  open Relational relationSymbol
 
-  module RelationSoundness = Soundness isNonTrivial relationSymbolInterpretation
+  module RelationInterpretation' = Interpretation relationSymbol (λ { fzero → relation ; one → _~X_ ; two → _~Y_ }) isNonTrivial
+  open RelationInterpretation'
+
+  module RelationSoundness = Soundness {relSym = relationSymbol} isNonTrivial (λ { fzero → relation ; one → _~X_ ; two → _~Y_ })
   open RelationSoundness
 
-  -- Strictness
+  -- # Strictness
   -- If the functional relation holds for x and y then x and y "exist"
   private
     strictnessContext : Context
@@ -87,4 +84,103 @@ record FunctionalRelation (X Y : Type ℓ') : Type (ℓ-max (ℓ-max (ℓ-suc �
 
     yˢᵗ : Term strictnessContext `Y
     yˢᵗ = var y∈strictnessContext
-  
+
+    -- F : Rel X Y, _~X_ : Rel X X, _~Y_ : Rel Y Y ⊢ F(x ,y) → (x ~X x) ∧ (y ~Y y)
+    strictnessPrequantFormula : Formula strictnessContext
+    strictnessPrequantFormula = rel `F (xˢᵗ `, yˢᵗ) `→ (rel `~X (xˢᵗ `, xˢᵗ) `∧ rel `~Y (yˢᵗ `, yˢᵗ))
+
+  strictnessFormula : Formula []
+  strictnessFormula = `∀ (`∀ strictnessPrequantFormula)
+
+  field
+    strictnessWitness : A
+    isStrict : strictnessWitness ⊩ ⟦ strictnessFormula ⟧ᶠ
+
+  -- # Relational
+  -- The functional relation preserves equality
+  -- "Substitutive" might be a better term for this property
+  private
+    relationalContext : Context
+    relationalContext =
+      [] ′ `Y ′ `Y ′ `X ′ `X
+
+    x₁∈relationalContext : `X ∈ relationalContext
+    x₁∈relationalContext = there here
+
+    x₂∈relationalContext : `X ∈ relationalContext
+    x₂∈relationalContext = here
+
+    y₁∈relationalContext : `Y ∈ relationalContext
+    y₁∈relationalContext = there (there here)
+
+    y₂∈relationalContext : `Y ∈ relationalContext
+    y₂∈relationalContext = there (there (there here))
+
+    x₁ = var x₁∈relationalContext
+    x₂ = var x₂∈relationalContext
+    y₁ = var y₁∈relationalContext
+    y₂ = var y₂∈relationalContext
+
+    relationalPrequantFormula : Formula relationalContext
+    relationalPrequantFormula = (rel `F (x₁ `, y₁) `∧ (rel `~X (x₁ `, x₂) `∧ rel `~Y (y₁ `, y₂))) `→ rel `F (x₂ `, y₂)
+
+  relationalFormula : Formula []
+  relationalFormula = `∀ (`∀ (`∀ (`∀ relationalPrequantFormula)))
+
+  field
+    relationalWitness : A
+    isRelational : relationalWitness ⊩ ⟦ relationalFormula ⟧ᶠ
+
+  -- # Single-valued
+  -- Self explanatory
+  private
+    singleValuedContext : Context
+    singleValuedContext =
+      [] ′ `Y ′ `Y ′ `X
+
+    x∈singleValuedContext : `X ∈ singleValuedContext
+    x∈singleValuedContext = here
+
+    y₁∈singleValuedContext : `Y ∈ singleValuedContext
+    y₁∈singleValuedContext = there here
+
+    y₂∈singleValuedContext : `Y ∈ singleValuedContext
+    y₂∈singleValuedContext = there (there here)
+
+    xˢᵛ = var x∈singleValuedContext
+    y₁ˢᵛ = var y₁∈singleValuedContext
+    y₂ˢᵛ = var y₂∈singleValuedContext
+
+    singleValuedPrequantFormula : Formula singleValuedContext
+    singleValuedPrequantFormula =
+      (rel `F (xˢᵛ `, y₁ˢᵛ) `∧ rel `F (xˢᵛ `, y₂ˢᵛ)) `→ rel `~Y (y₁ˢᵛ `, y₂ˢᵛ)
+
+  singleValuedFormula : Formula []
+  singleValuedFormula = `∀ (`∀ (`∀ singleValuedPrequantFormula))
+
+  field
+    singleValuedWitness : A
+    isSingleValued : singleValuedWitness ⊩ ⟦ singleValuedFormula ⟧ᶠ
+
+  -- # Total
+  -- For all existent elements in the domain x there is an element in the codomain y
+  -- such that F(x, y)
+  private
+    totalContext : Context
+    totalContext =
+      [] ′ `X
+
+    x∈totalContext : `X ∈ totalContext
+    x∈totalContext = here
+
+    xᵗˡ = var x∈totalContext
+
+    totalPrequantFormula : Formula totalContext
+    totalPrequantFormula = rel `~X (xᵗˡ `, xᵗˡ)  `→ `∃ (rel `F (renamingTerm (drop id) xᵗˡ `, var here))
+
+  totalFormula : Formula []
+  totalFormula = `∀ totalPrequantFormula
+
+  field
+    totalWitness : A
+    isTotal : totalWitness ⊩ ⟦ totalFormula ⟧ᶠ  

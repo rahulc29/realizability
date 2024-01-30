@@ -17,6 +17,7 @@ data Sort : Type (ℓ-suc ℓ) where
 ⟦ ↑ a ⟧ˢ = a
 ⟦ a `× b ⟧ˢ = ⟦ a ⟧ˢ .fst × ⟦ b ⟧ˢ .fst , isSet× (⟦ a ⟧ˢ .snd) (⟦ b ⟧ˢ .snd)
 
+infixl 30 _′_
 data Context : Type (ℓ-suc ℓ) where
   [] : Context
   _′_ : Context → Sort → Context
