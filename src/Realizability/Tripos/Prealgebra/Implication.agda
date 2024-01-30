@@ -14,8 +14,9 @@ open import Realizability.Tripos.Prealgebra.Predicate ca
 open CombinatoryAlgebra ca
 open Realizability.CombinatoryAlgebra.Combinators ca renaming (i to Id; ia≡a to Ida≡a)
 
-λ*ComputationRule = `λ*ComputationRule as fefermanStructure
-λ* = `λ* as fefermanStructure
+private
+  λ*ComputationRule = `λ*ComputationRule as fefermanStructure
+  λ* = `λ* as fefermanStructure
 
 module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) where
   PredicateX = Predicate {ℓ'' = ℓ''} X

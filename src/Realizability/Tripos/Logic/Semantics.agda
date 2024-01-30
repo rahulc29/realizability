@@ -31,6 +31,7 @@ open import Realizability.Tripos.Prealgebra.Predicate.Base ca renaming (Predicat
 open import Realizability.Tripos.Prealgebra.Predicate.Properties ca
 open import Realizability.Tripos.Prealgebra.Meets.Identity ca
 open import Realizability.Tripos.Prealgebra.Joins.Identity ca
+open import Realizability.Tripos.Prealgebra.Implication ca
 open import Realizability.Tripos.Logic.Syntax {ℓ = ℓ'}
 open Realizability.CombinatoryAlgebra.Combinators ca renaming (i to Id; ia≡a to Ida≡a)
 open Predicate'
@@ -91,16 +92,26 @@ module Interpretation
 
   renamingTermSound : ∀ {Γ Δ s} → (ren : Renaming Γ Δ) → (t : Term Δ s) → ⟦ renamingTerm ren t ⟧ᵗ ≡ ⟦ t ⟧ᵗ ∘ ⟦ ren ⟧ᴿ
   renamingTermSound {Γ} {.Γ} {s} id t = refl
-  renamingTermSound {.(_ ′ _)} {Δ} {s} (drop ren) (var x) = funExt λ { (⟦Γ⟧ , ⟦s⟧) i → renamingVarSound ren x i ⟦Γ⟧ }
-  renamingTermSound {.(_ ′ _)} {Δ} {.(_ `× _)} r@(drop ren) (t `, t₁) = funExt λ { (⟦Γ⟧ , ⟦s⟧) i → renamingTermSound r t i (⟦Γ⟧ , ⟦s⟧) , renamingTermSound r t₁ i (⟦Γ⟧ , ⟦s⟧) }
-  renamingTermSound {.(_ ′ _)} {Δ} {s} r@(drop ren) (π₁ t) = funExt λ { x@(⟦Γ⟧ , ⟦s⟧) i → renamingTermSound r t i x .fst }
-  renamingTermSound {.(_ ′ _)} {Δ} {s} r@(drop ren) (π₂ t) = funExt λ { x@(⟦Γ⟧ , ⟦s⟧) i → renamingTermSound r t i x .snd }
-  renamingTermSound {.(_ ′ _)} {Δ} {s} r@(drop ren) (fun f t) = funExt λ { x@(⟦Γ⟧ , ⟦s⟧) i → f (renamingTermSound r t i x) }
-  renamingTermSound {.(_ ′ _)} {.(_ ′ _)} {s} r@(keep ren) (var v) = funExt λ { x@(⟦Γ⟧ , ⟦s⟧) i → renamingVarSound r v i x }
-  renamingTermSound {.(_ ′ _)} {.(_ ′ _)} {.(_ `× _)} r@(keep ren) (t `, t₁) = funExt λ { x@(⟦Γ⟧ , ⟦s⟧) i → (renamingTermSound r t i x) , (renamingTermSound r t₁ i x) }
-  renamingTermSound {.(_ ′ _)} {.(_ ′ _)} {s} r@(keep ren) (π₁ t) = funExt λ { x@(⟦Γ⟧ , ⟦s⟧) i → renamingTermSound r t i x .fst }
-  renamingTermSound {.(_ ′ _)} {.(_ ′ _)} {s} r@(keep ren) (π₂ t) = funExt λ { x@(⟦Γ⟧ , ⟦s⟧) i → renamingTermSound r t i x .snd }
-  renamingTermSound {.(_ ′ _)} {.(_ ′ _)} {s} r@(keep ren) (fun f t) = funExt λ { x@(⟦Γ⟧ , ⟦s⟧) i → f (renamingTermSound r t i x) }
+  renamingTermSound {.(_ ′ _)} {Δ} {s} (drop ren) (var x) =
+    funExt λ { (⟦Γ⟧ , ⟦s⟧) i → renamingVarSound ren x i ⟦Γ⟧ }
+  renamingTermSound {.(_ ′ _)} {Δ} {.(_ `× _)} r@(drop ren) (t `, t₁) =
+    funExt λ { (⟦Γ⟧ , ⟦s⟧) i → renamingTermSound r t i (⟦Γ⟧ , ⟦s⟧) , renamingTermSound r t₁ i (⟦Γ⟧ , ⟦s⟧) }
+  renamingTermSound {.(_ ′ _)} {Δ} {s} r@(drop ren) (π₁ t) =
+    funExt λ { x@(⟦Γ⟧ , ⟦s⟧) i → renamingTermSound r t i x .fst }
+  renamingTermSound {.(_ ′ _)} {Δ} {s} r@(drop ren) (π₂ t) =
+    funExt λ { x@(⟦Γ⟧ , ⟦s⟧) i → renamingTermSound r t i x .snd }
+  renamingTermSound {.(_ ′ _)} {Δ} {s} r@(drop ren) (fun f t) =
+    funExt λ { x@(⟦Γ⟧ , ⟦s⟧) i → f (renamingTermSound r t i x) }
+  renamingTermSound {.(_ ′ _)} {.(_ ′ _)} {s} r@(keep ren) (var v) =
+    funExt λ { x@(⟦Γ⟧ , ⟦s⟧) i → renamingVarSound r v i x }
+  renamingTermSound {.(_ ′ _)} {.(_ ′ _)} {.(_ `× _)} r@(keep ren) (t `, t₁) =
+    funExt λ { x@(⟦Γ⟧ , ⟦s⟧) i → (renamingTermSound r t i x) , (renamingTermSound r t₁ i x) }
+  renamingTermSound {.(_ ′ _)} {.(_ ′ _)} {s} r@(keep ren) (π₁ t) =
+    funExt λ { x@(⟦Γ⟧ , ⟦s⟧) i → renamingTermSound r t i x .fst }
+  renamingTermSound {.(_ ′ _)} {.(_ ′ _)} {s} r@(keep ren) (π₂ t) =
+    funExt λ { x@(⟦Γ⟧ , ⟦s⟧) i → renamingTermSound r t i x .snd }
+  renamingTermSound {.(_ ′ _)} {.(_ ′ _)} {s} r@(keep ren) (fun f t) =
+    funExt λ { x@(⟦Γ⟧ , ⟦s⟧) i → f (renamingTermSound r t i x) }
 
   substitutionVarSound : ∀ {Γ Δ s} → (subs : Substitution Γ Δ) → (v : s ∈ Δ) → ⟦ substitutionVar subs v ⟧ᵗ ≡ ⟦ v ⟧ⁿ ∘ ⟦ subs ⟧ᴮ
   substitutionVarSound {Γ} {.Γ} {s} id t = refl
@@ -420,3 +431,169 @@ module Soundness
               b
               (transport (weakenFormulaMonotonic γ' ϕ b b') (subst (λ g → b ⊩ ∣ ⟦ ϕ ⟧ᶠ ∣ g) (sym γ'≡γ) b⊩ϕ))) }))
 
+  `∀elim : ∀ {Γ} {B} {ϕ : Formula Γ} {ψ : Formula (Γ ′ B)} → ϕ ⊨ `∀ ψ → (t : Term Γ B) → ϕ ⊨ substitutionFormula (t , id) ψ
+  `∀elim {Γ} {B} {ϕ} {ψ} ϕ⊨∀ψ t =
+    do
+      (a , a⊩ϕ⊨∀ψ) ← ϕ⊨∀ψ
+      let
+        prover : ApplStrTerm as 1
+        prover = ` a ̇ # fzero ̇ ` k
+      return
+        (λ* prover ,
+        (λ γ b b⊩ϕγ →
+          subst
+          (λ form → (λ* prover ⨾ b) ⊩ ∣ form ∣ γ)
+          (sym (substitutionFormulaSound (t , id) ψ))
+          (subst
+            (λ r → r ⊩ ∣ ⟦ ψ ⟧ᶠ ∣ (γ , ⟦ t ⟧ᵗ γ))
+            (sym (λ*ComputationRule prover (b ∷ [])))
+            (a⊩ϕ⊨∀ψ γ b b⊩ϕγ k (γ , ⟦ t ⟧ᵗ γ) refl))))
+
+  `→intro : ∀ {Γ} {ϕ ψ θ : Formula Γ} → (ϕ `∧ ψ) ⊨ θ → ϕ ⊨ (ψ `→ θ)
+  `→intro {Γ} {ϕ} {ψ} {θ} ϕ∧ψ⊨θ = a⊓b≤c→a≤b⇒c ⟨ ⟦ Γ ⟧ᶜ ⟩ (str ⟦ Γ ⟧ᶜ) ⟦ ϕ ⟧ᶠ ⟦ ψ ⟧ᶠ ⟦ θ ⟧ᶠ ϕ∧ψ⊨θ
+
+  `→elim : ∀ {Γ} {ϕ ψ θ : Formula Γ} → ϕ ⊨ (ψ `→ θ) → ϕ ⊨ ψ → ϕ ⊨ θ
+  `→elim {Γ} {ϕ} {ψ} {θ} ϕ⊨ψ→θ ϕ⊨ψ =
+    do
+      (a , a⊩ϕ⊨ψ→θ) ← ϕ⊨ψ→θ
+      (b , b⊩ϕ⊨ψ) ← ϕ⊨ψ
+      let
+        prover : ApplStrTerm as 1
+        prover = ` a ̇ (# fzero) ̇ (` b ̇ # fzero)
+      return
+        (λ* prover ,
+        (λ γ c c⊩ϕγ →
+          subst
+            (λ r → r ⊩ ∣ ⟦ θ ⟧ᶠ ∣ γ)
+            (sym (λ*ComputationRule prover (c ∷ [])))
+            (a⊩ϕ⊨ψ→θ γ c c⊩ϕγ (b ⨾ c) (b⊩ϕ⊨ψ γ c c⊩ϕγ))))
+
+  `∨introR : ∀ {Γ} {ϕ ψ θ : Formula Γ} → ϕ ⊨ ψ → ϕ ⊨ (ψ `∨ θ)
+  `∨introR {Γ} {ϕ} {ψ} {θ} ϕ⊨ψ =
+    do
+      (a , a⊩ϕ⊨ψ) ← ϕ⊨ψ
+      let
+        prover : ApplStrTerm as 1
+        prover = ` pair ̇ ` true ̇ (` a ̇ # fzero)
+      return
+        ((λ* prover) ,
+        (λ γ b b⊩ϕγ →
+          let
+            pr₁proofEq : pr₁ ⨾ (λ* prover ⨾ b) ≡ true
+            pr₁proofEq =
+              pr₁ ⨾ (λ* prover ⨾ b)
+                ≡⟨ cong (λ x → pr₁ ⨾ x) (λ*ComputationRule prover (b ∷ [])) ⟩
+              pr₁ ⨾ (pair ⨾ true ⨾ (a ⨾ b))
+                ≡⟨ pr₁pxy≡x _ _ ⟩
+              true
+                ∎
+
+            pr₂proofEq : pr₂ ⨾ (λ* prover ⨾ b) ≡ a ⨾ b
+            pr₂proofEq =
+              pr₂ ⨾ (λ* prover ⨾ b)
+                ≡⟨ cong (λ x → pr₂ ⨾ x) (λ*ComputationRule prover (b ∷ [])) ⟩
+              pr₂ ⨾ (pair ⨾ true ⨾ (a ⨾ b))
+                ≡⟨ pr₂pxy≡y _ _ ⟩
+              a ⨾ b
+                ∎
+          in ∣ inl (pr₁proofEq , subst (λ r → r ⊩ ∣ ⟦ ψ ⟧ᶠ ∣ γ) (sym pr₂proofEq) (a⊩ϕ⊨ψ γ b b⊩ϕγ)) ∣₁))
+
+  `∨introL : ∀ {Γ} {ϕ ψ θ : Formula Γ} → ϕ ⊨ ψ → ϕ ⊨ (θ `∨ ψ)
+  `∨introL {Γ} {ϕ} {ψ} {θ} ϕ⊨ψ =
+    do
+      (a , a⊩ϕ⊨ψ) ← ϕ⊨ψ
+      let
+        prover : ApplStrTerm as 1
+        prover = ` pair ̇ ` false ̇ (` a ̇ # fzero)
+      return
+        ((λ* prover) ,
+        (λ γ b b⊩ϕγ →
+          let
+            pr₁proofEq : pr₁ ⨾ (λ* prover ⨾ b) ≡ false
+            pr₁proofEq =
+              pr₁ ⨾ (λ* prover ⨾ b)
+                ≡⟨ cong (λ x → pr₁ ⨾ x) (λ*ComputationRule prover (b ∷ [])) ⟩
+              pr₁ ⨾ (pair ⨾ false ⨾ (a ⨾ b))
+                ≡⟨ pr₁pxy≡x _ _ ⟩
+              false
+                ∎
+
+            pr₂proofEq : pr₂ ⨾ (λ* prover ⨾ b) ≡ a ⨾ b
+            pr₂proofEq =
+              pr₂ ⨾ (λ* prover ⨾ b)
+                ≡⟨ cong (λ x → pr₂ ⨾ x) (λ*ComputationRule prover (b ∷ [])) ⟩
+              pr₂ ⨾ (pair ⨾ false ⨾ (a ⨾ b))
+                ≡⟨ pr₂pxy≡y _ _ ⟩
+              a ⨾ b
+                ∎
+          in ∣ inr (pr₁proofEq , subst (λ r → r ⊩ ∣ ⟦ ψ ⟧ᶠ ∣ γ) (sym pr₂proofEq) (a⊩ϕ⊨ψ γ b b⊩ϕγ)) ∣₁))
+
+  -- Pretty sure this is code duplication
+  `if_then_else_ : ∀ {as n} → ApplStrTerm as n → ApplStrTerm as n → ApplStrTerm as n → ApplStrTerm as n
+  `if a then b else c = ` Id ̇ a ̇ b ̇ c
+
+  `∨elim : ∀ {Γ} {ϕ ψ θ χ : Formula Γ} → (ϕ `∧ ψ) ⊨ χ → (ϕ `∧ θ) ⊨ χ → (ϕ `∧ (ψ `∨ θ)) ⊨ χ
+  `∨elim {Γ} {ϕ} {ψ} {θ} {χ} ϕ∧ψ⊨χ ϕ∧θ⊨χ =
+    do
+      (a , a⊩ϕ∧ψ⊨χ) ← ϕ∧ψ⊨χ
+      (b , b⊩ϕ∧θ⊨χ) ← ϕ∧θ⊨χ
+      let
+        prover : ApplStrTerm as 1
+        prover =
+          (`if ` pr₁ ̇ (` pr₂ ̇ # fzero) then ` a else (` b)) ̇ (` pair ̇ (` pr₁ ̇ # fzero) ̇ (` pr₂ ̇ (` pr₂ ̇ # fzero)))
+      return
+        (λ* prover ,
+        (λ
+          { γ c (pr₁⨾c⊩ϕγ , pr₂⨾c⊩ψ∨θ) →
+            transport
+            (propTruncIdempotent (⟦ χ ⟧ᶠ .isPropValued γ (λ* prover ⨾ c)))
+            (pr₂⨾c⊩ψ∨θ >>=
+              λ { (inl (pr₁⨾pr₂⨾c≡true , pr₂⨾pr₂⨾c⊩ψ)) →
+                  let
+                    proofEq : λ* prover ⨾ c ≡ a ⨾ (pair ⨾ (pr₁ ⨾ c) ⨾ (pr₂ ⨾ (pr₂ ⨾ c)))
+                    proofEq =
+                      λ* prover ⨾ c
+                        ≡⟨ λ*ComputationRule prover (c ∷ []) ⟩
+                      (if (pr₁ ⨾ (pr₂ ⨾ c)) then a else b) ⨾ (pair ⨾ (pr₁ ⨾ c) ⨾ (pr₂ ⨾ (pr₂ ⨾ c)))
+                        ≡⟨ cong (λ x → (if x then a else b) ⨾ (pair ⨾ (pr₁ ⨾ c) ⨾ (pr₂ ⨾ (pr₂ ⨾ c)))) pr₁⨾pr₂⨾c≡true ⟩
+                      (if true then a else b) ⨾ (pair ⨾ (pr₁ ⨾ c) ⨾ (pr₂ ⨾ (pr₂ ⨾ c)))
+                        ≡⟨ cong (λ x → x ⨾ (pair ⨾ (pr₁ ⨾ c) ⨾ (pr₂ ⨾ (pr₂ ⨾ c)))) (ifTrueThen a b) ⟩
+                      a ⨾ (pair ⨾ (pr₁ ⨾ c) ⨾ (pr₂ ⨾ (pr₂ ⨾ c)))
+                        ∎
+                  in
+                  ∣ subst
+                    (λ r → r ⊩ ∣ ⟦ χ ⟧ᶠ ∣ γ)
+                    (sym proofEq)
+                    (a⊩ϕ∧ψ⊨χ
+                      γ
+                      (pair ⨾ (pr₁ ⨾ c) ⨾ (pr₂ ⨾ (pr₂ ⨾ c)))
+                      ((
+                      subst
+                        (λ r → r ⊩ ∣ ⟦ ϕ ⟧ᶠ ∣ γ)
+                        (sym (pr₁pxy≡x _ _))
+                        pr₁⨾c⊩ϕγ) ,
+                      subst
+                        (λ r → r ⊩ ∣ ⟦ ψ ⟧ᶠ ∣ γ)
+                        (sym (pr₂pxy≡y _ _))
+                        pr₂⨾pr₂⨾c⊩ψ)) ∣₁
+                ; (inr (pr₁pr₂⨾c≡false , pr₂⨾pr₂⨾c⊩θ)) →
+                  let
+                    proofEq : λ* prover ⨾ c ≡ b ⨾ (pair ⨾ (pr₁ ⨾ c) ⨾ (pr₂ ⨾ (pr₂ ⨾ c)))
+                    proofEq =
+                      λ* prover ⨾ c
+                        ≡⟨ λ*ComputationRule prover (c ∷ []) ⟩
+                      (if (pr₁ ⨾ (pr₂ ⨾ c)) then a else b) ⨾ (pair ⨾ (pr₁ ⨾ c) ⨾ (pr₂ ⨾ (pr₂ ⨾ c)))
+                        ≡⟨ cong (λ x → (if x then a else b) ⨾ (pair ⨾ (pr₁ ⨾ c) ⨾ (pr₂ ⨾ (pr₂ ⨾ c)))) pr₁pr₂⨾c≡false ⟩
+                      (if false then a else b) ⨾ (pair ⨾ (pr₁ ⨾ c) ⨾ (pr₂ ⨾ (pr₂ ⨾ c)))
+                        ≡⟨ cong (λ x → x ⨾ (pair ⨾ (pr₁ ⨾ c) ⨾ (pr₂ ⨾ (pr₂ ⨾ c)))) (ifFalseElse a b) ⟩
+                      b ⨾ (pair ⨾ (pr₁ ⨾ c) ⨾ (pr₂ ⨾ (pr₂ ⨾ c)))
+                        ∎
+                  in
+                  ∣ subst
+                    (λ r → r ⊩ ∣ ⟦ χ ⟧ᶠ ∣ γ)
+                    (sym proofEq)
+                    (b⊩ϕ∧θ⊨χ
+                      γ
+                      (pair ⨾ (pr₁ ⨾ c) ⨾ (pr₂ ⨾ (pr₂ ⨾ c)))
+                      ((subst (λ r → r ⊩ ∣ ⟦ ϕ ⟧ᶠ ∣ γ) (sym (pr₁pxy≡x _ _)) pr₁⨾c⊩ϕγ) ,
+                       (subst (λ r → r ⊩ ∣ ⟦ θ ⟧ᶠ ∣ γ) (sym (pr₂pxy≡y _ _)) pr₂⨾pr₂⨾c⊩θ))) ∣₁ }) }))
