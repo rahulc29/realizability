@@ -29,17 +29,18 @@ private
   _⊩_ : ∀ a (P : Predicate' {ℓ' = ℓ'} {ℓ'' = ℓ''} Unit*) → Type _
   a ⊩ P = a pre⊩ ∣ P ∣ tt*
 
-record ToposObject (X : Type ℓ') : Type (ℓ-max (ℓ-max (ℓ-suc ℓ) (ℓ-suc ℓ')) (ℓ-suc ℓ'')) where
+record PartialEquivalenceRelation (X : Type ℓ') : Type (ℓ-max (ℓ-max (ℓ-suc ℓ) (ℓ-suc ℓ')) (ℓ-suc ℓ'')) where
   field
     isSetX : isSet X
-  `X : Sort
-  `X = ↑ (X , isSetX)
+  private
+    `X : Sort
+    `X = ↑ (X , isSetX)
 
-  `X×X : Sort
-  `X×X = `X `× `X
+    `X×X : Sort
+    `X×X = `X `× `X
 
-  ~relSym : Vec Sort 1
-  ~relSym = `X×X ∷ []
+    ~relSym : Vec Sort 1
+    ~relSym = `X×X ∷ []
 
   module X×XRelational = Relational ~relSym
   open X×XRelational
@@ -47,8 +48,9 @@ record ToposObject (X : Type ℓ') : Type (ℓ-max (ℓ-max (ℓ-suc ℓ) (ℓ-s
   field
     _~_ : Predicate ⟨ ⟦ lookup fzero ~relSym ⟧ˢ ⟩
 
-  ~relSymInterpretation : RelationInterpretation ~relSym
-  ~relSymInterpretation = λ { fzero → _~_ }
+  private
+    ~relSymInterpretation : RelationInterpretation ~relSym
+    ~relSymInterpretation = λ { fzero → _~_ }
   
   module ~Interpretation = Interpretation ~relSym ~relSymInterpretation isNonTrivial
   open ~Interpretation
@@ -57,24 +59,26 @@ record ToposObject (X : Type ℓ') : Type (ℓ-max (ℓ-max (ℓ-suc ℓ) (ℓ-s
   open ~Soundness
 
   -- Partial equivalence relations
-  symContext : Context
-  symContext = ([] ′ `X) ′ `X
 
-  x∈symContext : `X ∈ symContext
-  x∈symContext = there here
+  private
+    symContext : Context
+    symContext = ([] ′ `X) ′ `X
 
-  y∈symContext : `X ∈ symContext
-  y∈symContext = here
+    x∈symContext : `X ∈ symContext
+    x∈symContext = there here
 
-  xˢ : Term symContext `X
-  xˢ = var x∈symContext
+    y∈symContext : `X ∈ symContext
+    y∈symContext = here
 
-  yˢ : Term symContext `X
-  yˢ = var y∈symContext
+    xˢ : Term symContext `X
+    xˢ = var x∈symContext
 
-  symPrequantFormula : Formula symContext
-  symPrequantFormula = rel fzero (xˢ `, yˢ) `→ rel fzero (yˢ `, xˢ)
-  
+    yˢ : Term symContext `X
+    yˢ = var y∈symContext
+
+    symPrequantFormula : Formula symContext
+    symPrequantFormula = rel fzero (xˢ `, yˢ) `→ rel fzero (yˢ `, xˢ)
+
   -- ~ ⊢ ∀ x. ∀ y. x ~ y → y ~ x
   symFormula : Formula []
   symFormula = `∀ (`∀ symPrequantFormula)
@@ -83,30 +87,31 @@ record ToposObject (X : Type ℓ') : Type (ℓ-max (ℓ-max (ℓ-suc ℓ) (ℓ-s
     symWitness : A
     symIsWitnessed : symWitness ⊩ ⟦ symFormula ⟧ᶠ
 
-  transContext : Context
-  transContext = (([] ′ `X) ′ `X) ′ `X
+  private
+    transContext : Context
+    transContext = (([] ′ `X) ′ `X) ′ `X
 
-  z∈transContext : `X ∈ transContext
-  z∈transContext = here
+    z∈transContext : `X ∈ transContext
+    z∈transContext = here
 
-  y∈transContext : `X ∈ transContext
-  y∈transContext = there here
+    y∈transContext : `X ∈ transContext
+    y∈transContext = there here
 
-  x∈transContext : `X ∈ transContext
-  x∈transContext = there (there here)
+    x∈transContext : `X ∈ transContext
+    x∈transContext = there (there here)
 
-  zᵗ : Term transContext `X
-  zᵗ = var z∈transContext
+    zᵗ : Term transContext `X
+    zᵗ = var z∈transContext
 
-  yᵗ : Term transContext `X
-  yᵗ = var y∈transContext
+    yᵗ : Term transContext `X
+    yᵗ = var y∈transContext
 
-  xᵗ : Term transContext `X
-  xᵗ = var x∈transContext
+    xᵗ : Term transContext `X
+    xᵗ = var x∈transContext
 
-  -- ~ : Rel X X, x : X, y : X, z : X ⊢ x ~ y ∧ y ~ z → x ~ z
-  transPrequantFormula : Formula transContext
-  transPrequantFormula = (rel fzero (xᵗ `, yᵗ) `∧ rel fzero (yᵗ `, zᵗ)) `→ rel fzero (xᵗ `, zᵗ)
+    -- ~ : Rel X X, x : X, y : X, z : X ⊢ x ~ y ∧ y ~ z → x ~ z
+    transPrequantFormula : Formula transContext
+    transPrequantFormula = (rel fzero (xᵗ `, yᵗ) `∧ rel fzero (yᵗ `, zᵗ)) `→ rel fzero (xᵗ `, zᵗ)
 
   transFormula : Formula []
   transFormula = `∀ (`∀ (`∀ transPrequantFormula))
