@@ -597,3 +597,42 @@ module Soundness
                       (pair ⨾ (pr₁ ⨾ c) ⨾ (pr₂ ⨾ (pr₂ ⨾ c)))
                       ((subst (λ r → r ⊩ ∣ ⟦ ϕ ⟧ᶠ ∣ γ) (sym (pr₁pxy≡x _ _)) pr₁⨾c⊩ϕγ) ,
                        (subst (λ r → r ⊩ ∣ ⟦ θ ⟧ᶠ ∣ γ) (sym (pr₂pxy≡y _ _)) pr₂⨾pr₂⨾c⊩θ))) ∣₁ }) }))
+
+module NaturalDeduction
+  {n}
+  {relSym : Vec Sort n}
+  (isNonTrivial : s ≡ k → ⊥)
+  (⟦_⟧ʳ : RelationInterpretation relSym) where
+  open Relational relSym
+  open Interpretation relSym ⟦_⟧ʳ isNonTrivial
+  open Soundness isNonTrivial ⟦_⟧ʳ
+
+  -- ahh yes, the reduction of natural deduction to sequent calculus
+  -- cause I do not like sequent calculus
+  -- and it is much easier for formalisation to use natural deduction
+
+  data PropContext (Γ : Context) : Type (ℓ-suc ℓ') where
+    [] : PropContext Γ
+    _`&_ : PropContext Γ → Formula Γ → PropContext Γ
+
+  data _∈ᶠ_ : ∀ {Γ} → Formula Γ → PropContext Γ → Type (ℓ-suc ℓ') where
+    here : ∀ {Γ} {p : Formula Γ} → p ∈ᶠ ([] `& p)
+    there : ∀ {Γ Ξ ξ} {p : Formula Γ} → p ∈ᶠ Ξ → p ∈ᶠ (Ξ `& ξ)
+
+  weakenPropContext : ∀ {Γ S} → PropContext Γ → PropContext (Γ ′ S)
+  weakenPropContext {Γ} {S} [] = []
+  weakenPropContext {Γ} {S} (ctx `& x) = weakenPropContext ctx `& weakenFormula x
+
+  -- Judgements of natural deduction
+  data _∣_⊢_ : (Γ : Context) → PropContext Γ → Formula Γ → Type (ℓ-suc ℓ') where
+    -- Introduction rules
+    intro⊤ : ∀ {Γ} {Ξ} → Γ ∣ Ξ ⊢ ⊤ᵗ
+    intro∧ : ∀ {Γ Ξ A B} → Γ ∣ Ξ ⊢ A → Γ ∣ Ξ ⊢ B → Γ ∣ Ξ ⊢ (A `∧ B)
+    intro∨L : ∀ {Γ Ξ A B} → Γ ∣ Ξ ⊢ A → Γ ∣ Ξ ⊢ (A `∨ B)
+    intro∨R : ∀ {Γ Ξ A B} → Γ ∣ Ξ ⊢ B → Γ ∣ Ξ ⊢ (A `∨ B)
+    intro∀ : ∀ {Γ} {S A} → {Ξ : PropContext Γ} → (Γ ′ S) ∣ weakenPropContext Ξ ⊢ A → Γ ∣ Ξ ⊢ `∀ A
+    intro∃ : ∀ {Γ S A Ξ} → (t : Term Γ S) → Γ ∣ Ξ ⊢ substitutionFormula (t , id) A → Γ ∣ Ξ ⊢ `∃ A
+    intro→ : ∀ {Γ Ξ A B} → Γ ∣ Ξ `& A ⊢ B → Γ ∣ Ξ ⊢ (A `→ B)
+    intro∈ : ∀ {Γ Ξ p} → p ∈ᶠ Ξ → Γ ∣ Ξ ⊢ p
+    
+    
