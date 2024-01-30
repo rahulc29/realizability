@@ -31,8 +31,9 @@ private
   _⊩_ : ∀ a (P : Predicate' {ℓ' = ℓ'} {ℓ'' = ℓ''} Unit*) → Type _
   a ⊩ P = a pre⊩ ∣ P ∣ tt*
 
+open PartialEquivalenceRelation
+
 record FunctionalRelation (X Y : Type ℓ') : Type (ℓ-max (ℓ-max (ℓ-suc ℓ) (ℓ-suc ℓ')) (ℓ-suc ℓ'')) where
-  open PartialEquivalenceRelation
   field
     perX : PartialEquivalenceRelation X
     perY : PartialEquivalenceRelation Y
@@ -42,13 +43,13 @@ record FunctionalRelation (X Y : Type ℓ') : Type (ℓ-max (ℓ-max (ℓ-suc �
   field
     relation : Predicate (X × Y)
 
+  `X : Sort
+  `X = ↑ (X , perX .isSetX)
+
+  `Y : Sort
+  `Y = ↑ (Y , perY .isSetX)
+
   private
-    `X : Sort
-    `X = ↑ (X , perX .isSetX)
-
-    `Y : Sort
-    `Y = ↑ (Y , perY .isSetX)
-
     relationSymbol : Vec Sort 3
     relationSymbol = (`X `× `Y) ∷ `X `× `X ∷ `Y `× `Y ∷ []
 
@@ -184,3 +185,77 @@ record FunctionalRelation (X Y : Type ℓ') : Type (ℓ-max (ℓ-max (ℓ-suc �
   field
     totalWitness : A
     isTotal : totalWitness ⊩ ⟦ totalFormula ⟧ᶠ  
+
+open FunctionalRelation hiding (`X; `Y)
+
+pointwiseEntailment : ∀ {X Y : Type ℓ'} → FunctionalRelation X Y → FunctionalRelation X Y → Type _
+pointwiseEntailment {X} {Y} F G = Σ[ a ∈ A ] (a ⊩ ⟦ entailmentFormula ⟧ᶠ) where
+  
+  `X : Sort
+  `Y : Sort
+
+  `X = ↑ (X , F .perX .isSetX)
+  `Y = ↑ (Y , F .perY .isSetX)
+
+  relationSymbols : Vec Sort 2
+  relationSymbols = (`X `× `Y) ∷ (`X `× `Y) ∷ []
+
+  `F : Fin 2
+  `F = fzero
+
+  `G : Fin 2
+  `G = one
+
+  open Relational relationSymbols
+
+  module RelationalInterpretation = Interpretation relationSymbols (λ { fzero → F .relation ; one → G .relation }) isNonTrivial
+  open RelationalInterpretation
+
+  entailmentContext : Context
+  entailmentContext = [] ′ `X ′ `Y
+
+  x∈entailmentContext : `X ∈ entailmentContext
+  x∈entailmentContext = there here
+
+  y∈entailmentContext : `Y ∈ entailmentContext
+  y∈entailmentContext = here
+
+  x = var x∈entailmentContext
+  y = var y∈entailmentContext
+
+  entailmentPrequantFormula : Formula entailmentContext
+  entailmentPrequantFormula = rel `F (x `, y) `→ rel `G (x `, y)
+
+  entailmentFormula : Formula []
+  entailmentFormula = `∀ (`∀ entailmentPrequantFormula)
+
+
+functionalRelationIsomorphism : ∀ {X Y : Type ℓ'} → FunctionalRelation X Y → FunctionalRelation X Y → Type (ℓ-max (ℓ-max ℓ ℓ') ℓ'')
+functionalRelationIsomorphism {X} {Y} F G =
+  pointwiseEntailment F G × pointwiseEntailment G F
+
+pointwiseEntailment→functionalRelationIsomorphism : ∀ {X Y : Type ℓ'} → (F G : FunctionalRelation X Y) → pointwiseEntailment F G → functionalRelationIsomorphism F G
+pointwiseEntailment→functionalRelationIsomorphism {X} {Y} F G (a , a⊩peFG) = {!!} where
+    
+  `X : Sort
+  `Y : Sort
+
+  `X = ↑ (X , F .perX .isSetX)
+  `Y = ↑ (Y , F .perY .isSetX)
+
+  relationSymbols : Vec Sort 4
+  relationSymbols = (`X `× `Y) ∷ (`X `× `Y) ∷ (`X `× `X) ∷ (`Y `× `Y) ∷ []
+
+  `F : Fin 4
+  `F = fzero
+
+  `G : Fin 4
+  `G = one
+
+  `~X : Fin 4
+  `~X = two
+
+  `~Y : Fin 4
+  `~Y = three
+
+  
