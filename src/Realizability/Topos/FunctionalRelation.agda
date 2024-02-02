@@ -7,6 +7,9 @@ open import Cubical.Data.Nat
 open import Cubical.Data.FinData renaming (zero to fzero)
 open import Cubical.Data.Sigma
 open import Cubical.Data.Empty
+open import Cubical.Data.Unit
+open import Cubical.HITs.PropositionalTruncation
+open import Cubical.HITs.PropositionalTruncation.Monad
 
 module Realizability.Topos.FunctionalRelation
   {ℓ ℓ' ℓ''}
@@ -19,6 +22,7 @@ open import Realizability.Tripos.Logic.Syntax {ℓ = ℓ'}
 open import Realizability.Tripos.Logic.Semantics {ℓ' = ℓ'} {ℓ'' = ℓ''} ca
 open import Realizability.Tripos.Prealgebra.Predicate.Base ca renaming (Predicate to Predicate'; _⊩_ to _pre⊩_)
 open import Realizability.Tripos.Prealgebra.Predicate.Properties ca
+open import Realizability.Tripos.Prealgebra.Meets.Identity ca
 open import Realizability.Topos.Object {ℓ = ℓ} {ℓ' = ℓ'} {ℓ'' = ℓ''} ca isNonTrivial 
 
 open CombinatoryAlgebra ca
@@ -189,7 +193,7 @@ record FunctionalRelation (X Y : Type ℓ') : Type (ℓ-max (ℓ-max (ℓ-suc �
 open FunctionalRelation hiding (`X; `Y)
 
 pointwiseEntailment : ∀ {X Y : Type ℓ'} → FunctionalRelation X Y → FunctionalRelation X Y → Type _
-pointwiseEntailment {X} {Y} F G = Σ[ a ∈ A ] (a ⊩ ⟦ entailmentFormula ⟧ᶠ) where
+pointwiseEntailment {X} {Y} F G = ∃[ a ∈ A ] (a ⊩ ⟦ entailmentFormula ⟧ᶠ) where
   
   `X : Sort
   `Y : Sort
@@ -235,7 +239,7 @@ functionalRelationIsomorphism {X} {Y} F G =
   pointwiseEntailment F G × pointwiseEntailment G F
 
 pointwiseEntailment→functionalRelationIsomorphism : ∀ {X Y : Type ℓ'} → (F G : FunctionalRelation X Y) → pointwiseEntailment F G → functionalRelationIsomorphism F G
-pointwiseEntailment→functionalRelationIsomorphism {X} {Y} F G (a , a⊩peFG) = {!!} where
+pointwiseEntailment→functionalRelationIsomorphism {X} {Y} F G F≤G = F≤G , {!!} where
     
   `X : Sort
   `Y : Sort
@@ -257,5 +261,57 @@ pointwiseEntailment→functionalRelationIsomorphism {X} {Y} F G (a , a⊩peFG) =
 
   `~Y : Fin 4
   `~Y = three
+
+  open Interpretation relationSymbols (λ { fzero → F .relation ; one → G .relation ; two → F .perX ._~_ ; three → G .perY ._~_}) isNonTrivial
+  open Soundness {relSym = relationSymbols} isNonTrivial ((λ { fzero → F .relation ; one → G .relation ; two → F .perX ._~_ ; three → G .perY ._~_}))
+  open Relational relationSymbols
+  -- What we need to prove is that
+  -- F ≤ G ⊨ G ≤ F
+  -- We will use the semantic combinators we borrowed from the 1lab
+  -- We know that a ⊩ F ≤ G
+  -- or in other words
+  -- a ⊩ ∀ x. ∀ y. F(x , y) → G(x ,y)
+
+  -- We will firstly use the introduction rule
+  -- for ∀ to get an x : X and a y : Y in context
+  proof : pointwiseEntailment G F
+  proof =
+    do
+      (a , a⊩F≤G) ← F≤G
+      let
+        context : Context
+        context = [] ′ `X ′ `Y
+
+        x : Term context `X
+        x = var (there here)
+
+        y : Term context `Y
+        y = var here
+      (b , b⊩) ←
+        `∀intro
+          {Γ = []}
+          {ϕ = ⊤ᵗ}
+          {B = `X}
+          {ψ =
+            `∀ {B = `Y}
+            (rel `G (x `, y) `→ rel `F (x `, y))}
+          (`∀intro
+            {Γ = [] ′ `X}
+            {ϕ = ⊤ᵗ}
+            {B = `Y}
+            {ψ = rel `G (x `, y) `→ rel `F (x `, y)}
+            (`→intro
+              {Γ = context}
+              {ϕ = ⊤ᵗ}
+              {ψ = rel `G (x `, y)}
+              {θ = rel `F (x `, y)}
+              (cut
+                {Γ = context}
+                {ϕ = ⊤ᵗ `∧ rel `G (x `, y)}
+                {ψ = rel `~X (x `, x)}
+                {θ = rel `F (x `, y)}
+                {!!}
+                {!!})))
+      return (b , {!b⊩!})
 
   
