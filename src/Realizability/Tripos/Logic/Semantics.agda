@@ -37,30 +37,100 @@ open Realizability.CombinatoryAlgebra.Combinators ca renaming (i to Id; ia≡a t
 open Predicate'
 open PredicateProperties hiding (_≤_ ; isTrans≤)
 open Morphism {ℓ' = ℓ'} {ℓ'' = ℓ''}
-Predicate = Predicate' {ℓ' = ℓ'} {ℓ'' = ℓ''}
+private
+  Predicate = Predicate' {ℓ' = ℓ'} {ℓ'' = ℓ''}
 RelationInterpretation : ∀ {n : ℕ} → (Vec Sort n) → Type _
 RelationInterpretation {n} relSym = (∀ i →  Predicate ⟨ ⟦ lookup i relSym ⟧ˢ ⟩)
+
+⟦_⟧ᶜ : Context → hSet ℓ'
+⟦ [] ⟧ᶜ = Unit* , isSetUnit* 
+⟦ c ′ x ⟧ᶜ = (⟦ c ⟧ᶜ .fst × ⟦ x ⟧ˢ .fst) , isSet× (⟦ c ⟧ᶜ .snd) (⟦ x ⟧ˢ .snd)
+
+⟦_⟧ⁿ : ∀ {Γ s} → s ∈ Γ → ⟨ ⟦ Γ ⟧ᶜ ⟩ → ⟨ ⟦ s ⟧ˢ ⟩
+⟦_⟧ⁿ {.(_ ′ s)} {s} _∈_.here (⟦Γ⟧ , ⟦s⟧) = ⟦s⟧
+⟦_⟧ⁿ {.(_ ′ _)} {s} (_∈_.there s∈Γ) (⟦Γ⟧ , ⟦s⟧) = ⟦ s∈Γ ⟧ⁿ ⟦Γ⟧
+
+⟦_⟧ᵗ : ∀ {Γ s} → Term Γ s → ⟨ ⟦ Γ ⟧ᶜ ⟩ → ⟨ ⟦ s ⟧ˢ ⟩
+⟦_⟧ᵗ {Γ} {s} (var x) ⟦Γ⟧ = ⟦ x ⟧ⁿ ⟦Γ⟧
+⟦_⟧ᵗ {Γ} {s} (t `, t₁) ⟦Γ⟧ = (⟦ t ⟧ᵗ ⟦Γ⟧) , (⟦ t₁ ⟧ᵗ ⟦Γ⟧)
+⟦_⟧ᵗ {Γ} {s} (π₁ t) ⟦Γ⟧ = fst (⟦ t ⟧ᵗ ⟦Γ⟧)
+⟦_⟧ᵗ {Γ} {s} (π₂ t) ⟦Γ⟧ = snd (⟦ t ⟧ᵗ ⟦Γ⟧)
+⟦_⟧ᵗ {Γ} {s} (fun x t) ⟦Γ⟧ = x (⟦ t ⟧ᵗ ⟦Γ⟧)
+
+-- R for renamings and r for relations
+⟦_⟧ᴿ : ∀ {Γ Δ} → Renaming Γ Δ → ⟨ ⟦ Γ ⟧ᶜ ⟩ → ⟨ ⟦ Δ ⟧ᶜ ⟩
+⟦ id ⟧ᴿ ctx = ctx
+⟦ drop ren ⟧ᴿ (ctx , _) = ⟦ ren ⟧ᴿ ctx
+⟦ keep ren ⟧ᴿ (ctx , s) = (⟦ ren ⟧ᴿ ctx) , s
+
+-- B for suBstitution and s for sorts
+⟦_⟧ᴮ : ∀ {Γ Δ} → Substitution Γ Δ → ⟨ ⟦ Γ ⟧ᶜ ⟩ → ⟨ ⟦ Δ ⟧ᶜ ⟩
+⟦ id ⟧ᴮ ctx = ctx
+⟦ t , sub ⟧ᴮ ctx = (⟦ sub ⟧ᴮ ctx) , (⟦ t ⟧ᵗ ctx)
+⟦ drop sub ⟧ᴮ (ctx , s) = ⟦ sub ⟧ᴮ ctx
+
+renamingVarSound : ∀ {Γ Δ s} → (ren : Renaming Γ Δ) → (v : s ∈ Δ) → ⟦ renamingVar ren v ⟧ⁿ ≡ ⟦ v ⟧ⁿ ∘ ⟦ ren ⟧ᴿ
+renamingVarSound {Γ} {.Γ} {s} id v = refl
+renamingVarSound {.(_ ′ _)} {Δ} {s} (drop ren) v = funExt λ { (⟦Γ⟧ , ⟦s⟧) i → renamingVarSound ren v i ⟦Γ⟧ }
+renamingVarSound {.(_ ′ s)} {.(_ ′ s)} {s} (keep ren) here = funExt λ { (⟦Γ⟧ , ⟦s⟧) i → ⟦s⟧ }
+renamingVarSound {.(_ ′ _)} {.(_ ′ _)} {s} (keep ren) (there v) = funExt λ { (⟦Γ⟧ , ⟦s⟧) i → renamingVarSound ren v i ⟦Γ⟧ }
+
+renamingTermSound : ∀ {Γ Δ s} → (ren : Renaming Γ Δ) → (t : Term Δ s) → ⟦ renamingTerm ren t ⟧ᵗ ≡ ⟦ t ⟧ᵗ ∘ ⟦ ren ⟧ᴿ
+renamingTermSound {Γ} {.Γ} {s} id t = refl
+renamingTermSound {.(_ ′ _)} {Δ} {s} (drop ren) (var x) =
+ funExt λ { (⟦Γ⟧ , ⟦s⟧) i → renamingVarSound ren x i ⟦Γ⟧ }
+renamingTermSound {.(_ ′ _)} {Δ} {.(_ `× _)} r@(drop ren) (t `, t₁) =
+ funExt λ { (⟦Γ⟧ , ⟦s⟧) i → renamingTermSound r t i (⟦Γ⟧ , ⟦s⟧) , renamingTermSound r t₁ i (⟦Γ⟧ , ⟦s⟧) }
+renamingTermSound {.(_ ′ _)} {Δ} {s} r@(drop ren) (π₁ t) =
+ funExt λ { x@(⟦Γ⟧ , ⟦s⟧) i → renamingTermSound r t i x .fst }
+renamingTermSound {.(_ ′ _)} {Δ} {s} r@(drop ren) (π₂ t) =
+ funExt λ { x@(⟦Γ⟧ , ⟦s⟧) i → renamingTermSound r t i x .snd }
+renamingTermSound {.(_ ′ _)} {Δ} {s} r@(drop ren) (fun f t) =
+ funExt λ { x@(⟦Γ⟧ , ⟦s⟧) i → f (renamingTermSound r t i x) }
+renamingTermSound {.(_ ′ _)} {.(_ ′ _)} {s} r@(keep ren) (var v) =
+ funExt λ { x@(⟦Γ⟧ , ⟦s⟧) i → renamingVarSound r v i x }
+renamingTermSound {.(_ ′ _)} {.(_ ′ _)} {.(_ `× _)} r@(keep ren) (t `, t₁) =
+ funExt λ { x@(⟦Γ⟧ , ⟦s⟧) i → (renamingTermSound r t i x) , (renamingTermSound r t₁ i x) }
+renamingTermSound {.(_ ′ _)} {.(_ ′ _)} {s} r@(keep ren) (π₁ t) =
+ funExt λ { x@(⟦Γ⟧ , ⟦s⟧) i → renamingTermSound r t i x .fst }
+renamingTermSound {.(_ ′ _)} {.(_ ′ _)} {s} r@(keep ren) (π₂ t) =
+ funExt λ { x@(⟦Γ⟧ , ⟦s⟧) i → renamingTermSound r t i x .snd }
+renamingTermSound {.(_ ′ _)} {.(_ ′ _)} {s} r@(keep ren) (fun f t) =
+ funExt λ { x@(⟦Γ⟧ , ⟦s⟧) i → f (renamingTermSound r t i x) }
+
+
+substitutionVarSound : ∀ {Γ Δ s} → (subs : Substitution Γ Δ) → (v : s ∈ Δ) → ⟦ substitutionVar subs v ⟧ᵗ ≡ ⟦ v ⟧ⁿ ∘ ⟦ subs ⟧ᴮ
+substitutionVarSound {Γ} {.Γ} {s} id t = refl
+substitutionVarSound {Γ} {.(_ ′ s)} {s} (t' , subs) here = funExt λ ⟦Γ⟧ → refl
+substitutionVarSound {Γ} {.(_ ′ _)} {s} (t' , subs) (there t) = funExt λ ⟦Γ⟧ i → substitutionVarSound subs t i ⟦Γ⟧
+substitutionVarSound {.(_ ′ _)} {Δ} {s} r@(drop subs) t =
+ -- TODO : Fix unsolved constraints
+ funExt
+   λ { x@(⟦Γ⟧ , ⟦s⟧) →
+     ⟦ substitutionVar (drop subs) t ⟧ᵗ x
+       ≡[ i ]⟨  renamingTermSound (drop id) (substitutionVar subs t) i x  ⟩
+     ⟦ substitutionVar subs t ⟧ᵗ (⟦ drop id ⟧ᴿ x)
+       ≡⟨ refl ⟩
+     ⟦ substitutionVar subs t ⟧ᵗ ⟦Γ⟧
+       ≡[ i ]⟨ substitutionVarSound subs t i ⟦Γ⟧ ⟩
+     ⟦ t ⟧ⁿ (⟦ subs ⟧ᴮ ⟦Γ⟧)
+       ∎}
+
+substitutionTermSound : ∀ {Γ Δ s} → (subs : Substitution Γ Δ) → (t : Term Δ s) → ⟦ substitutionTerm subs t ⟧ᵗ ≡ ⟦ t ⟧ᵗ ∘ ⟦ subs ⟧ᴮ
+substitutionTermSound {Γ} {Δ} {s} subs (var x) = substitutionVarSound subs x
+substitutionTermSound {Γ} {Δ} {.(_ `× _)} subs (t `, t₁) = funExt λ x i → (substitutionTermSound subs t i x) , (substitutionTermSound subs t₁ i x)
+substitutionTermSound {Γ} {Δ} {s} subs (π₁ t) = funExt λ x i → substitutionTermSound subs t i x .fst
+substitutionTermSound {Γ} {Δ} {s} subs (π₂ t) = funExt λ x i → substitutionTermSound subs t i x .snd
+substitutionTermSound {Γ} {Δ} {s} subs (fun f t) = funExt λ x i → f (substitutionTermSound subs t i x)
+
+semanticSubstitution : ∀ {Γ Δ} → (subs : Substitution Γ Δ) → Predicate ⟨ ⟦ Δ ⟧ᶜ ⟩ → Predicate ⟨ ⟦ Γ ⟧ᶜ ⟩
+semanticSubstitution {Γ} {Δ} subs = ⋆_ (str ⟦ Γ ⟧ᶜ) (str ⟦ Δ ⟧ᶜ) ⟦ subs ⟧ᴮ
+
 module Interpretation
   {n : ℕ}
   (relSym : Vec Sort n)
   (⟦_⟧ʳ : RelationInterpretation relSym) (isNonTrivial : s ≡ k → ⊥) where
   open Relational relSym
-
-  ⟦_⟧ᶜ : Context → hSet ℓ'
-  ⟦ [] ⟧ᶜ = Unit* , isSetUnit* 
-  ⟦ c ′ x ⟧ᶜ = (⟦ c ⟧ᶜ .fst × ⟦ x ⟧ˢ .fst) , isSet× (⟦ c ⟧ᶜ .snd) (⟦ x ⟧ˢ .snd)
-
-  ⟦_⟧ⁿ : ∀ {Γ s} → s ∈ Γ → ⟨ ⟦ Γ ⟧ᶜ ⟩ → ⟨ ⟦ s ⟧ˢ ⟩
-  ⟦_⟧ⁿ {.(_ ′ s)} {s} _∈_.here (⟦Γ⟧ , ⟦s⟧) = ⟦s⟧
-  ⟦_⟧ⁿ {.(_ ′ _)} {s} (_∈_.there s∈Γ) (⟦Γ⟧ , ⟦s⟧) = ⟦ s∈Γ ⟧ⁿ ⟦Γ⟧
-
-  ⟦_⟧ᵗ : ∀ {Γ s} → Term Γ s → ⟨ ⟦ Γ ⟧ᶜ ⟩ → ⟨ ⟦ s ⟧ˢ ⟩
-  ⟦_⟧ᵗ {Γ} {s} (var x) ⟦Γ⟧ = ⟦ x ⟧ⁿ ⟦Γ⟧
-  ⟦_⟧ᵗ {Γ} {s} (t `, t₁) ⟦Γ⟧ = (⟦ t ⟧ᵗ ⟦Γ⟧) , (⟦ t₁ ⟧ᵗ ⟦Γ⟧)
-  ⟦_⟧ᵗ {Γ} {s} (π₁ t) ⟦Γ⟧ = fst (⟦ t ⟧ᵗ ⟦Γ⟧)
-  ⟦_⟧ᵗ {Γ} {s} (π₂ t) ⟦Γ⟧ = snd (⟦ t ⟧ᵗ ⟦Γ⟧)
-  ⟦_⟧ᵗ {Γ} {s} (fun x t) ⟦Γ⟧ = x (⟦ t ⟧ᵗ ⟦Γ⟧)
-
   ⟦_⟧ᶠ : ∀ {Γ} → Formula Γ → Predicate ⟨ ⟦ Γ ⟧ᶜ ⟩
   ⟦_⟧ᶠ {Γ} ⊤ᵗ = pre1 ⟨ ⟦ Γ ⟧ᶜ ⟩ (str ⟦ Γ ⟧ᶜ) isNonTrivial
   ⟦_⟧ᶠ {Γ} ⊥ᵗ = pre0 ⟨ ⟦ Γ ⟧ᶜ ⟩ (str ⟦ Γ ⟧ᶜ) isNonTrivial
@@ -71,74 +141,6 @@ module Interpretation
   ⟦_⟧ᶠ {Γ} (`∃ {B = B} form) = `∃[_] (isSet× (str ⟦ Γ ⟧ᶜ) (str ⟦ B ⟧ˢ)) (str ⟦ Γ ⟧ᶜ) (λ { (⟦Γ⟧ , ⟦B⟧) → ⟦Γ⟧ }) ⟦ form ⟧ᶠ
   ⟦_⟧ᶠ {Γ} (`∀ {B = B} form) = `∀[_] (isSet× (str ⟦ Γ ⟧ᶜ) (str ⟦ B ⟧ˢ)) (str ⟦ Γ ⟧ᶜ) (λ { (⟦Γ⟧ , ⟦B⟧) → ⟦Γ⟧ }) ⟦ form ⟧ᶠ
   ⟦_⟧ᶠ {Γ} (rel R t) = ⋆_ (str ⟦ Γ ⟧ᶜ) (str ⟦ lookup R relSym ⟧ˢ) ⟦ t ⟧ᵗ ⟦ R ⟧ʳ
-
-  -- R for renamings and r for relations
-  ⟦_⟧ᴿ : ∀ {Γ Δ} → Renaming Γ Δ → ⟨ ⟦ Γ ⟧ᶜ ⟩ → ⟨ ⟦ Δ ⟧ᶜ ⟩
-  ⟦ id ⟧ᴿ ctx = ctx
-  ⟦ drop ren ⟧ᴿ (ctx , _) = ⟦ ren ⟧ᴿ ctx
-  ⟦ keep ren ⟧ᴿ (ctx , s) = (⟦ ren ⟧ᴿ ctx) , s
-
-  -- B for suBstitution and s for sorts
-  ⟦_⟧ᴮ : ∀ {Γ Δ} → Substitution Γ Δ → ⟨ ⟦ Γ ⟧ᶜ ⟩ → ⟨ ⟦ Δ ⟧ᶜ ⟩
-  ⟦ id ⟧ᴮ ctx = ctx
-  ⟦ t , sub ⟧ᴮ ctx = (⟦ sub ⟧ᴮ ctx) , (⟦ t ⟧ᵗ ctx)
-  ⟦ drop sub ⟧ᴮ (ctx , s) = ⟦ sub ⟧ᴮ ctx
-
-  renamingVarSound : ∀ {Γ Δ s} → (ren : Renaming Γ Δ) → (v : s ∈ Δ) → ⟦ renamingVar ren v ⟧ⁿ ≡ ⟦ v ⟧ⁿ ∘ ⟦ ren ⟧ᴿ
-  renamingVarSound {Γ} {.Γ} {s} id v = refl
-  renamingVarSound {.(_ ′ _)} {Δ} {s} (drop ren) v = funExt λ { (⟦Γ⟧ , ⟦s⟧) i → renamingVarSound ren v i ⟦Γ⟧ }
-  renamingVarSound {.(_ ′ s)} {.(_ ′ s)} {s} (keep ren) here = funExt λ { (⟦Γ⟧ , ⟦s⟧) i → ⟦s⟧ }
-  renamingVarSound {.(_ ′ _)} {.(_ ′ _)} {s} (keep ren) (there v) = funExt λ { (⟦Γ⟧ , ⟦s⟧) i → renamingVarSound ren v i ⟦Γ⟧ }
-
-  renamingTermSound : ∀ {Γ Δ s} → (ren : Renaming Γ Δ) → (t : Term Δ s) → ⟦ renamingTerm ren t ⟧ᵗ ≡ ⟦ t ⟧ᵗ ∘ ⟦ ren ⟧ᴿ
-  renamingTermSound {Γ} {.Γ} {s} id t = refl
-  renamingTermSound {.(_ ′ _)} {Δ} {s} (drop ren) (var x) =
-    funExt λ { (⟦Γ⟧ , ⟦s⟧) i → renamingVarSound ren x i ⟦Γ⟧ }
-  renamingTermSound {.(_ ′ _)} {Δ} {.(_ `× _)} r@(drop ren) (t `, t₁) =
-    funExt λ { (⟦Γ⟧ , ⟦s⟧) i → renamingTermSound r t i (⟦Γ⟧ , ⟦s⟧) , renamingTermSound r t₁ i (⟦Γ⟧ , ⟦s⟧) }
-  renamingTermSound {.(_ ′ _)} {Δ} {s} r@(drop ren) (π₁ t) =
-    funExt λ { x@(⟦Γ⟧ , ⟦s⟧) i → renamingTermSound r t i x .fst }
-  renamingTermSound {.(_ ′ _)} {Δ} {s} r@(drop ren) (π₂ t) =
-    funExt λ { x@(⟦Γ⟧ , ⟦s⟧) i → renamingTermSound r t i x .snd }
-  renamingTermSound {.(_ ′ _)} {Δ} {s} r@(drop ren) (fun f t) =
-    funExt λ { x@(⟦Γ⟧ , ⟦s⟧) i → f (renamingTermSound r t i x) }
-  renamingTermSound {.(_ ′ _)} {.(_ ′ _)} {s} r@(keep ren) (var v) =
-    funExt λ { x@(⟦Γ⟧ , ⟦s⟧) i → renamingVarSound r v i x }
-  renamingTermSound {.(_ ′ _)} {.(_ ′ _)} {.(_ `× _)} r@(keep ren) (t `, t₁) =
-    funExt λ { x@(⟦Γ⟧ , ⟦s⟧) i → (renamingTermSound r t i x) , (renamingTermSound r t₁ i x) }
-  renamingTermSound {.(_ ′ _)} {.(_ ′ _)} {s} r@(keep ren) (π₁ t) =
-    funExt λ { x@(⟦Γ⟧ , ⟦s⟧) i → renamingTermSound r t i x .fst }
-  renamingTermSound {.(_ ′ _)} {.(_ ′ _)} {s} r@(keep ren) (π₂ t) =
-    funExt λ { x@(⟦Γ⟧ , ⟦s⟧) i → renamingTermSound r t i x .snd }
-  renamingTermSound {.(_ ′ _)} {.(_ ′ _)} {s} r@(keep ren) (fun f t) =
-    funExt λ { x@(⟦Γ⟧ , ⟦s⟧) i → f (renamingTermSound r t i x) }
-
-  substitutionVarSound : ∀ {Γ Δ s} → (subs : Substitution Γ Δ) → (v : s ∈ Δ) → ⟦ substitutionVar subs v ⟧ᵗ ≡ ⟦ v ⟧ⁿ ∘ ⟦ subs ⟧ᴮ
-  substitutionVarSound {Γ} {.Γ} {s} id t = refl
-  substitutionVarSound {Γ} {.(_ ′ s)} {s} (t' , subs) here = funExt λ ⟦Γ⟧ → refl
-  substitutionVarSound {Γ} {.(_ ′ _)} {s} (t' , subs) (there t) = funExt λ ⟦Γ⟧ i → substitutionVarSound subs t i ⟦Γ⟧
-  substitutionVarSound {.(_ ′ _)} {Δ} {s} r@(drop subs) t =
-    -- TODO : Fix unsolved constraints
-    funExt
-      λ { x@(⟦Γ⟧ , ⟦s⟧) →
-        ⟦ substitutionVar (drop subs) t ⟧ᵗ x
-          ≡[ i ]⟨  renamingTermSound (drop id) (substitutionVar subs t) i x  ⟩
-        ⟦ substitutionVar subs t ⟧ᵗ (⟦ drop id ⟧ᴿ x)
-          ≡⟨ refl ⟩
-        ⟦ substitutionVar subs t ⟧ᵗ ⟦Γ⟧
-          ≡[ i ]⟨ substitutionVarSound subs t i ⟦Γ⟧ ⟩
-        ⟦ t ⟧ⁿ (⟦ subs ⟧ᴮ ⟦Γ⟧)
-          ∎}
-
-  substitutionTermSound : ∀ {Γ Δ s} → (subs : Substitution Γ Δ) → (t : Term Δ s) → ⟦ substitutionTerm subs t ⟧ᵗ ≡ ⟦ t ⟧ᵗ ∘ ⟦ subs ⟧ᴮ
-  substitutionTermSound {Γ} {Δ} {s} subs (var x) = substitutionVarSound subs x
-  substitutionTermSound {Γ} {Δ} {.(_ `× _)} subs (t `, t₁) = funExt λ x i → (substitutionTermSound subs t i x) , (substitutionTermSound subs t₁ i x)
-  substitutionTermSound {Γ} {Δ} {s} subs (π₁ t) = funExt λ x i → substitutionTermSound subs t i x .fst
-  substitutionTermSound {Γ} {Δ} {s} subs (π₂ t) = funExt λ x i → substitutionTermSound subs t i x .snd
-  substitutionTermSound {Γ} {Δ} {s} subs (fun f t) = funExt λ x i → f (substitutionTermSound subs t i x)
-
-  semanticSubstitution : ∀ {Γ Δ} → (subs : Substitution Γ Δ) → Predicate ⟨ ⟦ Δ ⟧ᶜ ⟩ → Predicate ⟨ ⟦ Γ ⟧ᶜ ⟩
-  semanticSubstitution {Γ} {Δ} subs = ⋆_ (str ⟦ Γ ⟧ᶜ) (str ⟦ Δ ⟧ᶜ) ⟦ subs ⟧ᴮ
 
   -- Due to a shortcut in the soundness of negation termination checking fails
   -- TODO : Fix
@@ -294,6 +296,9 @@ module Soundness
   _⊨_ {Γ} ϕ ψ = ⟦ ϕ ⟧ᶠ ≤ ⟦ ψ ⟧ᶠ where open PredProps ⟨ ⟦ Γ ⟧ᶜ ⟩
 
   entails = _⊨_
+
+  holdsInTripos : ∀ {Γ} → Formula Γ → Type (ℓ-max (ℓ-max ℓ ℓ'') ℓ')
+  holdsInTripos {Γ} form = ⊤ᵗ ⊨ form
 
   private
     variable
@@ -598,41 +603,4 @@ module Soundness
                       ((subst (λ r → r ⊩ ∣ ⟦ ϕ ⟧ᶠ ∣ γ) (sym (pr₁pxy≡x _ _)) pr₁⨾c⊩ϕγ) ,
                        (subst (λ r → r ⊩ ∣ ⟦ θ ⟧ᶠ ∣ γ) (sym (pr₂pxy≡y _ _)) pr₂⨾pr₂⨾c⊩θ))) ∣₁ }) }))
 
-module NaturalDeduction
-  {n}
-  {relSym : Vec Sort n}
-  (isNonTrivial : s ≡ k → ⊥)
-  (⟦_⟧ʳ : RelationInterpretation relSym) where
-  open Relational relSym
-  open Interpretation relSym ⟦_⟧ʳ isNonTrivial
-  open Soundness isNonTrivial ⟦_⟧ʳ
-
-  -- ahh yes, the reduction of natural deduction to sequent calculus
-  -- cause I do not like sequent calculus
-  -- and it is much easier for formalisation to use natural deduction
-
-  data PropContext (Γ : Context) : Type (ℓ-suc ℓ') where
-    [] : PropContext Γ
-    _`&_ : PropContext Γ → Formula Γ → PropContext Γ
-
-  data _∈ᶠ_ : ∀ {Γ} → Formula Γ → PropContext Γ → Type (ℓ-suc ℓ') where
-    here : ∀ {Γ} {p : Formula Γ} → p ∈ᶠ ([] `& p)
-    there : ∀ {Γ Ξ ξ} {p : Formula Γ} → p ∈ᶠ Ξ → p ∈ᶠ (Ξ `& ξ)
-
-  weakenPropContext : ∀ {Γ S} → PropContext Γ → PropContext (Γ ′ S)
-  weakenPropContext {Γ} {S} [] = []
-  weakenPropContext {Γ} {S} (ctx `& x) = weakenPropContext ctx `& weakenFormula x
-
-  -- Judgements of natural deduction
-  data _∣_⊢_ : (Γ : Context) → PropContext Γ → Formula Γ → Type (ℓ-suc ℓ') where
-    -- Introduction rules
-    intro⊤ : ∀ {Γ} {Ξ} → Γ ∣ Ξ ⊢ ⊤ᵗ
-    intro∧ : ∀ {Γ Ξ A B} → Γ ∣ Ξ ⊢ A → Γ ∣ Ξ ⊢ B → Γ ∣ Ξ ⊢ (A `∧ B)
-    intro∨L : ∀ {Γ Ξ A B} → Γ ∣ Ξ ⊢ A → Γ ∣ Ξ ⊢ (A `∨ B)
-    intro∨R : ∀ {Γ Ξ A B} → Γ ∣ Ξ ⊢ B → Γ ∣ Ξ ⊢ (A `∨ B)
-    intro∀ : ∀ {Γ} {S A} → {Ξ : PropContext Γ} → (Γ ′ S) ∣ weakenPropContext Ξ ⊢ A → Γ ∣ Ξ ⊢ `∀ A
-    intro∃ : ∀ {Γ S A Ξ} → (t : Term Γ S) → Γ ∣ Ξ ⊢ substitutionFormula (t , id) A → Γ ∣ Ξ ⊢ `∃ A
-    intro→ : ∀ {Γ Ξ A B} → Γ ∣ Ξ `& A ⊢ B → Γ ∣ Ξ ⊢ (A `→ B)
-    intro∈ : ∀ {Γ Ξ p} → p ∈ᶠ Ξ → Γ ∣ Ξ ⊢ p
-    
-    
+  
