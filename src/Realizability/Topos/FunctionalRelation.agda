@@ -1,10 +1,13 @@
-open import Realizability.ApplicativeStructure renaming (Term to ApplStrTerm)
+open import Realizability.ApplicativeStructure renaming (Term to ApplStrTerm; λ*-naturality to `λ*ComputationRule; λ*-chain to `λ*) hiding (λ*)
+
 open import Realizability.CombinatoryAlgebra
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Structure
+open import Cubical.Foundations.HLevels
 open import Cubical.Data.Vec
 open import Cubical.Data.Nat
-open import Cubical.Data.FinData renaming (zero to fzero)
+open import Cubical.Data.FinData
+open import Cubical.Data.Fin hiding (Fin; _/_)
 open import Cubical.Data.Sigma
 open import Cubical.Data.Empty
 open import Cubical.Data.Unit
@@ -37,6 +40,11 @@ private
   _⊩_ : ∀ a (P : Predicate' {ℓ' = ℓ'} {ℓ'' = ℓ''} Unit*) → Type _
   a ⊩ P = a pre⊩ ∣ P ∣ tt*
 
+  
+private λ*ComputationRule = `λ*ComputationRule as fefermanStructure
+private λ* = `λ* as fefermanStructure
+
+
 open PartialEquivalenceRelation
 
 record FunctionalRelation (X Y : Type ℓ') : Type (ℓ-max (ℓ-max (ℓ-suc ℓ) (ℓ-suc ℓ')) (ℓ-suc ℓ'')) where
@@ -60,7 +68,7 @@ record FunctionalRelation (X Y : Type ℓ') : Type (ℓ-max (ℓ-max (ℓ-suc �
     relationSymbol = (`X `× `Y) ∷ `X `× `X ∷ `Y `× `Y ∷ []
 
     `F : Fin 3
-    `F = fzero
+    `F = zero
     `~X : Fin 3
     `~X = one
     `~Y : Fin 3
@@ -68,10 +76,10 @@ record FunctionalRelation (X Y : Type ℓ') : Type (ℓ-max (ℓ-max (ℓ-suc �
 
   open Relational relationSymbol
 
-  module RelationInterpretation' = Interpretation relationSymbol (λ { fzero → relation ; one → _~X_ ; two → _~Y_ }) isNonTrivial
+  module RelationInterpretation' = Interpretation relationSymbol (λ { zero → relation ; one → _~X_ ; two → _~Y_ }) isNonTrivial
   open RelationInterpretation'
 
-  module RelationSoundness = Soundness {relSym = relationSymbol} isNonTrivial (λ { fzero → relation ; one → _~X_ ; two → _~Y_ })
+  module RelationSoundness = Soundness {relSym = relationSymbol} isNonTrivial (λ { zero → relation ; one → _~X_ ; two → _~Y_ })
   open RelationSoundness
 
   -- # Strictness
@@ -191,17 +199,17 @@ pointwiseEntailment {X} {Y} F G = holdsInTripos entailmentFormula where
   relationSymbols = (`X `× `Y) ∷ (`X `× `Y) ∷ []
 
   `F : Fin 2
-  `F = fzero
+  `F = zero
 
   `G : Fin 2
   `G = one
 
   open Relational relationSymbols
 
-  module RelationalInterpretation = Interpretation relationSymbols (λ { fzero → F .relation ; one → G .relation }) isNonTrivial
+  module RelationalInterpretation = Interpretation relationSymbols (λ { zero → F .relation ; one → G .relation }) isNonTrivial
   open RelationalInterpretation
 
-  module RelationalSoundness = Soundness {relSym = relationSymbols} isNonTrivial (λ { fzero → F .relation ; one → G .relation })
+  module RelationalSoundness = Soundness {relSym = relationSymbols} isNonTrivial (λ { zero → F .relation ; one → G .relation })
   open RelationalSoundness
 
   entailmentContext : Context
@@ -237,7 +245,7 @@ pointwiseEntailment→functionalRelationIsomorphism {X} {Y} F G F≤G = F≤G , 
   relationSymbols = (`X `× `Y) ∷ (`X `× `Y) ∷ (`X `× `X) ∷ (`Y `× `Y) ∷ []
 
   `F : Fin 4
-  `F = fzero
+  `F = zero
 
   `G : Fin 4
   `G = one
@@ -248,8 +256,8 @@ pointwiseEntailment→functionalRelationIsomorphism {X} {Y} F G F≤G = F≤G , 
   `~Y : Fin 4
   `~Y = three
 
-  open Interpretation relationSymbols (λ { fzero → F .relation ; one → G .relation ; two → F .perX ._~_ ; three → G .perY ._~_}) isNonTrivial
-  open Soundness {relSym = relationSymbols} isNonTrivial ((λ { fzero → F .relation ; one → G .relation ; two → F .perX ._~_ ; three → G .perY ._~_}))
+  open Interpretation relationSymbols (λ { zero → F .relation ; one → G .relation ; two → F .perX ._~_ ; three → G .perY ._~_}) isNonTrivial
+  open Soundness {relSym = relationSymbols} isNonTrivial ((λ { zero → F .relation ; one → G .relation ; two → F .perX ._~_ ; three → G .perY ._~_}))
   open Relational relationSymbols
 
   -- What we need to prove is that
@@ -308,33 +316,59 @@ idMorphism ob =
   relationSymbols : Vec Sort 3
   relationSymbols = (`X `× `X) ∷ (`X `× `X) ∷ (`X `× `X) ∷ []
 
-  open Interpretation relationSymbols (λ { fzero → ob .snd ._~_ ; one → ob .snd ._~_ ; two → ob .snd ._~_ }) isNonTrivial
-  open Soundness {relSym = relationSymbols} isNonTrivial (λ { fzero → ob .snd ._~_ ; one → ob .snd ._~_ ; two → ob .snd ._~_ })
+  open Interpretation relationSymbols (λ { zero → ob .snd ._~_ ; one → ob .snd ._~_ ; two → ob .snd ._~_ }) isNonTrivial
+  open Soundness {relSym = relationSymbols} isNonTrivial (λ { zero → ob .snd ._~_ ; one → ob .snd ._~_ ; two → ob .snd ._~_ })
   open Relational relationSymbols
 
   isStrictContext : Context
   isStrictContext = [] ′ `X ′ `X
 
-  isStrictId : holdsInTripos (rel fzero (var (there here) `, var here) `→ (rel one (var (there here) `, var here) `∧ rel two (var (there here) `, var here)))
-  isStrictId =
-    `→intro
-      {Γ = isStrictContext}
-      {ϕ = ⊤ᵗ}
-      {ψ = rel fzero (var (there here) `, var here)}
-      {θ = rel one (var (there here) `, var here) `∧ rel two (var (there here) `, var here)}
-      (`∧intro
-        {Γ = isStrictContext}
-        {ϕ = ⊤ᵗ `∧ rel fzero (var (there here) `, var here)}
-        {ψ = rel one (var (there here) `, var here)}
-        {θ = rel two (var (there here) `, var here)}
-        {!`∧elim2
-          {Γ = isStrictContext}
-          {ϕ = ⊤ᵗ}
-          {ψ = rel fzero (var (there here) `, var here)}
-          {θ = rel one (var (there here) `, var here)}
-          ?!}
-        {!!})
+  x : Term isStrictContext `X
+  x = var (there here)
 
+  y : Term isStrictContext `X
+  y = var here
+
+  holdsInTriposIsStrict : holdsInTripos (rel zero (x `, y) `→ (rel one (x `, y) `∧ rel two (x `, y)))
+  holdsInTriposIsStrict =
+    do
+    let
+      prover : ApplStrTerm as 2
+      prover =
+        ` pair ̇ # fone ̇ # fone
+    return
+      (λ* prover ,
+      (λ { ((tt* , x') , y') a tt* b b⊩x'~y'
+        →
+          let
+            proofEq : λ* prover ⨾ a ⨾ b ≡ pair ⨾ b ⨾ b
+            proofEq =
+              λ*ComputationRule prover (a ∷ b ∷ [])
+
+            pr₁proofEq : pr₁ ⨾ (λ* prover ⨾ a ⨾ b) ≡ b
+            pr₁proofEq =
+              pr₁ ⨾ (λ* prover ⨾ a ⨾ b)
+                ≡⟨ cong (λ x → pr₁ ⨾ x) proofEq ⟩
+              pr₁ ⨾ (pair ⨾ b ⨾ b)
+                ≡⟨ pr₁pxy≡x b b ⟩
+              b
+                ∎
+
+            pr₂proofEq : pr₂ ⨾ (λ* prover ⨾ a ⨾ b) ≡ b
+            pr₂proofEq =
+              pr₂ ⨾ (λ* prover ⨾ a ⨾ b)
+                ≡⟨ cong (λ x → pr₂ ⨾ x) proofEq ⟩
+              pr₂ ⨾ (pair ⨾ b ⨾ b)
+                ≡⟨ pr₂pxy≡y b b ⟩
+              b
+                ∎
+          in
+          (subst
+            (λ r → r pre⊩ ∣ (⋆_ (isSet× (isSet× isSetUnit* (ob .snd .isSetX)) (ob .snd .isSetX)) (isSet× (ob .snd .isSetX) (ob .snd .isSetX)) (λ γ → snd (fst γ) , snd γ) (ob .snd ._~_)) ∣ ((tt* , x') , y'))
+          (sym pr₁proofEq) b⊩x'~y') ,
+          subst
+            (λ r → r pre⊩ ∣ (⋆_ (isSet× (isSet× isSetUnit* (ob .snd .isSetX)) (ob .snd .isSetX)) (isSet× (ob .snd .isSetX) (ob .snd .isSetX)) (λ γ → snd (fst γ) , snd γ) (ob .snd ._~_)) ∣ ((tt* , x') , y')) (sym pr₂proofEq) b⊩x'~y' }))
+  
 
 RT : Category (ℓ-max (ℓ-max (ℓ-suc ℓ) (ℓ-suc ℓ')) (ℓ-suc ℓ'')) ((ℓ-max (ℓ-max (ℓ-suc ℓ) (ℓ-suc ℓ')) (ℓ-suc ℓ'')))
 Category.ob RT = Σ[ X ∈ Type ℓ' ] PartialEquivalenceRelation X
