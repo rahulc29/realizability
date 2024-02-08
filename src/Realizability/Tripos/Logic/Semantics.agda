@@ -137,7 +137,6 @@ module Interpretation
   ⟦_⟧ᶠ {Γ} (form `∨ form₁) = _⊔_ ⟨ ⟦ Γ ⟧ᶜ ⟩ ⟦ form ⟧ᶠ ⟦ form₁ ⟧ᶠ
   ⟦_⟧ᶠ {Γ} (form `∧ form₁) = _⊓_ ⟨ ⟦ Γ ⟧ᶜ ⟩ ⟦ form ⟧ᶠ ⟦ form₁ ⟧ᶠ
   ⟦_⟧ᶠ {Γ} (form `→ form₁) = _⇒_ ⟨ ⟦ Γ ⟧ᶜ ⟩ ⟦ form ⟧ᶠ ⟦ form₁ ⟧ᶠ
-  ⟦_⟧ᶠ {Γ} (`¬ form) = _⇒_ ⟨ ⟦ Γ ⟧ᶜ ⟩ ⟦ form ⟧ᶠ ⟦ ⊥ᵗ {Γ = Γ} ⟧ᶠ
   ⟦_⟧ᶠ {Γ} (`∃ {B = B} form) = `∃[_] (isSet× (str ⟦ Γ ⟧ᶜ) (str ⟦ B ⟧ˢ)) (str ⟦ Γ ⟧ᶜ) (λ { (⟦Γ⟧ , ⟦B⟧) → ⟦Γ⟧ }) ⟦ form ⟧ᶠ
   ⟦_⟧ᶠ {Γ} (`∀ {B = B} form) = `∀[_] (isSet× (str ⟦ Γ ⟧ᶜ) (str ⟦ B ⟧ˢ)) (str ⟦ Γ ⟧ᶜ) (λ { (⟦Γ⟧ , ⟦B⟧) → ⟦Γ⟧ }) ⟦ form ⟧ᶠ
   ⟦_⟧ᶠ {Γ} (rel R t) = ⋆_ (str ⟦ Γ ⟧ᶜ) (str ⟦ lookup R relSym ⟧ˢ) ⟦ t ⟧ᵗ ⟦ R ⟧ʳ
@@ -215,8 +214,6 @@ module Interpretation
                 (λ form → b ⊩ ∣ form ∣ γ)
                 (substitutionFormulaSound subs f)
                 b⊩substFormulaFs))
-  substitutionFormulaSound {Γ} {Δ} subs (`¬ f) =
-    substitutionFormulaSound subs (f `→ ⊥ᵗ)
   substitutionFormulaSound {Γ} {Δ} subs (`∃ {B = B} f) =
     Predicate≡
       ⟨ ⟦ Γ ⟧ᶜ ⟩

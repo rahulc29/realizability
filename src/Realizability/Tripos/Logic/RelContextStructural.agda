@@ -1,6 +1,7 @@
 {-# OPTIONS --lossy-unification #-}
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Structure
+open import Cubical.Foundations.Univalence
 open import Cubical.Data.Vec
 open import Cubical.Data.Nat
 open import Cubical.Data.FinData
@@ -34,7 +35,6 @@ module WeakenSyntax
   transportAlongWeakening {Γ} (form Relational.`∨ form₁) = transportAlongWeakening form SyntaxΞR.`∨ transportAlongWeakening form₁
   transportAlongWeakening {Γ} (form Relational.`∧ form₁) = transportAlongWeakening form SyntaxΞR.`∧ transportAlongWeakening form₁
   transportAlongWeakening {Γ} (form Relational.`→ form₁) = transportAlongWeakening form SyntaxΞR.`→ transportAlongWeakening form₁
-  transportAlongWeakening {Γ} (Relational.`¬ form) = SyntaxΞR.`¬ transportAlongWeakening form
   transportAlongWeakening {Γ} (Relational.`∃ form) = SyntaxΞR.`∃ (transportAlongWeakening form)
   transportAlongWeakening {Γ} (Relational.`∀ form) = SyntaxΞR.`∀ (transportAlongWeakening form)
   transportAlongWeakening {Γ} (Relational.rel k x) = SyntaxΞR.rel (suc k) x
@@ -74,8 +74,22 @@ module WeakenSemantics
     module SoundnessΞ = Soundness {relSym = Ξ} isNonTrivial Ξsem
     module SoundnessΞR = Soundness {relSym = R ∷ Ξ} isNonTrivial RΞsem
 
-    syntacticTransportPreservesRealizers⁺ : ∀ {Γ} → (γ : ⟨ ⟦ Γ ⟧ᶜ ⟩) → (r : A) → (f : ΞFormula Γ) → ∣ InterpretationΞ.⟦ f ⟧ᶠ ∣ γ r → r ⊩ ∣ InterpretationΞR.⟦ transportAlongWeakening f ⟧ᶠ ∣ γ
-    syntacticTransportPreservesRealizers⁻ : ∀ {Γ} → (γ : ⟨ ⟦ Γ ⟧ᶜ ⟩) → (r : A) → (f : ΞFormula Γ) → r ⊩ ∣ InterpretationΞR.⟦ transportAlongWeakening f ⟧ᶠ ∣ γ → r ⊩ ∣ InterpretationΞ.⟦ f ⟧ᶠ ∣ γ
+    syntacticTransportPreservesRealizers⁺ :
+      ∀ {Γ}
+      → (γ : ⟨ ⟦ Γ ⟧ᶜ ⟩)
+      → (r : A)
+      → (f : ΞFormula Γ)
+      → ∣ InterpretationΞ.⟦ f ⟧ᶠ ∣ γ r
+      -------------------------------------------------------------
+      → r ⊩ ∣ InterpretationΞR.⟦ transportAlongWeakening f ⟧ᶠ ∣ γ
+    syntacticTransportPreservesRealizers⁻ :
+      ∀ {Γ}
+      → (γ : ⟨ ⟦ Γ ⟧ᶜ ⟩)
+      → (r : A)
+      → (f : ΞFormula Γ)
+      → r ⊩ ∣ InterpretationΞR.⟦ transportAlongWeakening f ⟧ᶠ ∣ γ
+      -------------------------------------------------------------
+      → r ⊩ ∣ InterpretationΞ.⟦ f ⟧ᶠ ∣ γ
     
     syntacticTransportPreservesRealizers⁺ {Γ} γ r Relational.⊤ᵗ r⊩⟦f⟧Ξ = r⊩⟦f⟧Ξ
     syntacticTransportPreservesRealizers⁺ {Γ} γ r (f Relational.`∨ f₁) r⊩⟦f⟧Ξ =
@@ -87,7 +101,6 @@ module WeakenSemantics
       syntacticTransportPreservesRealizers⁺ γ (pr₂ ⨾ r) f₁ pr₂r⊩⟦f₁⟧
     syntacticTransportPreservesRealizers⁺ {Γ} γ r (f Relational.`→ f₁) r⊩⟦f⟧Ξ =
       λ b b⊩⟦f⟧ΞR → syntacticTransportPreservesRealizers⁺ γ (r ⨾ b) f₁ (r⊩⟦f⟧Ξ b (syntacticTransportPreservesRealizers⁻ γ b f b⊩⟦f⟧ΞR))
-    syntacticTransportPreservesRealizers⁺ {Γ} γ r (Relational.`¬ f) r⊩⟦f⟧Ξ = {!!}
     syntacticTransportPreservesRealizers⁺ {Γ} γ r (Relational.`∃ f) r⊩⟦f⟧Ξ =
       r⊩⟦f⟧Ξ >>=
         λ { ((γ' , b) , γ'≡γ , r⊩⟦f⟧Ξγ'b) → ∣ (γ' , b) , (γ'≡γ , (syntacticTransportPreservesRealizers⁺ (γ' , b) r f r⊩⟦f⟧Ξγ'b)) ∣₁ }
@@ -100,14 +113,44 @@ module WeakenSemantics
         r⊩⟦f⟧Ξ
 
     syntacticTransportPreservesRealizers⁻ {Γ} γ r Relational.⊤ᵗ r⊩⟦f⟧ΞR = r⊩⟦f⟧ΞR
-    syntacticTransportPreservesRealizers⁻ {Γ} γ r (f Relational.`∨ f₁) r⊩⟦f⟧ΞR = {!!}
-    syntacticTransportPreservesRealizers⁻ {Γ} γ r (f Relational.`∧ f₁) r⊩⟦f⟧ΞR = {!!}
-    syntacticTransportPreservesRealizers⁻ {Γ} γ r (f Relational.`→ f₁) r⊩⟦f⟧ΞR = {!!}
-    syntacticTransportPreservesRealizers⁻ {Γ} γ r (Relational.`¬ f) r⊩⟦f⟧ΞR = {!!}
-    syntacticTransportPreservesRealizers⁻ {Γ} γ r (Relational.`∃ f) r⊩⟦f⟧ΞR = {!!}
-    syntacticTransportPreservesRealizers⁻ {Γ} γ r (Relational.`∀ f) r⊩⟦f⟧ΞR = {!!}
-    syntacticTransportPreservesRealizers⁻ {Γ} γ r (Relational.rel k₁ x) r⊩⟦f⟧ΞR = {!!}
+    syntacticTransportPreservesRealizers⁻ {Γ} γ r (f Relational.`∨ f₁) r⊩⟦f⟧ΞR =
+      r⊩⟦f⟧ΞR >>=
+        λ { (inl (pr₁r≡k , pr₂r⊩⟦f⟧)) →
+            ∣ inl (pr₁r≡k , (syntacticTransportPreservesRealizers⁻ γ (pr₂ ⨾ r) f pr₂r⊩⟦f⟧)) ∣₁
+          ; (inr (pr₁r≡k' , pr₂r⊩⟦f₁⟧)) →
+            ∣ inr (pr₁r≡k' , (syntacticTransportPreservesRealizers⁻ γ (pr₂ ⨾ r) f₁ pr₂r⊩⟦f₁⟧)) ∣₁ }
+    syntacticTransportPreservesRealizers⁻ {Γ} γ r (f Relational.`∧ f₁) r⊩⟦f⟧ΞR =
+      (syntacticTransportPreservesRealizers⁻ γ (pr₁ ⨾ r) f (r⊩⟦f⟧ΞR .fst)) ,
+      (syntacticTransportPreservesRealizers⁻ γ (pr₂ ⨾ r) f₁ (r⊩⟦f⟧ΞR .snd))
+    syntacticTransportPreservesRealizers⁻ {Γ} γ r (f Relational.`→ f₁) r⊩⟦f→f₁⟧ΞR =
+      λ b b⊩⟦f⟧Ξ → syntacticTransportPreservesRealizers⁻ γ (r ⨾ b) f₁ (r⊩⟦f→f₁⟧ΞR b (syntacticTransportPreservesRealizers⁺ γ b f b⊩⟦f⟧Ξ))
+    syntacticTransportPreservesRealizers⁻ {Γ} γ r (Relational.`∃ f) r⊩⟦f⟧ΞR =
+      r⊩⟦f⟧ΞR >>=
+        λ { ((γ' , b) , γ'≡γ , r⊩⟦f⟧γ'b) → ∣ (γ' , b) , γ'≡γ , (syntacticTransportPreservesRealizers⁻ (γ' , b) r f r⊩⟦f⟧γ'b) ∣₁ }
+    syntacticTransportPreservesRealizers⁻ {Γ} γ r (Relational.`∀ f) r⊩⟦f⟧ΞR =
+      λ { b (γ' , b') γ'≡γ → syntacticTransportPreservesRealizers⁻ (γ' , b') (r ⨾ b) f (r⊩⟦f⟧ΞR b (γ' , b') γ'≡γ) }
+    syntacticTransportPreservesRealizers⁻ {Γ} γ r (Relational.rel Rsym t) r⊩⟦f⟧ΞR =
+      subst
+        (λ R' → r ⊩ ∣ R' ∣ (⟦ t ⟧ᵗ γ))
+        (sym (RΞsem (suc Rsym) ≡⟨ refl ⟩ (Ξsem Rsym ∎)))
+        r⊩⟦f⟧ΞR
+
+    syntacticTransportPreservesRealizers :
+      ∀ {Γ}
+      → (γ : ⟨ ⟦ Γ ⟧ᶜ ⟩)
+      → (r : A)
+      → (f : ΞFormula Γ)
+      ----------------------------------------------------------
+      → r ⊩ ∣ InterpretationΞR.⟦ transportAlongWeakening f ⟧ᶠ ∣ γ
+      ≡ r ⊩ ∣ InterpretationΞ.⟦ f ⟧ᶠ ∣ γ
+    syntacticTransportPreservesRealizers {Γ} γ r f =
+      hPropExt
+        (InterpretationΞR.⟦ transportAlongWeakening f ⟧ᶠ .isPropValued γ r)
+        (InterpretationΞ.⟦ f ⟧ᶠ .isPropValued γ r)
+        (λ r⊩⟦f⟧ΞR → syntacticTransportPreservesRealizers⁻ γ r f r⊩⟦f⟧ΞR)
+        λ r⊩⟦f⟧Ξ → syntacticTransportPreservesRealizers⁺ γ r f r⊩⟦f⟧Ξ
 
     transportPreservesHoldsInTripos : ∀ {Γ} → (f : ΞFormula Γ) → SoundnessΞ.holdsInTripos f → SoundnessΞR.holdsInTripos (transportAlongWeakening f)
-    transportPreservesHoldsInTripos {Γ} f holds = {!!}
+    transportPreservesHoldsInTripos {Γ} f holds =
+      {!!}
   
