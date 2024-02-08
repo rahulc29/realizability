@@ -152,5 +152,7 @@ module WeakenSemantics
 
     transportPreservesHoldsInTripos : ∀ {Γ} → (f : ΞFormula Γ) → SoundnessΞ.holdsInTripos f → SoundnessΞR.holdsInTripos (transportAlongWeakening f)
     transportPreservesHoldsInTripos {Γ} f holds =
-      {!!}
+      do
+        (a , a⊩holds) ← holds
+        return (a , λ { γ b tt* → syntacticTransportPreservesRealizers⁺ γ (a ⨾ b) f (a⊩holds γ b tt*) })
   
