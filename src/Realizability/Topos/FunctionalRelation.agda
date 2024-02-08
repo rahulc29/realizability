@@ -10,6 +10,8 @@ open import Cubical.Data.Empty
 open import Cubical.Data.Unit
 open import Cubical.HITs.PropositionalTruncation
 open import Cubical.HITs.PropositionalTruncation.Monad
+open import Cubical.HITs.SetQuotients
+open import Cubical.Categories.Category
 
 module Realizability.Topos.FunctionalRelation
   {ℓ ℓ' ℓ''}
@@ -90,16 +92,12 @@ record FunctionalRelation (X Y : Type ℓ') : Type (ℓ-max (ℓ-max (ℓ-suc �
     yˢᵗ : Term strictnessContext `Y
     yˢᵗ = var y∈strictnessContext
 
-    -- F : Rel X Y, _~X_ : Rel X X, _~Y_ : Rel Y Y ⊢ F(x ,y) → (x ~X x) ∧ (y ~Y y)
-    strictnessPrequantFormula : Formula strictnessContext
-    strictnessPrequantFormula = rel `F (xˢᵗ `, yˢᵗ) `→ (rel `~X (xˢᵗ `, xˢᵗ) `∧ rel `~Y (yˢᵗ `, yˢᵗ))
-
-  strictnessFormula : Formula []
-  strictnessFormula = `∀ (`∀ strictnessPrequantFormula)
+  -- F : Rel X Y, _~X_ : Rel X X, _~Y_ : Rel Y Y ⊢ F(x ,y) → (x ~X x) ∧ (y ~Y y)
+  strictnessFormula : Formula strictnessContext
+  strictnessFormula = rel `F (xˢᵗ `, yˢᵗ) `→ (rel `~X (xˢᵗ `, xˢᵗ) `∧ rel `~Y (yˢᵗ `, yˢᵗ))
 
   field
-    strictnessWitness : A
-    isStrict : strictnessWitness ⊩ ⟦ strictnessFormula ⟧ᶠ
+    isStrict : holdsInTripos strictnessFormula
 
   -- # Relational
   -- The functional relation preserves equality
@@ -126,15 +124,11 @@ record FunctionalRelation (X Y : Type ℓ') : Type (ℓ-max (ℓ-max (ℓ-suc �
     y₁ = var y₁∈relationalContext
     y₂ = var y₂∈relationalContext
 
-    relationalPrequantFormula : Formula relationalContext
-    relationalPrequantFormula = (rel `F (x₁ `, y₁) `∧ (rel `~X (x₁ `, x₂) `∧ rel `~Y (y₁ `, y₂))) `→ rel `F (x₂ `, y₂)
-
-  relationalFormula : Formula []
-  relationalFormula = `∀ (`∀ (`∀ (`∀ relationalPrequantFormula)))
+  relationalFormula : Formula relationalContext
+  relationalFormula = (rel `F (x₁ `, y₁) `∧ (rel `~X (x₁ `, x₂) `∧ rel `~Y (y₁ `, y₂))) `→ rel `F (x₂ `, y₂)
 
   field
-    relationalWitness : A
-    isRelational : relationalWitness ⊩ ⟦ relationalFormula ⟧ᶠ
+    isRelational : holdsInTripos relationalFormula
 
   -- # Single-valued
   -- Self explanatory
@@ -156,16 +150,12 @@ record FunctionalRelation (X Y : Type ℓ') : Type (ℓ-max (ℓ-max (ℓ-suc �
     y₁ˢᵛ = var y₁∈singleValuedContext
     y₂ˢᵛ = var y₂∈singleValuedContext
 
-    singleValuedPrequantFormula : Formula singleValuedContext
-    singleValuedPrequantFormula =
-      (rel `F (xˢᵛ `, y₁ˢᵛ) `∧ rel `F (xˢᵛ `, y₂ˢᵛ)) `→ rel `~Y (y₁ˢᵛ `, y₂ˢᵛ)
-
-  singleValuedFormula : Formula []
-  singleValuedFormula = `∀ (`∀ (`∀ singleValuedPrequantFormula))
+  singleValuedFormula : Formula singleValuedContext
+  singleValuedFormula =
+    (rel `F (xˢᵛ `, y₁ˢᵛ) `∧ rel `F (xˢᵛ `, y₂ˢᵛ)) `→ rel `~Y (y₁ˢᵛ `, y₂ˢᵛ)
 
   field
-    singleValuedWitness : A
-    isSingleValued : singleValuedWitness ⊩ ⟦ singleValuedFormula ⟧ᶠ
+    isSingleValued : holdsInTripos singleValuedFormula
 
   -- # Total
   -- For all existent elements in the domain x there is an element in the codomain y
@@ -180,20 +170,16 @@ record FunctionalRelation (X Y : Type ℓ') : Type (ℓ-max (ℓ-max (ℓ-suc �
 
     xᵗˡ = var x∈totalContext
 
-    totalPrequantFormula : Formula totalContext
-    totalPrequantFormula = rel `~X (xᵗˡ `, xᵗˡ)  `→ `∃ (rel `F (renamingTerm (drop id) xᵗˡ `, var here))
-
-  totalFormula : Formula []
-  totalFormula = `∀ totalPrequantFormula
+  totalFormula : Formula totalContext
+  totalFormula = rel `~X (xᵗˡ `, xᵗˡ)  `→ `∃ (rel `F (renamingTerm (drop id) xᵗˡ `, var here))
 
   field
-    totalWitness : A
-    isTotal : totalWitness ⊩ ⟦ totalFormula ⟧ᶠ  
+    isTotal : holdsInTripos totalFormula
 
 open FunctionalRelation hiding (`X; `Y)
 
 pointwiseEntailment : ∀ {X Y : Type ℓ'} → FunctionalRelation X Y → FunctionalRelation X Y → Type _
-pointwiseEntailment {X} {Y} F G = ∃[ a ∈ A ] (a ⊩ ⟦ entailmentFormula ⟧ᶠ) where
+pointwiseEntailment {X} {Y} F G = holdsInTripos entailmentFormula where
   
   `X : Sort
   `Y : Sort
@@ -215,6 +201,9 @@ pointwiseEntailment {X} {Y} F G = ∃[ a ∈ A ] (a ⊩ ⟦ entailmentFormula �
   module RelationalInterpretation = Interpretation relationSymbols (λ { fzero → F .relation ; one → G .relation }) isNonTrivial
   open RelationalInterpretation
 
+  module RelationalSoundness = Soundness {relSym = relationSymbols} isNonTrivial (λ { fzero → F .relation ; one → G .relation })
+  open RelationalSoundness
+
   entailmentContext : Context
   entailmentContext = [] ′ `X ′ `Y
 
@@ -227,19 +216,16 @@ pointwiseEntailment {X} {Y} F G = ∃[ a ∈ A ] (a ⊩ ⟦ entailmentFormula �
   x = var x∈entailmentContext
   y = var y∈entailmentContext
 
-  entailmentPrequantFormula : Formula entailmentContext
-  entailmentPrequantFormula = rel `F (x `, y) `→ rel `G (x `, y)
-
-  entailmentFormula : Formula []
-  entailmentFormula = `∀ (`∀ entailmentPrequantFormula)
-
+  entailmentFormula : Formula entailmentContext
+  entailmentFormula = rel `F (x `, y) `→ rel `G (x `, y)
 
 functionalRelationIsomorphism : ∀ {X Y : Type ℓ'} → FunctionalRelation X Y → FunctionalRelation X Y → Type (ℓ-max (ℓ-max ℓ ℓ') ℓ'')
 functionalRelationIsomorphism {X} {Y} F G =
   pointwiseEntailment F G × pointwiseEntailment G F
 
+
 pointwiseEntailment→functionalRelationIsomorphism : ∀ {X Y : Type ℓ'} → (F G : FunctionalRelation X Y) → pointwiseEntailment F G → functionalRelationIsomorphism F G
-pointwiseEntailment→functionalRelationIsomorphism {X} {Y} F G F≤G = F≤G , {!!} where
+pointwiseEntailment→functionalRelationIsomorphism {X} {Y} F G F≤G = F≤G , G≤F where
     
   `X : Sort
   `Y : Sort
@@ -265,53 +251,97 @@ pointwiseEntailment→functionalRelationIsomorphism {X} {Y} F G F≤G = F≤G , 
   open Interpretation relationSymbols (λ { fzero → F .relation ; one → G .relation ; two → F .perX ._~_ ; three → G .perY ._~_}) isNonTrivial
   open Soundness {relSym = relationSymbols} isNonTrivial ((λ { fzero → F .relation ; one → G .relation ; two → F .perX ._~_ ; three → G .perY ._~_}))
   open Relational relationSymbols
+
   -- What we need to prove is that
   -- F ≤ G ⊨ G ≤ F
   -- We will use the semantic combinators we borrowed from the 1lab
-  -- We know that a ⊩ F ≤ G
-  -- or in other words
-  -- a ⊩ ∀ x. ∀ y. F(x , y) → G(x ,y)
 
-  -- We will firstly use the introduction rule
-  -- for ∀ to get an x : X and a y : Y in context
-  proof : pointwiseEntailment G F
-  proof =
-    do
-      (a , a⊩F≤G) ← F≤G
-      let
-        context : Context
-        context = [] ′ `X ′ `Y
+  entailmentContext : Context
+  entailmentContext = [] ′ `X ′ `Y
 
-        x : Term context `X
-        x = var (there here)
+  x : Term entailmentContext `X
+  x = var (there here)
 
-        y : Term context `Y
-        y = var here
-      (b , b⊩) ←
-        `∀intro
-          {Γ = []}
+  y : Term entailmentContext `Y
+  y = var here
+
+  G⊨x~x : (⊤ᵗ `∧ rel `G (x `, y)) ⊨ rel `~X (x `, x)
+  G⊨x~x =
+    `→elim
+      {Γ = entailmentContext}
+      {ϕ = ⊤ᵗ `∧ (rel `G (x `, y))}
+      {ψ = rel `G (x `, y)}
+      {θ = rel `~X (x `, x)}
+      {!G .isStrict!}
+      {!!}
+
+  ⊤∧G⊨F : (⊤ᵗ `∧ rel `G (x `, y)) ⊨ rel `F (x `, y)
+  ⊤∧G⊨F = cut {Γ = entailmentContext} {ϕ = ⊤ᵗ `∧ rel `G (x `, y)} {ψ = rel `~X (x `, x)}
+           {θ = rel `F (x `, y)}
+           G⊨x~x
+           {!!}
+
+  G≤F : pointwiseEntailment G F
+  G≤F = `→intro {Γ = entailmentContext} {ϕ = ⊤ᵗ} {ψ = rel `G (x `, y)} {θ = rel `F (x `, y)} ⊤∧G⊨F
+
+RTMorphism : (X Y : Type ℓ') →  Type _
+RTMorphism X Y = FunctionalRelation X Y / λ F G → functionalRelationIsomorphism F G
+
+RTObject : Type _
+RTObject = Σ[ X ∈ Type ℓ' ] PartialEquivalenceRelation X
+
+idMorphism : (ob : RTObject) → RTMorphism (ob .fst) (ob .fst)
+idMorphism ob =
+  [ record
+     { perX = ob .snd
+     ; perY = ob .snd
+     ; relation = ob .snd ._~_
+     ; isStrict = {!!}
+     ; isRelational = {!!}
+     ; isSingleValued = {!!}
+     ; isTotal = {!!}
+     } ] where
+
+  `X : Sort
+  `X = ↑ (ob .fst , ob .snd .isSetX)
+
+  relationSymbols : Vec Sort 3
+  relationSymbols = (`X `× `X) ∷ (`X `× `X) ∷ (`X `× `X) ∷ []
+
+  open Interpretation relationSymbols (λ { fzero → ob .snd ._~_ ; one → ob .snd ._~_ ; two → ob .snd ._~_ }) isNonTrivial
+  open Soundness {relSym = relationSymbols} isNonTrivial (λ { fzero → ob .snd ._~_ ; one → ob .snd ._~_ ; two → ob .snd ._~_ })
+  open Relational relationSymbols
+
+  isStrictContext : Context
+  isStrictContext = [] ′ `X ′ `X
+
+  isStrictId : holdsInTripos (rel fzero (var (there here) `, var here) `→ (rel one (var (there here) `, var here) `∧ rel two (var (there here) `, var here)))
+  isStrictId =
+    `→intro
+      {Γ = isStrictContext}
+      {ϕ = ⊤ᵗ}
+      {ψ = rel fzero (var (there here) `, var here)}
+      {θ = rel one (var (there here) `, var here) `∧ rel two (var (there here) `, var here)}
+      (`∧intro
+        {Γ = isStrictContext}
+        {ϕ = ⊤ᵗ `∧ rel fzero (var (there here) `, var here)}
+        {ψ = rel one (var (there here) `, var here)}
+        {θ = rel two (var (there here) `, var here)}
+        {!`∧elim2
+          {Γ = isStrictContext}
           {ϕ = ⊤ᵗ}
-          {B = `X}
-          {ψ =
-            `∀ {B = `Y}
-            (rel `G (x `, y) `→ rel `F (x `, y))}
-          (`∀intro
-            {Γ = [] ′ `X}
-            {ϕ = ⊤ᵗ}
-            {B = `Y}
-            {ψ = rel `G (x `, y) `→ rel `F (x `, y)}
-            (`→intro
-              {Γ = context}
-              {ϕ = ⊤ᵗ}
-              {ψ = rel `G (x `, y)}
-              {θ = rel `F (x `, y)}
-              (cut
-                {Γ = context}
-                {ϕ = ⊤ᵗ `∧ rel `G (x `, y)}
-                {ψ = rel `~X (x `, x)}
-                {θ = rel `F (x `, y)}
-                {!!}
-                {!!})))
-      return (b , {!b⊩!})
+          {ψ = rel fzero (var (there here) `, var here)}
+          {θ = rel one (var (there here) `, var here)}
+          ?!}
+        {!!})
 
-  
+
+RT : Category (ℓ-max (ℓ-max (ℓ-suc ℓ) (ℓ-suc ℓ')) (ℓ-suc ℓ'')) ((ℓ-max (ℓ-max (ℓ-suc ℓ) (ℓ-suc ℓ')) (ℓ-suc ℓ'')))
+Category.ob RT = Σ[ X ∈ Type ℓ' ] PartialEquivalenceRelation X
+Category.Hom[_,_] RT (X , perX) (Y , perY) = RTMorphism X Y
+Category.id RT {X , perX} = {!!}
+Category._⋆_ RT = {!!}
+Category.⋆IdL RT = {!!}
+Category.⋆IdR RT = {!!}
+Category.⋆Assoc RT = {!!}
+Category.isSetHom RT = {!!}

@@ -25,9 +25,7 @@ open Predicate' renaming (isSetX to isSetPredicateBase)
 open PredicateProperties
 open Morphism
 
-private
-  _⊩_ : ∀ a (P : Predicate' {ℓ' = ℓ'} {ℓ'' = ℓ''} Unit*) → Type _
-  a ⊩ P = a pre⊩ ∣ P ∣ tt*
+Predicate = Predicate' {ℓ' = ℓ'} {ℓ'' = ℓ''}
 
 record PartialEquivalenceRelation (X : Type ℓ') : Type (ℓ-max (ℓ-max (ℓ-suc ℓ) (ℓ-suc ℓ')) (ℓ-suc ℓ'')) where
   field
@@ -42,7 +40,7 @@ record PartialEquivalenceRelation (X : Type ℓ') : Type (ℓ-max (ℓ-max (ℓ-
     ~relSym : Vec Sort 1
     ~relSym = `X×X ∷ []
 
-  module X×XRelational = Relational ~relSym
+  module X×XRelational = Relational {n = 1} ~relSym
   open X×XRelational
 
   field
@@ -76,16 +74,11 @@ record PartialEquivalenceRelation (X : Type ℓ') : Type (ℓ-max (ℓ-max (ℓ-
     yˢ : Term symContext `X
     yˢ = var y∈symContext
 
-    symPrequantFormula : Formula symContext
-    symPrequantFormula = rel fzero (xˢ `, yˢ) `→ rel fzero (yˢ `, xˢ)
-
-  -- ~ ⊢ ∀ x. ∀ y. x ~ y → y ~ x
-  symFormula : Formula []
-  symFormula = `∀ (`∀ symPrequantFormula)
+  symmetryFormula : Formula symContext
+  symmetryFormula = rel fzero (xˢ `, yˢ) `→ rel fzero (yˢ `, xˢ)
 
   field
-    symWitness : A
-    symIsWitnessed : symWitness ⊩ ⟦ symFormula ⟧ᶠ
+    symmetry : holdsInTripos symmetryFormula
 
   private
     transContext : Context
@@ -109,14 +102,9 @@ record PartialEquivalenceRelation (X : Type ℓ') : Type (ℓ-max (ℓ-max (ℓ-
     xᵗ : Term transContext `X
     xᵗ = var x∈transContext
 
-    -- ~ : Rel X X, x : X, y : X, z : X ⊢ x ~ y ∧ y ~ z → x ~ z
-    transPrequantFormula : Formula transContext
-    transPrequantFormula = (rel fzero (xᵗ `, yᵗ) `∧ rel fzero (yᵗ `, zᵗ)) `→ rel fzero (xᵗ `, zᵗ)
-
-  transFormula : Formula []
-  transFormula = `∀ (`∀ (`∀ transPrequantFormula))
+  transitivityFormula : Formula transContext
+  transitivityFormula = (rel fzero (xᵗ `, yᵗ) `∧ rel fzero (yᵗ `, zᵗ)) `→ rel fzero (xᵗ `, zᵗ)
 
   field
-    transWitness : A
-    transIsWitnessed : transWitness ⊩ ⟦ transFormula ⟧ᶠ
+    transitivity : holdsInTripos transitivityFormula
    
