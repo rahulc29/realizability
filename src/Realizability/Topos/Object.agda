@@ -17,7 +17,7 @@ module Realizability.Topos.Object
 
 open import Realizability.Tripos.Logic.Syntax {ℓ = ℓ'}
 open import Realizability.Tripos.Logic.Semantics {ℓ' = ℓ'} {ℓ'' = ℓ''} ca
-open import Realizability.Tripos.Prealgebra.Predicate.Base ca renaming (Predicate to Predicate'; _⊩_ to _pre⊩_)
+open import Realizability.Tripos.Prealgebra.Predicate.Base ca renaming (Predicate to Predicate')
 open import Realizability.Tripos.Prealgebra.Predicate.Properties ca
 open CombinatoryAlgebra ca
 open Realizability.CombinatoryAlgebra.Combinators ca renaming (i to Id; ia≡a to Ida≡a)
@@ -25,86 +25,15 @@ open Predicate' renaming (isSetX to isSetPredicateBase)
 open PredicateProperties
 open Morphism
 
-Predicate = Predicate' {ℓ' = ℓ'} {ℓ'' = ℓ''}
+private
+  Predicate = Predicate' {ℓ' = ℓ'} {ℓ'' = ℓ''}
 
 record PartialEquivalenceRelation (X : Type ℓ') : Type (ℓ-max (ℓ-max (ℓ-suc ℓ) (ℓ-suc ℓ')) (ℓ-suc ℓ'')) where
   field
     isSetX : isSet X
-  private
-    `X : Sort
-    `X = ↑ (X , isSetX)
-
-    `X×X : Sort
-    `X×X = `X `× `X
-
-    ~relSym : Vec Sort 1
-    ~relSym = `X×X ∷ []
-
-  module X×XRelational = Relational {n = 1} ~relSym
-  open X×XRelational
-
+    equality : Predicate (X × X)
+    isSymmetric : ∃[ s ∈ A ] (∀ x y r → r ⊩ ∣ equality ∣ (x , y) → (s ⨾ r) ⊩ ∣ equality ∣ (y , x))
+  open PredicateProperties {ℓ'' = ℓ''} (X × X)
   field
-    _~_ : Predicate ⟨ ⟦ lookup fzero ~relSym ⟧ˢ ⟩
-
-  private
-    ~relSymInterpretation : RelationInterpretation ~relSym
-    ~relSymInterpretation = λ { fzero → _~_ }
+    isTransitive : ∃[ t ∈ A ] (∀ x y z a b → a ⊩ ∣ equality ∣ (x , y) → b ⊩ ∣ equality ∣ (y , z) → (t ⨾ (pair ⨾ a ⨾ b)) ⊩ ∣ equality ∣ (x , z))
   
-  module ~Interpretation = Interpretation ~relSym ~relSymInterpretation isNonTrivial
-  open ~Interpretation
-
-  module ~Soundness = Soundness isNonTrivial ~relSymInterpretation
-  open ~Soundness
-
-  -- Partial equivalence relations
-
-  private
-    symContext : Context
-    symContext = ([] ′ `X) ′ `X
-
-    x∈symContext : `X ∈ symContext
-    x∈symContext = there here
-
-    y∈symContext : `X ∈ symContext
-    y∈symContext = here
-
-    xˢ : Term symContext `X
-    xˢ = var x∈symContext
-
-    yˢ : Term symContext `X
-    yˢ = var y∈symContext
-
-  symmetryFormula : Formula symContext
-  symmetryFormula = rel fzero (xˢ `, yˢ) `→ rel fzero (yˢ `, xˢ)
-
-  field
-    symmetry : holdsInTripos symmetryFormula
-
-  private
-    transContext : Context
-    transContext = (([] ′ `X) ′ `X) ′ `X
-
-    z∈transContext : `X ∈ transContext
-    z∈transContext = here
-
-    y∈transContext : `X ∈ transContext
-    y∈transContext = there here
-
-    x∈transContext : `X ∈ transContext
-    x∈transContext = there (there here)
-
-    zᵗ : Term transContext `X
-    zᵗ = var z∈transContext
-
-    yᵗ : Term transContext `X
-    yᵗ = var y∈transContext
-
-    xᵗ : Term transContext `X
-    xᵗ = var x∈transContext
-
-  transitivityFormula : Formula transContext
-  transitivityFormula = (rel fzero (xᵗ `, yᵗ) `∧ rel fzero (yᵗ `, zᵗ)) `→ rel fzero (xᵗ `, zᵗ)
-
-  field
-    transitivity : holdsInTripos transitivityFormula
-   
