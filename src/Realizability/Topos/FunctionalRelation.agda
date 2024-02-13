@@ -1,4 +1,3 @@
-{-# OPTIONS --allow-unsolved-metas #-}
 open import Realizability.ApplicativeStructure renaming (Term to ApplStrTerm; λ*-naturality to `λ*ComputationRule; λ*-chain to `λ*) hiding (λ*)
 open import Realizability.CombinatoryAlgebra
 open import Cubical.Foundations.Prelude
@@ -251,7 +250,7 @@ isStrict (composeFuncRel {X} {Y} {Z} perX perY perZ F G) =
     return
       (λ* prover ,
       (λ x z r r⊩∃y →
-        transport (propTruncIdempotent {!!})
+        transport (propTruncIdempotent (isProp× (perX .equality .isPropValued (x , x) (pr₁ ⨾ (λ* prover ⨾ r))) ( perZ .equality .isPropValued (z , z) (pr₂ ⨾ (λ* prover ⨾ r)))))
         (do
           (y , pr₁r⊩Fxy , pr₂r⊩Gxy) ← r⊩∃y
           let
@@ -293,10 +292,109 @@ isRelational (composeFuncRel {X} {Y} {Z} perX perY perZ F G) =
               {!!}
           return
             (y ,
-            (subst (λ r → r ⊩ ∣ F .relation ∣ (x' , y)) (sym {!!}) (rlF⊩isRelationalF x x' y y a (pr₁ ⨾ b) (pr₂ ⨾ (stF ⨾ (pr₁ ⨾ b))) a⊩x~x' pr₁b⊩Fxy (stF⊩isStrictF x y (pr₁ ⨾ b) pr₁b⊩Fxy .snd)) ,
-            (subst (λ r → r ⊩ ∣ G .relation ∣ (y , z')) (sym {!!}) (rlG⊩isRelationalG y y z z' (pr₂ ⨾ (stF ⨾ (pr₁ ⨾ b))) (pr₂ ⨾ b) c (stF⊩isStrictF x y (pr₁ ⨾ b) pr₁b⊩Fxy .snd) pr₂b⊩Gyz c⊩z~z'))))))
-isSingleValued (composeFuncRel {X} {Y} {Z} perX perY perZ F G) = {!!}
-isTotal (composeFuncRel {X} {Y} {Z} perX perY perZ F G) = {!!}
+            (subst
+              (λ r → r ⊩ ∣ F .relation ∣ (x' , y))
+              (sym {!!})
+              (rlF⊩isRelationalF
+                x x' y y a
+                (pr₁ ⨾ b)
+                (pr₂ ⨾ (stF ⨾ (pr₁ ⨾ b)))
+                a⊩x~x' pr₁b⊩Fxy
+                (stF⊩isStrictF x y (pr₁ ⨾ b) pr₁b⊩Fxy .snd)) ,
+            (subst
+              (λ r → r ⊩ ∣ G .relation ∣ (y , z'))
+              (sym {!!})
+              (rlG⊩isRelationalG
+                y y z z'
+                (pr₂ ⨾ (stF ⨾ (pr₁ ⨾ b)))
+                (pr₂ ⨾ b)
+                c
+                (stF⊩isStrictF x y (pr₁ ⨾ b) pr₁b⊩Fxy .snd) pr₂b⊩Gyz c⊩z~z'))))))
+isSingleValued (composeFuncRel {X} {Y} {Z} perX perY perZ F G) =
+  do
+    (svF , svF⊩isSingleValuedF) ← F .isSingleValued
+    (svG , svG⊩isSingleValuedG) ← G .isSingleValued
+    (rlG , rlG⊩isRelationalG) ← G .isRelational
+    (stG , stG⊩isStrictG) ← G .isStrict
+    let
+      prover : ApplStrTerm as 1
+      prover =
+        ` svG ̇
+          (` pair ̇
+            (` rlG ̇
+              (` pair ̇
+                (` svF ̇
+                  (` pair ̇
+                    (` pr₁ ̇ (` pr₁ ̇ # fzero)) ̇
+                    (` pr₁ ̇ (` pr₂ ̇ # fzero)))) ̇
+                  (` pair ̇
+                    (` pr₂ ̇ (` pr₁ ̇ # fzero)) ̇
+                    (` pr₂ ̇ (` stG ̇ (` pr₂ ̇ (` pr₁ ̇ # fzero))))))) ̇
+            (` pr₂ ̇ (` pr₂ ̇ # fzero)))
+    return
+      (λ* prover ,
+      (λ x z z' r₁ r₂ r₁⊩∃y r₂⊩∃y' →
+        transport
+          (propTruncIdempotent (perZ .equality .isPropValued (z , z') _))
+          (do
+            (y , pr₁r₁⊩Fxy , pr₂r₁⊩Gyz) ← r₁⊩∃y
+            (y' , pr₁r₂⊩Fxy' , pr₂r₂⊩Gy'z) ← r₂⊩∃y'
+            return
+              (subst
+                (λ r → r ⊩ ∣ perZ .equality ∣ (z , z'))
+                (sym {!!})
+                (svG⊩isSingleValuedG
+                  y' z z'
+                  (rlG ⨾ (pair ⨾ (svF ⨾ (pair ⨾ (pr₁ ⨾ r₁) ⨾ (pr₁ ⨾ r₂))) ⨾ (pair ⨾ (pr₂ ⨾ r₁) ⨾ (pr₂ ⨾ (stG ⨾ (pr₂ ⨾ r₁)))))) (pr₂ ⨾ r₂)
+                  (rlG⊩isRelationalG
+                    y y' z z
+                    (svF ⨾ (pair ⨾ (pr₁ ⨾ r₁) ⨾ (pr₁ ⨾ r₂)))
+                    (pr₂ ⨾ r₁)
+                    (pr₂ ⨾ (stG ⨾ (pr₂ ⨾ r₁)))
+                    (svF⊩isSingleValuedF
+                      x y y'
+                      (pr₁ ⨾ r₁) (pr₁ ⨾ r₂)
+                      pr₁r₁⊩Fxy pr₁r₂⊩Fxy')
+                    pr₂r₁⊩Gyz
+                    (stG⊩isStrictG y z (pr₂ ⨾ r₁) pr₂r₁⊩Gyz .snd)) pr₂r₂⊩Gy'z)))))
+isTotal (composeFuncRel {X} {Y} {Z} perX perY perZ F G) =
+  do
+    (tlF , tlF⊩isTotalF) ← F .isTotal
+    (tlG , tlG⊩isTotalG) ← G .isTotal
+    (stF , stF⊩isStrictF) ← F .isStrict
+    let
+      prover : ApplStrTerm as 1
+      prover = ` pair ̇ (` tlF ̇ # fzero) ̇ (` tlG ̇ (` pr₂ ̇ (` stF ̇ (` tlF ̇ # fzero))))
+    return
+      (λ* prover ,
+      (λ x r r⊩x~x →
+        do
+          (y , tlF⨾r⊩Fxy) ← tlF⊩isTotalF x r r⊩x~x
+          (z , ⊩Gyz) ← tlG⊩isTotalG y (pr₂ ⨾ (stF ⨾ (tlF ⨾ r))) (stF⊩isStrictF x y (tlF ⨾ r) tlF⨾r⊩Fxy .snd)
+          let
+            pr₁proofEq : pr₁ ⨾ (λ* prover ⨾ r) ≡ tlF ⨾ r
+            pr₁proofEq =
+              pr₁ ⨾ (λ* prover ⨾ r)
+                ≡⟨ cong (λ x → pr₁ ⨾ x) (λ*ComputationRule prover (r ∷ [])) ⟩
+              pr₁ ⨾ (pair ⨾ (tlF ⨾ r) ⨾ (tlG ⨾ (pr₂ ⨾ (stF ⨾ (tlF ⨾ r)))))
+                ≡⟨ pr₁pxy≡x _ _ ⟩
+              tlF ⨾ r
+                ∎
+
+            pr₂proofEq : pr₂ ⨾ (λ* prover ⨾ r) ≡ tlG ⨾ (pr₂ ⨾ (stF ⨾ (tlF ⨾ r)))
+            pr₂proofEq =
+              pr₂ ⨾ (λ* prover ⨾ r)
+                ≡⟨ cong (λ x → pr₂ ⨾ x) (λ*ComputationRule prover (r ∷ [])) ⟩
+              pr₂ ⨾ (pair ⨾ (tlF ⨾ r) ⨾ (tlG ⨾ (pr₂ ⨾ (stF ⨾ (tlF ⨾ r)))))
+                ≡⟨ pr₂pxy≡y _ _ ⟩
+              tlG ⨾ (pr₂ ⨾ (stF ⨾ (tlF ⨾ r)))
+                ∎
+          return
+            (z ,
+            return
+            (y ,
+            (subst (λ r' → r' ⊩ ∣ F .relation ∣ (x , y)) (sym pr₁proofEq) tlF⨾r⊩Fxy ,
+            (subst (λ r' → r' ⊩ ∣ G .relation ∣ (y , z)) (sym pr₂proofEq) ⊩Gyz))))))
 
 RTMorphism : ∀ {X Y : Type ℓ'} → (perX : PartialEquivalenceRelation X) → (perY : PartialEquivalenceRelation Y) → Type _
 RTMorphism {X} {Y} perX perY = FunctionalRelation perX perY / λ F G → pointwiseEntailment perX perY F G × pointwiseEntailment perX perY G F
