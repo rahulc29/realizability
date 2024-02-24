@@ -17,23 +17,14 @@ module Realizability.Topos.Object
 
 open import Realizability.Tripos.Logic.Syntax {ℓ = ℓ'}
 open import Realizability.Tripos.Logic.Semantics {ℓ' = ℓ'} {ℓ'' = ℓ''} ca
-open import Realizability.Tripos.Prealgebra.Predicate.Base ca renaming (Predicate to Predicate')
-open import Realizability.Tripos.Prealgebra.Predicate.Properties ca
+open import Realizability.Tripos.Algebra.Base {ℓ' = ℓ'} {ℓ'' = ℓ''} ca renaming (AlgebraicPredicate to Predicate)
 open CombinatoryAlgebra ca
 open Realizability.CombinatoryAlgebra.Combinators ca renaming (i to Id; ia≡a to Ida≡a)
-open Predicate' renaming (isSetX to isSetPredicateBase)
-open PredicateProperties
-open Morphism
-
-private
-  Predicate = Predicate' {ℓ' = ℓ'} {ℓ'' = ℓ''}
 
 record PartialEquivalenceRelation (X : Type ℓ') : Type (ℓ-max (ℓ-max (ℓ-suc ℓ) (ℓ-suc ℓ')) (ℓ-suc ℓ'')) where
   field
     isSetX : isSet X
     equality : Predicate (X × X)
-    isSymmetric : ∃[ s ∈ A ] (∀ x y r → r ⊩ ∣ equality ∣ (x , y) → (s ⨾ r) ⊩ ∣ equality ∣ (y , x))
-  open PredicateProperties {ℓ'' = ℓ''} (X × X)
-  field
-    isTransitive : ∃[ t ∈ A ] (∀ x y z a b → a ⊩ ∣ equality ∣ (x , y) → b ⊩ ∣ equality ∣ (y , z) → (t ⨾ (pair ⨾ a ⨾ b)) ⊩ ∣ equality ∣ (x , z))
+    isSymmetric : ∃[ sm ∈ A ] (∀ x x' r → r ⊩[ equality ] (x , x') → (sm ⨾ r) ⊩[ equality ] (x' , x))
+    isTransitive : ∃[ ts ∈ A ] (∀ x x' x'' r s → r ⊩[ equality ] (x , x') → s ⊩[ equality ] (x' , x'') → (ts ⨾ r ⨾ s) ⊩[ equality ] (x , x''))
   
