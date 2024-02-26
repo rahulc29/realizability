@@ -51,10 +51,9 @@ AlgebraicPredicate X = PosetReflection (Pred.PredicateProperties._≤_ {ℓ'' = 
 
 infixl 50 _⊩[_]_
 opaque
-  _⊩[_]_ : ∀ {X : Type ℓ'} → A → AlgebraicPredicate X → X → Type (ℓ-max ℓ (ℓ-max ℓ' ℓ''))
-  r ⊩[ ϕ ] x =
-    ⟨
-      SQ.rec
+  realizes : ∀ {X : Type ℓ'} → A → AlgebraicPredicate X → X → hProp (ℓ-max ℓ (ℓ-max ℓ' ℓ''))
+  realizes {X} r ϕ x =
+    SQ.rec
         isSetHProp
         (λ Ψ → (∃[ s ∈ A ] Pred.Predicate.∣ Ψ ∣ x (s ⨾ r)) , isPropPropTrunc)
         (λ { Ψ Ξ (Ψ≤Ξ , Ξ≤Ψ) →
@@ -78,7 +77,22 @@ opaque
                     prover = ` s ̇ (` p ̇ # fzero)
                   return (λ* prover , subst (λ r' → Pred.Predicate.∣ Ψ ∣ x r') (sym (λ*ComputationRule prover (r ∷ []))) (s⊩Ξ≤Ψ x (p ⨾ r) p⊩Ξ)))) })
         ϕ
-    ⟩
+
+  _⊩[_]_ : ∀ {X : Type ℓ'} → A → AlgebraicPredicate X → X → Type (ℓ-max ℓ (ℓ-max ℓ' ℓ''))
+  r ⊩[ ϕ ] x = ⟨ realizes r ϕ x ⟩
+
+  isProp⊩ : ∀ {X : Type ℓ'} → (a : A) → (ϕ : AlgebraicPredicate X) → (x : X) → isProp (a ⊩[ ϕ ] x)
+  isProp⊩ {X} a ϕ x = realizes a ϕ x .snd
+
+  transformRealizes : ∀ {X : Type ℓ'} → (r : A) → (ϕ : Pred.Predicate X) → (x : X) → (∃[ s ∈ A ] (s ⨾ r) ⊩[ [ ϕ ] ] x) → r ⊩[ [ ϕ ] ] x
+  transformRealizes {X} r ϕ x ∃ =
+    do
+      (s , s⊩ϕx) ← ∃
+      (p , ps⊩ϕx) ← s⊩ϕx
+      let
+        prover : Term as 1
+        prover = ` p ̇ (` s ̇ # fzero)
+      return (λ* prover , subst (λ r' → Pred.Predicate.∣ ϕ ∣ x r') (sym (λ*ComputationRule prover (r ∷ []))) ps⊩ϕx)
 
 module AlgebraicProperties (X : Type ℓ') (isSetX' : isSet X) (isNonTrivial : s ≡ k → ⊥) where
   open Pred
