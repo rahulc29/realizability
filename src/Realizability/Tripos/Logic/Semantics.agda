@@ -27,18 +27,16 @@ open CombinatoryAlgebra ca
 private λ*ComputationRule = `λ*ComputationRule as fefermanStructure
 private λ* = `λ* as fefermanStructure
 
-open import Realizability.Tripos.Prealgebra.Predicate.Base ca renaming (Predicate to Predicate')
-open import Realizability.Tripos.Prealgebra.Predicate.Properties ca
-open import Realizability.Tripos.Prealgebra.Meets.Identity ca
-open import Realizability.Tripos.Prealgebra.Joins.Identity ca
-open import Realizability.Tripos.Prealgebra.Implication ca
+open import Realizability.Tripos.Prealgebra.Predicate.Base {ℓ' = ℓ'} {ℓ'' = ℓ''} ca
+open import Realizability.Tripos.Prealgebra.Predicate.Properties {ℓ' = ℓ'} {ℓ'' = ℓ''} ca
+open import Realizability.Tripos.Prealgebra.Meets.Identity {ℓ' = ℓ'} {ℓ'' = ℓ''} ca
+open import Realizability.Tripos.Prealgebra.Joins.Identity {ℓ' = ℓ'} {ℓ'' = ℓ''} ca
+open import Realizability.Tripos.Prealgebra.Implication {ℓ' = ℓ'} {ℓ'' = ℓ''} ca
 open import Realizability.Tripos.Logic.Syntax {ℓ = ℓ'}
 open Realizability.CombinatoryAlgebra.Combinators ca renaming (i to Id; ia≡a to Ida≡a)
-open Predicate'
+open Predicate
 open PredicateProperties hiding (_≤_ ; isTrans≤)
-open Morphism {ℓ' = ℓ'} {ℓ'' = ℓ''}
-private
-  Predicate = Predicate' {ℓ' = ℓ'} {ℓ'' = ℓ''}
+open Morphism
 RelationInterpretation : ∀ {n : ℕ} → (Vec Sort n) → Type _
 RelationInterpretation {n} relSym = (∀ i →  Predicate ⟨ ⟦ lookup i relSym ⟧ˢ ⟩)
 
@@ -315,8 +313,8 @@ module Soundness
       (ϕ⊨ψ >>=
         λ { (a , a⊩ϕ≤ψ) →
           ∣ a , (λ γ b b⊩ϕsubsγ → a⊩ϕ≤ψ (⟦ subs ⟧ᴮ γ) b b⊩ϕsubsγ) ∣₁ }) where
-      open PredProps {ℓ'' = ℓ''} ⟨ ⟦ Γ ⟧ᶜ ⟩ renaming (_≤_ to _≤Γ_)
-      open PredProps {ℓ'' = ℓ''} ⟨ ⟦ Δ ⟧ᶜ ⟩ renaming (_≤_ to _≤Δ_)
+      open PredProps ⟨ ⟦ Γ ⟧ᶜ ⟩ renaming (_≤_ to _≤Γ_)
+      open PredProps ⟨ ⟦ Δ ⟧ᶜ ⟩ renaming (_≤_ to _≤Δ_)
 
   `∧intro : ∀ {Γ} {ϕ ψ θ : Formula Γ} → ϕ ⊨ ψ → entails ϕ θ → entails ϕ (ψ `∧ θ)
   `∧intro {Γ} {ϕ} {ψ} {θ} ϕ⊨ψ ϕ⊨θ =

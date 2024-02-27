@@ -11,19 +11,19 @@ open import Cubical.Relation.Binary.Order.Preorder
 open import Realizability.CombinatoryAlgebra
 open import Realizability.ApplicativeStructure renaming (λ*-naturality to `λ*ComputationRule; λ*-chain to `λ*) hiding (λ*)
 
-module Realizability.Tripos.Prealgebra.Meets.Identity {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
-open import Realizability.Tripos.Prealgebra.Predicate ca
-open import Realizability.Tripos.Prealgebra.Meets.Commutativity ca
+module Realizability.Tripos.Prealgebra.Meets.Identity {ℓ ℓ' ℓ''} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
+open import Realizability.Tripos.Prealgebra.Predicate {ℓ' = ℓ'} {ℓ'' = ℓ''} ca
+open import Realizability.Tripos.Prealgebra.Meets.Commutativity {ℓ' = ℓ'} {ℓ'' = ℓ''} ca
 open CombinatoryAlgebra ca
 open Realizability.CombinatoryAlgebra.Combinators ca renaming (i to Id; ia≡a to Ida≡a)
 
 private λ*ComputationRule = `λ*ComputationRule as fefermanStructure
 private λ* = `λ* as fefermanStructure
 
-module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) (isNonTrivial : s ≡ k → ⊥) where
-  private PredicateX = Predicate {ℓ'' = ℓ''} X
+module _ (X : Type ℓ') (isSetX' : isSet X) (isNonTrivial : s ≡ k → ⊥) where
+  private PredicateX = Predicate X
   open Predicate
-  open PredicateProperties {ℓ'' = ℓ''} X
+  open PredicateProperties X
   open PreorderReasoning preorder≤
 
   pre1 : PredicateX

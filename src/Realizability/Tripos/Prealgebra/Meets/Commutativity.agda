@@ -9,9 +9,9 @@ open import Cubical.Relation.Binary.Order.Preorder
 open import Cubical.HITs.PropositionalTruncation
 open import Cubical.HITs.PropositionalTruncation.Monad
 
-module Realizability.Tripos.Prealgebra.Meets.Commutativity {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
+module Realizability.Tripos.Prealgebra.Meets.Commutativity {ℓ ℓ' ℓ''} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
 
-open import Realizability.Tripos.Prealgebra.Predicate ca
+open import Realizability.Tripos.Prealgebra.Predicate {ℓ' = ℓ'} {ℓ'' = ℓ''} ca
 
 open CombinatoryAlgebra ca
 open Realizability.CombinatoryAlgebra.Combinators ca renaming (i to Id; ia≡a to Ida≡a)
@@ -19,11 +19,11 @@ open Realizability.CombinatoryAlgebra.Combinators ca renaming (i to Id; ia≡a t
 private λ*ComputationRule = `λ*ComputationRule as fefermanStructure
 private λ* = `λ* as fefermanStructure
 
-module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) where
+module _ (X : Type ℓ') (isSetX' : isSet X) where
   
-  private PredicateX = Predicate {ℓ'' = ℓ''} X
+  private PredicateX = Predicate  X
   open Predicate
-  open PredicateProperties {ℓ'' = ℓ''} X
+  open PredicateProperties  X
   open PreorderReasoning preorder≤
 
   x⊓y≤y⊓x : ∀ x y → x ⊓ y ≤ y ⊓ x

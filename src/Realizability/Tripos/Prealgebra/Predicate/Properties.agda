@@ -20,7 +20,7 @@ module
   Realizability.Tripos.Prealgebra.Predicate.Properties
   {ℓ ℓ' ℓ''} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
 
-open import Realizability.Tripos.Prealgebra.Predicate.Base ca
+open import Realizability.Tripos.Prealgebra.Predicate.Base {ℓ = ℓ} {ℓ' = ℓ'} {ℓ'' = ℓ''} ca
 
 open CombinatoryAlgebra ca
 open Realizability.CombinatoryAlgebra.Combinators ca renaming (i to Id; ia≡a to Ida≡a)
@@ -29,9 +29,9 @@ private λ*ComputationRule = `λ*ComputationRule as fefermanStructure
 private λ* = `λ* as fefermanStructure
 
 module PredicateProperties (X : Type ℓ') where
-  private PredicateX = Predicate {ℓ'' = ℓ''} X
+  private PredicateX = Predicate X
   open Predicate
-  _≤_ : Predicate {ℓ'' = ℓ''} X → Predicate {ℓ'' = ℓ''} X → Type (ℓ-max (ℓ-max ℓ ℓ') ℓ'')
+  _≤_ : Predicate  X → Predicate  X → Type (ℓ-max (ℓ-max ℓ ℓ') ℓ'')
   ϕ ≤ ψ = ∃[ b ∈ A ] (∀ (x : X) (a : A) → a ⊩ (∣ ϕ ∣ x) → (b ⨾ a) ⊩ ∣ ψ ∣ x)
 
   isProp≤ : ∀ ϕ ψ → isProp (ϕ ≤ ψ)
@@ -90,8 +90,8 @@ module PredicateProperties (X : Type ℓ') where
 module _ where
   open PredicateProperties Unit*
   private
-    Predicate' = Predicate {ℓ' = ℓ'} {ℓ'' = ℓ''}
-  module NotAntiSym (antiSym : ∀ (a b : Predicate Unit*) → (a≤b : a ≤ b) → (b≤a : b ≤ a) → a ≡ b) where
+    Predicate' = Predicate 
+  module NotAntiSym (antiSym : ∀ (a b : Predicate' Unit*) → (a≤b : a ≤ b) → (b≤a : b ≤ a) → a ≡ b) where
     Lift' = Lift {i = ℓ} {j = (ℓ-max ℓ' ℓ'')}
 
     kRealized : Predicate' Unit*
@@ -129,8 +129,8 @@ module _ where
     k≡k' = Liftk≡k' .lower
 
 module Morphism {X Y : Type ℓ'} (isSetX : isSet X) (isSetY : isSet Y)  where
-  PredicateX = Predicate {ℓ'' = ℓ''} X
-  PredicateY = Predicate {ℓ'' = ℓ''} Y
+  PredicateX = Predicate  X
+  PredicateY = Predicate  Y
   module PredicatePropertiesX = PredicateProperties X
   module PredicatePropertiesY = PredicateProperties Y
   open PredicatePropertiesX renaming (_≤_ to _≤X_ ; isProp≤ to isProp≤X)
@@ -323,7 +323,7 @@ module BeckChevalley
     `∃BeckChevalley =
       funExt λ ϕ i →
         PredicateIsoΣ K .inv
-          (PredicateΣ≡ {ℓ'' = ℓ''} K
+          (PredicateΣ≡  K
             ((λ k a → (∣ (g* ∘ `∃[J→I][ f ]) ϕ ∣ k a) , ((g* ∘ `∃[J→I][ f ]) ϕ .isPropValued k a)) , isSetK)
             ((λ k a → (∣ (`∃[L→K][ p ] ∘ q*) ϕ ∣ k a) , ((`∃[L→K][ p ] ∘ q*) ϕ .isPropValued k a)) , isSetK)
             (funExt₂
@@ -347,7 +347,7 @@ module BeckChevalley
     `∀BeckChevalley =
       funExt λ ϕ i →
         PredicateIsoΣ K .inv
-          (PredicateΣ≡ {ℓ'' = ℓ''} K
+          (PredicateΣ≡ K
             ((λ k a → (a ⊩ ∣ g* (`∀[J→I][ f ] ϕ) ∣ k) , (g* (`∀[J→I][ f ] ϕ) .isPropValued k a)) , isSetK)
             ((λ k a → (a ⊩ ∣ `∀[L→K][ p ] (q* ϕ) ∣ k) , (`∀[L→K][ p ] (q* ϕ) .isPropValued k a)) , isSetK)
             (funExt₂
