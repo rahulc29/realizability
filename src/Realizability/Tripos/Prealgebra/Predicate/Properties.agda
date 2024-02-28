@@ -1,6 +1,6 @@
 open import Realizability.CombinatoryAlgebra
-open import Realizability.ApplicativeStructure
-open import Cubical.Foundations.Prelude
+open import Realizability.ApplicativeStructure renaming (Term to ApplStrTerm; λ*-naturality to `λ*ComputationRule; λ*-chain to `λ*) hiding (λ*)
+open import Cubical.Foundations.Prelude as P
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.Univalence
@@ -11,23 +11,27 @@ open import Cubical.Data.Sigma
 open import Cubical.Data.Empty
 open import Cubical.Data.Unit
 open import Cubical.Data.Sum
+open import Cubical.Data.Vec
 open import Cubical.HITs.PropositionalTruncation
 open import Cubical.HITs.PropositionalTruncation.Monad
 open import Cubical.Relation.Binary.Order.Preorder
 
 module
   Realizability.Tripos.Prealgebra.Predicate.Properties
-  {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
+  {ℓ ℓ' ℓ''} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
 
-open import Realizability.Tripos.Prealgebra.Predicate.Base ca
+open import Realizability.Tripos.Prealgebra.Predicate.Base {ℓ = ℓ} {ℓ' = ℓ'} {ℓ'' = ℓ''} ca
 
 open CombinatoryAlgebra ca
 open Realizability.CombinatoryAlgebra.Combinators ca renaming (i to Id; ia≡a to Ida≡a)
 open Predicate
-module PredicateProperties {ℓ' ℓ''} (X : Type ℓ') where
-  private PredicateX = Predicate {ℓ'' = ℓ''} X
+private λ*ComputationRule = `λ*ComputationRule as fefermanStructure
+private λ* = `λ* as fefermanStructure
+
+module PredicateProperties (X : Type ℓ') where
+  private PredicateX = Predicate X
   open Predicate
-  _≤_ : Predicate {ℓ'' = ℓ''} X → Predicate {ℓ'' = ℓ''} X → Type (ℓ-max (ℓ-max ℓ ℓ') ℓ'')
+  _≤_ : Predicate  X → Predicate  X → Type (ℓ-max (ℓ-max ℓ ℓ') ℓ'')
   ϕ ≤ ψ = ∃[ b ∈ A ] (∀ (x : X) (a : A) → a ⊩ (∣ ϕ ∣ x) → (b ⨾ a) ⊩ ∣ ψ ∣ x)
 
   isProp≤ : ∀ ϕ ψ → isProp (ϕ ≤ ψ)
@@ -83,12 +87,52 @@ module PredicateProperties {ℓ' ℓ''} (X : Type ℓ') where
   ∣ ϕ ⇒ ψ ∣ x a = ∀ b → (b ⊩ ∣ ϕ ∣ x) → (a ⨾ b) ⊩ ∣ ψ ∣ x
   (ϕ ⇒ ψ) .isPropValued x a = isPropΠ λ a → isPropΠ λ a⊩ϕx → ψ .isPropValued _ _
 
+module _ where
+  open PredicateProperties Unit*
+  private
+    Predicate' = Predicate 
+  module NotAntiSym (antiSym : ∀ (a b : Predicate' Unit*) → (a≤b : a ≤ b) → (b≤a : b ≤ a) → a ≡ b) where
+    Lift' = Lift {i = ℓ} {j = (ℓ-max ℓ' ℓ'')}
 
-module Morphism {ℓ' ℓ''} {X Y : Type ℓ'} (isSetX : isSet X) (isSetY : isSet Y)  where
-  PredicateX = Predicate {ℓ'' = ℓ''} X
-  PredicateY = Predicate {ℓ'' = ℓ''} Y
-  module PredicatePropertiesX = PredicateProperties {ℓ'' = ℓ''} X
-  module PredicatePropertiesY = PredicateProperties {ℓ'' = ℓ''} Y
+    kRealized : Predicate' Unit*
+    kRealized = record { isSetX = isSetUnit* ; ∣_∣ = λ x a → Lift' (a ≡ k) ; isPropValued = λ x a → isOfHLevelRespectEquiv 1 LiftEquiv (isSetA a k) }
+
+    k'Realized : Predicate' Unit*
+    k'Realized = record { isSetX = isSetUnit* ; ∣_∣ = λ x a → Lift' (a ≡ k') ; isPropValued = λ x a → isOfHLevelRespectEquiv 1 LiftEquiv (isSetA a k') }
+
+    kRealized≤k'Realized : kRealized ≤ k'Realized
+    kRealized≤k'Realized =
+      do
+        let
+          prover : ApplStrTerm as 1
+          prover = ` k'
+        return (λ* prover , λ { x a (lift a≡k) → lift (λ*ComputationRule prover (a ∷ [])) })
+
+    k'Realized≤kRealized : k'Realized ≤ kRealized
+    k'Realized≤kRealized =
+      do
+        let
+          prover : ApplStrTerm as 1
+          prover = ` k
+        return (λ* prover , λ { x a (lift a≡k') → lift (λ*ComputationRule prover (a ∷ [])) })
+
+    kRealized≡k'Realized : kRealized ≡ k'Realized
+    kRealized≡k'Realized = antiSym kRealized k'Realized kRealized≤k'Realized k'Realized≤kRealized
+
+    Lift≡ : Lift' (k ≡ k) ≡ Lift' (k ≡ k')
+    Lift≡ i = ∣ kRealized≡k'Realized i ∣ tt* k
+
+    Liftk≡k' : Lift' (k ≡ k')
+    Liftk≡k' = transport Lift≡ (lift refl)
+
+    k≡k' : k ≡ k'
+    k≡k' = Liftk≡k' .lower
+
+module Morphism {X Y : Type ℓ'} (isSetX : isSet X) (isSetY : isSet Y)  where
+  PredicateX = Predicate  X
+  PredicateY = Predicate  Y
+  module PredicatePropertiesX = PredicateProperties X
+  module PredicatePropertiesY = PredicateProperties Y
   open PredicatePropertiesX renaming (_≤_ to _≤X_ ; isProp≤ to isProp≤X)
   open PredicatePropertiesY renaming (_≤_ to _≤Y_ ; isProp≤ to isProp≤Y)
   open Predicate hiding (isSetX)
@@ -232,7 +276,6 @@ module Morphism {ℓ' ℓ''} {X Y : Type ℓ'} (isSetX : isSet X) (isSetY : isSe
 
 -- The proof is trivial but I am the reader it was left to as an exercise
 module BeckChevalley
-    {ℓ' ℓ'' : Level}
     (I J K : Type ℓ')
     (isSetI : isSet I)
     (isSetJ : isSet J)
@@ -240,7 +283,7 @@ module BeckChevalley
     (f : J → I)
     (g : K → I) where
 
-    module Morphism' = Morphism {ℓ' = ℓ'} {ℓ'' = ℓ''}
+    module Morphism' = Morphism
     open Morphism'
     
     L = Σ[ k ∈ K ] Σ[ j ∈ J ] (g k ≡ f j)
@@ -280,7 +323,7 @@ module BeckChevalley
     `∃BeckChevalley =
       funExt λ ϕ i →
         PredicateIsoΣ K .inv
-          (PredicateΣ≡ {ℓ'' = ℓ''} K
+          (PredicateΣ≡  K
             ((λ k a → (∣ (g* ∘ `∃[J→I][ f ]) ϕ ∣ k a) , ((g* ∘ `∃[J→I][ f ]) ϕ .isPropValued k a)) , isSetK)
             ((λ k a → (∣ (`∃[L→K][ p ] ∘ q*) ϕ ∣ k a) , ((`∃[L→K][ p ] ∘ q*) ϕ .isPropValued k a)) , isSetK)
             (funExt₂
@@ -304,7 +347,7 @@ module BeckChevalley
     `∀BeckChevalley =
       funExt λ ϕ i →
         PredicateIsoΣ K .inv
-          (PredicateΣ≡ {ℓ'' = ℓ''} K
+          (PredicateΣ≡ K
             ((λ k a → (a ⊩ ∣ g* (`∀[J→I][ f ] ϕ) ∣ k) , (g* (`∀[J→I][ f ] ϕ) .isPropValued k a)) , isSetK)
             ((λ k a → (a ⊩ ∣ `∀[L→K][ p ] (q* ϕ) ∣ k) , (`∀[L→K][ p ] (q* ϕ) .isPropValued k a)) , isSetK)
             (funExt₂
