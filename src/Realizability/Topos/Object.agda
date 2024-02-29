@@ -32,7 +32,7 @@ record isPartialEquivalenceRelation (X : Type ℓ') (equality : Predicate (X × 
   field
     isSetX : isSet X
     isSymmetric : ∃[ s ∈ A ] (∀ x y r → r ⊩ ∣ equality ∣ (x , y) → (s ⨾ r) ⊩ ∣ equality ∣ (y , x))
-    isTransitive : ∃[ t ∈ A ] (∀ x y z a b → a ⊩ ∣ equality ∣ (x , y) → b ⊩ ∣ equality ∣ (y , z) → (t ⨾ (pair ⨾ a ⨾ b)) ⊩ ∣ equality ∣ (x , z))
+    isTransitive : ∃[ t ∈ A ] (∀ x y z a b → a ⊩ ∣ equality ∣ (x , y) → b ⊩ ∣ equality ∣ (y , z) → (t ⨾ a ⨾ b) ⊩ ∣ equality ∣ (x , z))
 
 open isPartialEquivalenceRelation
 isPropIsPartialEquivalenceRelation : ∀ {X : Type ℓ'} → (equality : Predicate (X × X)) → isProp (isPartialEquivalenceRelation X equality)
