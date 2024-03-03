@@ -46,37 +46,38 @@ open FunctionalRelation
 
 opaque
   unfolding terminalPer
-  -- TODO : Refactor into (ugly 😠) records
-  -- Maybe something to do with η equality for records?
-  {-# TERMINATING #-}
   terminalFuncRel : ∀ {Y : Type ℓ'} → (perY : PartialEquivalenceRelation Y) → FunctionalRelation perY terminalPer
-  Predicate.isSetX (relation (terminalFuncRel {Y} perY)) =
-    isSet× (perY .isSetX) isSetUnit*
-  Predicate.∣ relation (terminalFuncRel {Y} perY) ∣ (y , tt*) r = r ⊩ ∣ perY .equality ∣ (y , y)
-  Predicate.isPropValued (relation (terminalFuncRel {Y} perY)) (y , tt*) r = perY .equality .isPropValued _ _
-  isFunctionalRelation.isStrictDomain (isFuncRel (terminalFuncRel {Y} perY)) =
-    return (Id , (λ { y tt* r r⊩y~y → subst (λ r' → r' ⊩ ∣ perY .equality ∣ (y , y)) (sym (Ida≡a _)) r⊩y~y }))
-  isFunctionalRelation.isStrictCodomain (isFuncRel (terminalFuncRel {Y} perY)) =
-    return (k , (λ { y tt* r r⊩y~y → tt* }))
-  isFunctionalRelation.isRelational (isFuncRel (terminalFuncRel {Y} perY)) =
-    do
-      (t , t⊩isTransitive) ← perY .isTransitive
-      (s , s⊩isSymmetric) ← perY .isSymmetric
-      let
-        prover : ApplStrTerm as 3
-        prover = ` t ̇ (` s ̇ # fzero) ̇ # fzero
-      return
-        (λ* prover ,
-        (λ { y y' tt* tt* a b c a⊩y~y' b⊩y~y tt* →
-          subst (λ r' → r' ⊩ ∣ perY .equality ∣ (y' , y')) (sym (λ*ComputationRule prover (a ∷ b ∷ c ∷ []))) (t⊩isTransitive y' y y' (s ⨾ a) a (s⊩isSymmetric y y' a a⊩y~y') a⊩y~y') }))
-  isFunctionalRelation.isSingleValued (isFuncRel (terminalFuncRel {Y} perY)) =
-    return (k , (λ { y tt* tt* r₁ r₂ r₁⊩y~y r₂⊩y~y → tt* }))
-  isFunctionalRelation.isTotal (isFuncRel (terminalFuncRel {Y} perY)) =
-    return
-      (Id ,
-      (λ y r r⊩y~y →
-        return (tt* , (subst (λ r' → r' ⊩ ∣ perY .equality ∣ (y , y)) (sym (Ida≡a _)) r⊩y~y))))
-
+  terminalFuncRel {Y} perY =
+    record
+      { relation =
+        record
+          { isSetX = isSet× (perY .isSetX) isSetUnit*
+          ; ∣_∣ = λ { (y , tt*) r → r ⊩ ∣ perY .equality ∣ (y , y) }
+          ; isPropValued = λ { (y , tt*) r → perY .equality .isPropValued _ _ } }
+      ; isFuncRel =
+        record
+          { isStrictDomain = return (Id , (λ { y tt* r r⊩y~y → subst (λ r' → r' ⊩ ∣ perY .equality ∣ (y , y)) (sym (Ida≡a _)) r⊩y~y }))
+          ; isStrictCodomain = return (k , (λ { y tt* r r⊩y~y → tt* }))
+          ; isRelational =
+            (do
+            (t , t⊩isTransitive) ← perY .isTransitive
+            (s , s⊩isSymmetric) ← perY .isSymmetric
+            let
+              prover : ApplStrTerm as 3
+              prover = ` t ̇ (` s ̇ # fzero) ̇ # fzero
+            return
+              (λ* prover ,
+              (λ { y y' tt* tt* a b c a⊩y~y' b⊩y~y tt* →
+                subst
+                  (λ r' → r' ⊩ ∣ perY .equality ∣ (y' , y'))
+                  (sym (λ*ComputationRule prover (a ∷ b ∷ c ∷ [])))
+                  (t⊩isTransitive y' y y' (s ⨾ a) a (s⊩isSymmetric y y' a a⊩y~y') a⊩y~y') })))
+          ; isSingleValued = (return (k , (λ { y tt* tt* r₁ r₂ r₁⊩y~y r₂⊩y~y → tt* })))
+          ; isTotal = return
+                      (Id ,
+                      (λ y r r⊩y~y →
+                        return (tt* , (subst (λ r' → r' ⊩ ∣ perY .equality ∣ (y , y)) (sym (Ida≡a _)) r⊩y~y))))
+                                    } }
 opaque
   unfolding terminalPer
   isTerminalTerminalPer : ∀ {Y : Type ℓ'} → (perY : PartialEquivalenceRelation Y) → isContr (RTMorphism perY terminalPer)
