@@ -535,8 +535,18 @@ module _
     equalizer =
       SQ.elimProp2
         {P = λ f g → ∃[ equalizerOb ∈ PartialEquivalenceRelation X ] ∃[ inc ∈ RTMorphism equalizerOb perX ] (equalizerUnivProp perX perY f g equalizerOb inc)}
-        {!!}
+        (λ f g → isPropPropTrunc)
         (λ F G →
-          {!!})
+          return
+            ((equalizerPer F G) ,
+            (return
+              ((equalizerMorphism F G) ,
+              (λ perZ h h⋆f≡h⋆g →
+                uniqueExists
+                  (UnivProp.mainMap F G perZ h h⋆f≡h⋆g .fst)
+                  (UnivProp.mainMap F G perZ h h⋆f≡h⋆g .snd .fst)
+                  (λ !' → squash/ _ _)
+                  λ !' !'⋆inc≡h →
+                    sym (UnivProp.mainMap F G perZ h h⋆f≡h⋆g .snd .snd !' !'⋆inc≡h))))))
         f g
       
