@@ -14,6 +14,7 @@ open import Cubical.HITs.PropositionalTruncation
 open import Cubical.HITs.PropositionalTruncation.Monad
 open import Cubical.HITs.SetQuotients as SQ
 open import Cubical.Categories.Category
+open import Cubical.Relation.Binary
 
 module Realizability.Topos.FunctionalRelation
   {ℓ ℓ' ℓ''}
@@ -127,8 +128,35 @@ opaque
                     tlF⨾stGDs⊩Fxy'
                     (svG⊩isSingleValuedG x y' y (r ⨾ (tlF ⨾ (stGD ⨾ s))) s (r⊩F≤G x y' (tlF ⨾ (stGD ⨾ s)) tlF⨾stGDs⊩Fxy') s⊩Gxy))))))
 
+bientailment : ∀ {X Y : Type ℓ'} → (perX : PartialEquivalenceRelation X) → (perY : PartialEquivalenceRelation Y) → FunctionalRelation perX perY → FunctionalRelation perX perY → Type _
+bientailment {X} {Y} perX perY F G = pointwiseEntailment perX perY F G × pointwiseEntailment perX perY G F
+
+isPropValuedBientailment : ∀ {X Y : Type ℓ'} → (perX : PartialEquivalenceRelation X) → (perY : PartialEquivalenceRelation Y) → (F G : FunctionalRelation perX perY) → isProp (bientailment perX perY F G)
+isPropValuedBientailment {X} {Y} perX perY F G = isProp× isPropPropTrunc isPropPropTrunc
+
 RTMorphism : ∀ {X Y : Type ℓ'} → (perX : PartialEquivalenceRelation X) → (perY : PartialEquivalenceRelation Y) → Type _
-RTMorphism {X} {Y} perX perY = FunctionalRelation perX perY / λ F G → pointwiseEntailment perX perY F G × pointwiseEntailment perX perY G F
+RTMorphism {X} {Y} perX perY = FunctionalRelation perX perY / bientailment perX perY
+
+isEquivRelBientailment : ∀ {X Y : Type ℓ'} → (perX : PartialEquivalenceRelation X) → (perY : PartialEquivalenceRelation Y) → BinaryRelation.isEquivRel (bientailment perX perY)
+BinaryRelation.isEquivRel.reflexive (isEquivRelBientailment {X} {Y} perX perY) =
+  λ A →
+  ∣ Id , (λ x y r r⊩Axy → subst (λ r' → r' ⊩ ∣ A .relation ∣ (x , y)) (sym (Ida≡a _)) r⊩Axy) ∣₁ ,
+  ∣ Id , (λ x y r r⊩Axy → subst (λ r' → r' ⊩ ∣ A .relation ∣ (x , y)) (sym (Ida≡a _)) r⊩Axy) ∣₁
+BinaryRelation.isEquivRel.symmetric (isEquivRelBientailment {X} {Y} perX perY) F G (F≤G , G≤F) = G≤F , F≤G
+BinaryRelation.isEquivRel.transitive (isEquivRelBientailment {X} {Y} perX perY) F G H (F≤G , G≤F) (G≤H , H≤G) =
+  let
+    answer =
+      do
+        (s , s⊩F≤G) ← F≤G
+        (p , p⊩G≤H) ← G≤H
+        let
+          prover : ApplStrTerm as 1
+          prover = ` p ̇ (` s ̇ # fzero)
+        return
+          (λ* prover ,
+          (λ x y r r⊩Fxy → subst (λ r' → r' ⊩ ∣ H .relation ∣ (x , y)) (sym (λ*ComputationRule prover (r ∷ []))) (p⊩G≤H x y (s ⨾ r) (s⊩F≤G x y r r⊩Fxy))))
+  in
+  answer , F≤G→G≤F perX perY F H answer
 
 opaque
   idFuncRel : ∀ {X : Type ℓ'} → (perX : PartialEquivalenceRelation X) → FunctionalRelation perX perX
