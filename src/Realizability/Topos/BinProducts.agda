@@ -528,7 +528,7 @@ module _
                     prover : ApplStrTerm as 1
                     prover = ` relG ̇ (` st ̇ (` pr₁ ̇ # fzero)) ̇ (` pr₂ ̇ (` p ̇ (` pr₁ ̇ # fzero))) ̇ (` pr₁ ̇ (` pr₂ ̇ # fzero))
                   return
-                    ({!!} ,
+                    (λ* prover ,
                     (λ z y r r⊩∃ →
                       transport
                         (propTruncIdempotent (G .relation .isPropValued _ _))
@@ -537,7 +537,7 @@ module _
                           return
                             (subst
                               (λ r' → r' ⊩ ∣ G .relation ∣ (z , y))
-                              (sym {!!}) 
+                              (sym (λ*ComputationRule prover (r ∷ []))) 
                               (relG⊩isRelationalG
                                 z z y' y
                                 (st ⨾ (pr₁ ⨾ r)) (pr₂ ⨾ (p ⨾ (pr₁ ⨾ r))) (pr₁ ⨾ (pr₂ ⨾ r))
@@ -550,7 +550,61 @@ module _
           (UnivProp.theMap perZ f g)
           refl)
         (λ ! → isProp× (squash/ _ _) (squash/ _ _))
-        {!!}
+        λ { !' (!'⋆π₁≡f , !'⋆π₂≡g) →
+          SQ.elimProp3
+            {P = λ !' f g → ∀ (foo : composeRTMorphism _ _ _ !' binProdPr₁RT ≡ f) (bar : composeRTMorphism _ _ _ !' binProdPr₂RT ≡ g) → UnivProp.theMap perZ f g ≡ !'}
+            (λ f g !' → isPropΠ λ _ → isPropΠ λ _ → squash/ _ _)
+            (λ !' F G !'⋆π₁≡F !'⋆π₂≡G →
+              let
+                answer =
+                  do
+                    let
+                      (p , q)   = SQ.effective (isPropValuedBientailment perZ perX) (isEquivRelBientailment perZ perX) (composeFuncRel _ _ _ !' binProdPr₁FuncRel) F !'⋆π₁≡F
+                      (p' , q') = SQ.effective (isPropValuedBientailment perZ perY) (isEquivRelBientailment perZ perY) (composeFuncRel _ _ _ !' binProdPr₂FuncRel) G !'⋆π₂≡G
+                    (q , q⊩F≤!'⋆π₁) ← q
+                    (q' , q'⊩G≤!'⋆π₂) ← q'
+                    (rel!' , rel!'⊩isRelational!') ← !' .isRelational
+                    (sv!' , sv!'⊩isSingleValued!') ← !' .isSingleValued
+                    (tX , tX⊩isTransitiveX) ← perX .isTransitive
+                    (sX , sX⊩isSymmetricX) ← perX .isSymmetric
+                    (stD!' , stD!'⊩isStrictDomain!') ← !' .isStrictDomain
+                    let
+                      realizer : ApplStrTerm as 1 -- cursed
+                      realizer =
+                        ` rel!' ̇ (` stD!' ̇ (` pr₁ ̇ (` q ̇ (` pr₁ ̇ # fzero)))) ̇
+                          (` pr₁ ̇ (` q' ̇ (` pr₂ ̇ # fzero))) ̇
+                          (` pair ̇
+                           (` tX ̇
+                            (` sX ̇
+                             (` pr₁ ̇
+                              (` sv!' ̇ (` pr₁ ̇ (` q ̇ (` pr₁ ̇ # fzero))) ̇ (` pr₁ ̇ (` q' ̇ (` pr₂ ̇ # fzero)))))) ̇
+                            (` pr₁ ̇ (` pr₂ ̇ (` q ̇ (` pr₁ ̇ # fzero))))) ̇
+                           (` pr₁ ̇ (` pr₂ ̇ (` q' ̇ (` pr₂ ̇ # fzero)))))
+                    return
+                      (λ* realizer ,
+                      (λ { z (x , y) r (pr₁r⊩Fzx , pr₂r⊩Gzy) →
+                        transport
+                          (propTruncIdempotent (!' .relation .isPropValued _ _))
+                          (do
+                            ((x' , y') , ⊩!'zx'y' , ⊩x'~x , ⊩y'~y') ← q⊩F≤!'⋆π₁ z x _ pr₁r⊩Fzx
+                            ((x'' , y'') , ⊩!'zx''y'' , ⊩y''~y , ⊩x''~x'') ← q'⊩G≤!'⋆π₂ z y _ pr₂r⊩Gzy
+                            let
+                              (⊩x'~x'' , ⊩y'~y'') = sv!'⊩isSingleValued!' z (x' , y') (x'' , y'') _ _ ⊩!'zx'y' ⊩!'zx''y''
+                              ⊩x''~x = tX⊩isTransitiveX x'' x' x _ _ (sX⊩isSymmetricX x' x'' _ ⊩x'~x'') ⊩x'~x 
+                            return
+                              (subst
+                                (λ r' → r' ⊩ ∣ !' .relation ∣ (z , x , y))
+                                (sym (λ*ComputationRule realizer (r ∷ [])))
+                                (rel!'⊩isRelational!'
+                                  z z
+                                  (x'' , y'')
+                                  (x , y)
+                                  _ _ _
+                                  (stD!'⊩isStrictDomain!' z (x' , y') _ ⊩!'zx'y') ⊩!'zx''y'' ((subst (λ r' → r' ⊩ ∣ perX .equality ∣ (x'' , x)) (sym (pr₁pxy≡x _ _)) ⊩x''~x) , (subst (λ r' → r' ⊩ ∣ perY .equality ∣ (y'' , y)) (sym (pr₂pxy≡y _ _)) ⊩y''~y))))) }))
+              in
+              eq/ _ _ (answer , F≤G→G≤F perZ binProdObRT (UnivProp.theFuncRel perZ [ F ] [ G ] F G)
+                                 !' answer))
+            !' f g !'⋆π₁≡f !'⋆π₂≡g }
 
 binProductsRT : BinProducts RT
 binProductsRT (X , perX) (Y , perY) = binProductRT perX perY
