@@ -83,6 +83,7 @@ equalizerUnivProp :
   → (inc : RTMorphism equalizerOb perX)
   → Type _
 equalizerUnivProp {X} {Y} perX perY f g equalizerOb inc =
+    ((composeRTMorphism _ _ _ inc f) ≡ (composeRTMorphism _ _ _ inc g)) ×
     ∀ {Z : Type ℓ'} (perZ : PartialEquivalenceRelation Z) (inc' : RTMorphism perZ perX)
     → (composeRTMorphism _ _ _ inc' f) ≡ (composeRTMorphism _ _ _ inc' g)
     -----------------------------------------------------------------------------------
@@ -262,6 +263,71 @@ module _
   opaque
     equalizerMorphism : ∀ (F G : FunctionalRelation perX perY) → RTMorphism (equalizerPer F G) perX
     equalizerMorphism F G = [ equalizerFuncRel F G ]
+
+  opaque
+    unfolding equalizerMorphism
+    unfolding equalizerFuncRel
+    unfolding composeRTMorphism
+    inc⋆f≡inc⋆g : ∀ (F G : FunctionalRelation perX perY) → composeRTMorphism _ _ _ (equalizerMorphism F G) [ F ] ≡ composeRTMorphism _ _ _ (equalizerMorphism F G) [ G ]
+    inc⋆f≡inc⋆g F G =
+      let
+        answer =
+          do
+            (relG , relG⊩isRelationalG) ← G .isRelational
+            (svF , svF⊩isSingleValuedF) ← F .isSingleValued
+            (relF , relF⊩isRelationalF) ← F .isRelational
+            (sX , sX⊩isSymmetricX) ← perX .isSymmetric
+            (stCF , stCF⊩isStrictCodomainF) ← F .isStrictCodomain
+            let
+              realizer : ApplStrTerm as 1
+              realizer =
+                ` pair ̇
+                  (` pair ̇ (` pr₁ ̇ (` pr₁ ̇ # fzero)) ̇ (` pair ̇ (` pr₁ ̇ (` pr₂ ̇ (` pr₁ ̇ # fzero))) ̇ (` pr₂ ̇ (` pr₂ ̇ (` pr₁ ̇ # fzero))))) ̇
+                  (` relG ̇ (` pr₁ ̇ (` pr₁ ̇ # fzero)) ̇ (` pr₂ ̇ (` pr₂ ̇ (` pr₁ ̇ # fzero))) ̇
+                     (` svF ̇ (` pr₁ ̇ (` pr₂ ̇ (` pr₁ ̇ # fzero))) ̇
+                     (` relF ̇ (` sX ̇ (` pr₁ ̇ (` pr₁ ̇ # fzero))) ̇ (` pr₂ ̇ # fzero) ̇ (` stCF ̇ (` pr₂ ̇ # fzero)))))
+            return
+              (λ* realizer ,
+              -- unfold everything and bring it back in together
+              (λ x y r r⊩∃ →
+                do
+                  (x' , (⊩x~x' , ∃y) , ⊩Fx'y) ← r⊩∃
+                  (y' , ⊩Fxy' , ⊩Gxy') ← ∃y
+                  let
+                    y'~y =
+                      svF⊩isSingleValuedF x y' y _ _ ⊩Fxy' (relF⊩isRelationalF x' x y y _ _ _ (sX⊩isSymmetricX x x' _ ⊩x~x') ⊩Fx'y (stCF⊩isStrictCodomainF x' y _ ⊩Fx'y))
+                  return
+                    (x' ,
+                    (subst
+                      (λ r' → r' ⊩ ∣ perX .equality ∣ (x , x'))
+                      (sym (cong (λ x → pr₁ ⨾ (pr₁ ⨾ x)) (λ*ComputationRule realizer (r ∷ [])) ∙ cong (λ x → pr₁ ⨾ x) (pr₁pxy≡x _ _) ∙ pr₁pxy≡x _ _))
+                      ⊩x~x' ,
+                    do
+                      return
+                        (y' ,
+                        subst
+                          (λ r' → r' ⊩ ∣ F .relation ∣ (x , y'))
+                          (sym
+                            (cong (λ x → pr₁ ⨾ (pr₂ ⨾ (pr₁ ⨾ x))) (λ*ComputationRule realizer (r ∷ [])) ∙
+                             cong (λ x → pr₁ ⨾ (pr₂ ⨾ x)) (pr₁pxy≡x _ _) ∙
+                             cong (λ x → pr₁ ⨾ x) (pr₂pxy≡y _ _) ∙
+                             pr₁pxy≡x _ _))
+                          ⊩Fxy' ,
+                        subst
+                          (λ r' → r' ⊩ ∣ G .relation ∣ (x , y'))
+                          (sym
+                            (cong (λ x → pr₂ ⨾ (pr₂ ⨾ (pr₁ ⨾ x))) (λ*ComputationRule realizer (r ∷ [])) ∙
+                             cong (λ x → pr₂ ⨾ (pr₂ ⨾ x)) (pr₁pxy≡x _ _) ∙
+                             cong (λ x → pr₂ ⨾ x) (pr₂pxy≡y _ _) ∙
+                             pr₂pxy≡y _ _))
+                          ⊩Gxy')) ,
+                    subst
+                      (λ r' → r' ⊩ ∣ G .relation ∣ (x' , y))
+                      (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule realizer (r ∷ [])) ∙ pr₂pxy≡y _ _))
+                      (relG⊩isRelationalG x x' y' y _ _ _ ⊩x~x' ⊩Gxy' y'~y))))
+      in
+      eq/ _ _
+        (answer , F≤G→G≤F (equalizerPer F G) perY (composeFuncRel _ _ _ (equalizerFuncRel F G) F) (composeFuncRel _ _ _ (equalizerFuncRel F G) G) answer)
 
   module UnivProp
     (F G : FunctionalRelation perX perY)
@@ -537,16 +603,19 @@ module _
         {P = λ f g → ∃[ equalizerOb ∈ PartialEquivalenceRelation X ] ∃[ inc ∈ RTMorphism equalizerOb perX ] (equalizerUnivProp perX perY f g equalizerOb inc)}
         (λ f g → isPropPropTrunc)
         (λ F G →
-          return
-            ((equalizerPer F G) ,
-            (return
-              ((equalizerMorphism F G) ,
-              (λ perZ h h⋆f≡h⋆g →
-                uniqueExists
-                  (UnivProp.mainMap F G perZ h h⋆f≡h⋆g .fst)
-                  (UnivProp.mainMap F G perZ h h⋆f≡h⋆g .snd .fst)
-                  (λ !' → squash/ _ _)
-                  λ !' !'⋆inc≡h →
-                    sym (UnivProp.mainMap F G perZ h h⋆f≡h⋆g .snd .snd !' !'⋆inc≡h))))))
+            return
+              ((equalizerPer F G) ,
+              (return
+                  ((equalizerMorphism F G) ,
+                  ((inc⋆f≡inc⋆g F G) ,
+                  (λ {Z} perZ inc' inc'⋆f≡inc'⋆g →
+                    let
+                      (! , !⋆inc≡inc' , unique!) = UnivProp.mainMap F G perZ inc' inc'⋆f≡inc'⋆g
+                    in
+                    uniqueExists
+                      !
+                      !⋆inc≡inc'
+                      (λ ! → squash/ _ _)
+                      λ !' !'⋆inc≡inc' → sym (unique! !' !'⋆inc≡inc')))))))
         f g
       
