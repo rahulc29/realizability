@@ -17,7 +17,7 @@ open import Cubical.HITs.SetQuotients as SQ
 open import Cubical.Categories.Category
 open import Cubical.Categories.Morphism
 open import Cubical.Relation.Binary
--- Functional relations that represent monics
+
 module Realizability.Topos.MonicReprFuncRel
   {ℓ ℓ' ℓ''}
   {A : Type ℓ}

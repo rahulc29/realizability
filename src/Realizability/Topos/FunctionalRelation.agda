@@ -38,46 +38,48 @@ private λ* = `λ* as fefermanStructure
 
 open PartialEquivalenceRelation
 
-record isFunctionalRelation
+module _
   {X Y : Type ℓ'}
   (perX : PartialEquivalenceRelation X)
   (perY : PartialEquivalenceRelation Y)
-  (relation : Predicate (X × Y)) : Type (ℓ-max (ℓ-max (ℓ-suc ℓ) (ℓ-suc ℓ')) (ℓ-suc ℓ'')) where
-    equalityX = perX .equality
-    equalityY = perY .equality
+  (relation : Predicate (X × Y)) where
+  equalityX = perX .equality
+  equalityY = perY .equality
+  
+  realizesStrictDomain : A → Type _
+  realizesStrictDomain stD = (∀ x y r → r ⊩ ∣ relation ∣ (x , y) → (stD ⨾ r) ⊩ ∣ equalityX ∣ (x , x))
 
-    field
-      isStrictDomain :
-        ∃[ stD ∈ A ]
-        (∀ x y r
-        → r ⊩ ∣ relation ∣ (x , y)
-        ----------------------------------
-        → (stD ⨾ r) ⊩ ∣ equalityX ∣ (x , x))
-      isStrictCodomain :
-        ∃[ stC ∈ A ]
-        (∀ x y r
-        → r ⊩ ∣ relation ∣ (x , y)
-        ----------------------------------
-        → (stC ⨾ r) ⊩ ∣ equalityY ∣ (y , y))
-      isRelational :
-        ∃[ rl ∈ A ]
+  realizesStrictCodomain : A → Type _
+  realizesStrictCodomain stC = (∀ x y r → r ⊩ ∣ relation ∣ (x , y) → (stC ⨾ r) ⊩ ∣ equalityY ∣ (y , y))
+
+  realizesRelational : A → Type _
+  realizesRelational rel =
         (∀ x x' y y' a b c
         → a ⊩ ∣ equalityX ∣ (x , x')
         → b ⊩ ∣ relation ∣ (x , y)
         → c ⊩ ∣ equalityY ∣ (y , y')
         ------------------------------------------
-        → (rl ⨾ a ⨾ b ⨾ c) ⊩ ∣ relation ∣ (x' , y'))
-      isSingleValued :
-        ∃[ sv ∈ A ]
+        → (rel ⨾ a ⨾ b ⨾ c) ⊩ ∣ relation ∣ (x' , y'))
+
+  realizesSingleValued : A → Type _
+  realizesSingleValued sv =
         (∀ x y y' r₁ r₂
         → r₁ ⊩ ∣ relation ∣ (x , y)
         → r₂ ⊩ ∣ relation ∣ (x , y')
         -----------------------------------
         → (sv ⨾ r₁ ⨾ r₂) ⊩ ∣ equalityY ∣ (y , y'))
-      isTotal :
-        ∃[ tl ∈ A ]
-        (∀ x r → r ⊩ ∣ equalityX ∣ (x , x) → ∃[ y ∈ Y ] (tl ⨾ r) ⊩ ∣ relation ∣ (x , y))
 
+  realizesTotal : A → Type _
+  realizesTotal tl =
+        (∀ x r → r ⊩ ∣ equalityX ∣ (x , x) → ∃[ y ∈ Y ] (tl ⨾ r) ⊩ ∣ relation ∣ (x , y))
+    
+  record isFunctionalRelation : Type (ℓ-max (ℓ-max (ℓ-suc ℓ) (ℓ-suc ℓ')) (ℓ-suc ℓ'')) where
+    field
+      isStrictDomain : ∃[ stD ∈ A ] (realizesStrictDomain stD)
+      isStrictCodomain : ∃[ stC ∈ A ] (realizesStrictCodomain stC)
+      isRelational : ∃[ rl ∈ A ] (realizesRelational rl)
+      isSingleValued : ∃[ sv ∈ A ] (realizesSingleValued sv)
+      isTotal : ∃[ tl ∈ A ] (realizesTotal tl)
 
 record FunctionalRelation {X Y : Type ℓ'} (perX : PartialEquivalenceRelation X) (perY : PartialEquivalenceRelation Y) : Type (ℓ-max (ℓ-max (ℓ-suc ℓ) (ℓ-suc ℓ')) (ℓ-suc ℓ'')) where
   field
