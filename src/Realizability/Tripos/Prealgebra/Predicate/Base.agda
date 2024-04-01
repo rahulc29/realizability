@@ -4,6 +4,7 @@ open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Univalence
 open import Cubical.Foundations.Isomorphism
+open import Cubical.Foundations.Equiv
 open import Cubical.Data.Sigma
 open import Cubical.Functions.FunExtEquiv
 
@@ -13,6 +14,7 @@ open CombinatoryAlgebra ca
 open Realizability.CombinatoryAlgebra.Combinators ca renaming (i to Id; ia≡a to Ida≡a)
 
 record Predicate (X : Type ℓ') : Type (ℓ-max (ℓ-max (ℓ-suc ℓ) (ℓ-suc ℓ')) (ℓ-suc ℓ'')) where
+  constructor consPredicate
   field
     isSetX : isSet X
     ∣_∣ : X → A → Type (ℓ-max (ℓ-max ℓ ℓ') ℓ'')
@@ -37,6 +39,9 @@ PredicateIsoΣ X =
     (λ p → record { isSetX = p .snd ; ∣_∣ = λ x a → p .fst x a .fst ; isPropValued = λ x a → p .fst x a .snd })
     (λ b → refl)
     λ a → refl
+
+Predicate≃PredicateΣ : ∀ (X : Type ℓ') → Predicate X ≃ PredicateΣ X
+Predicate≃PredicateΣ X = isoToEquiv (PredicateIsoΣ X)
 
 Predicate≡PredicateΣ : ∀ (X : Type ℓ') → Predicate  X ≡ PredicateΣ  X
 Predicate≡PredicateΣ X = isoToPath (PredicateIsoΣ X)

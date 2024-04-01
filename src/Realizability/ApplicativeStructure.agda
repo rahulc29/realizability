@@ -104,7 +104,7 @@ module _ {ℓ} {A : Type ℓ} (as : ApplicativeStructure A) where
     ... | yes _ = ` s ̇ ` k ̇ ` k
     ... | no ¬y≡zero with (y .fst)
     ...     | zero = ⊥elim (¬y≡zero refl)
-    ...     | (suc m) = # (m , pred-≤-pred (subst (λ y' → suc y' ≤ suc n) (fromYes fsty≡sucm (discreteℕ (y .fst) (suc m))) (y .snd))) where postulate fsty≡sucm : fst y ≡ suc m
+    ...     | (suc m) = ` k ̇ # (m , pred-≤-pred (subst (λ y' → suc y' ≤ suc n) (fromYes fsty≡sucm (discreteℕ (y .fst) (suc m))) (y .snd))) where postulate fsty≡sucm : fst y ≡ suc m
 
     λ*-chainTerm : ∀ n → Term n → Term zero
     λ*-chainTerm zero t = t
