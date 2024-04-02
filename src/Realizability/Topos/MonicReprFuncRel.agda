@@ -1,4 +1,4 @@
-open import Realizability.ApplicativeStructure renaming (Term to ApplStrTerm; λ*-naturality to `λ*ComputationRule; λ*-chain to `λ*) hiding (λ*)
+open import Realizability.ApplicativeStructure renaming (Term to ApplStrTerm)
 open import Realizability.CombinatoryAlgebra
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Structure
@@ -40,9 +40,6 @@ open PartialEquivalenceRelation
 open FunctionalRelation
 open Category RT
 
-private λ*ComputationRule = `λ*ComputationRule as fefermanStructure
-private λ* = `λ* as fefermanStructure
-
 -- Monics in RT
 module _ {X Y : Type ℓ'} (perX : PartialEquivalenceRelation X) (perY : PartialEquivalenceRelation Y) (F : FunctionalRelation perX perY) where
 
@@ -81,9 +78,9 @@ module _ {X Y : Type ℓ'} (perX : PartialEquivalenceRelation X) (perY : Partial
                 let
                   realizer : ApplStrTerm as 1
                   realizer =
-                    ` relB ̇ (` stDA ̇ # fzero) ̇ (` pr₁ ̇ (` p ̇ (` pair ̇ # fzero ̇ (` tlF ̇ (` stCA ̇ # fzero))))) ̇
-                      (` injF ̇ (` pr₂ ̇ (` p ̇ (` pair ̇ # fzero ̇ (` tlF ̇ (` stCA ̇ # fzero))))) ̇
-                      (` tlF ̇ (` stCA ̇ # fzero)))
+                    ` relB ̇ (` stDA ̇ # zero) ̇ (` pr₁ ̇ (` p ̇ (` pair ̇ # zero ̇ (` tlF ̇ (` stCA ̇ # zero))))) ̇
+                      (` injF ̇ (` pr₂ ̇ (` p ̇ (` pair ̇ # zero ̇ (` tlF ̇ (` stCA ̇ # zero))))) ̇
+                      (` tlF ̇ (` stCA ̇ # zero)))
                 return
                   (λ* realizer ,
                   (λ z x r r⊩Azx →
@@ -107,7 +104,7 @@ module _ {X Y : Type ℓ'} (perX : PartialEquivalenceRelation X) (perY : Partial
                         return
                           (subst
                             (λ r' → r' ⊩ ∣ B .relation ∣ (z , x))
-                            (sym (λ*ComputationRule realizer (r ∷ [])))
+                            (sym (λ*ComputationRule realizer r))
                             (relB⊩isRelationalB z z x' x _ _ _ z~z ⊩Bzx' x'~x)))))
           in
           eq/ A B (answer , F≤G→G≤F perZ perX A B answer))
@@ -189,13 +186,13 @@ module _ {X Y : Type ℓ'} (perX : PartialEquivalenceRelation X) (perY : Partial
           cursed =
              (` pair ̇
                   (` pair ̇
-                    (` pair ̇ (` stDF ̇ # fzero) ̇ (` stDF ̇ # fone)) ̇
-                    (` pair ̇ (` pair ̇ (` pair ̇ (` stDF ̇ # fzero) ̇ (` stDF ̇ # fone)) ̇ # fzero) ̇ (` pair ̇ (` pair ̇ (` stDF ̇ # fone) ̇ (` stDF ̇ # fzero)) ̇ # fone))) ̇
-                  (` pair ̇ (` stDF ̇ # fzero) ̇ (` stDF ̇ # fone)))
+                    (` pair ̇ (` stDF ̇ # one) ̇ (` stDF ̇ # zero)) ̇
+                    (` pair ̇ (` pair ̇ (` pair ̇ (` stDF ̇ # one) ̇ (` stDF ̇ # zero)) ̇ # one) ̇ (` pair ̇ (` pair ̇ (` stDF ̇ # zero) ̇ (` stDF ̇ # one)) ̇ # zero))) ̇
+                  (` pair ̇ (` stDF ̇ # one) ̇ (` stDF ̇ # zero)))
           realizer : ApplStrTerm as 2
           realizer = ` t ̇ (` s ̇ (` pr₁ ̇ (` pr₂ ̇ (` p ̇ cursed)))) ̇ (` s ̇ (` pr₂ ̇ (` pr₁ ̇ (` pr₁ ̇ (` p ̇ cursed)))))
         return
-          (λ* realizer ,
+          (λ*2 realizer ,
           (λ x₁ x₂ y r₁ r₂ r₁⊩Fx₁y r₂⊩Fx₂y →
             let
               x₁~x₁ = stDF⊩isStrictDomainF x₁ y r₁ r₁⊩Fx₁y
@@ -277,5 +274,5 @@ module _ {X Y : Type ℓ'} (perX : PartialEquivalenceRelation X) (perY : Partial
                 return
                   (subst
                     (λ r' → r' ⊩ ∣ perX .equality ∣ (x₁ , x₂))
-                    (sym (λ*ComputationRule realizer (r₁ ∷ r₂ ∷ [])))
+                    (sym (λ*2ComputationRule realizer r₁ r₂))
                     (t⊩isTransitiveEqX x₁ x₂' x₂ _ _ (s⊩isSymmetricEqX x₂' x₁ _ x₂'~x₁) (s⊩isSymmetricEqX x₂ x₂' _ x₂~x₂'))))))

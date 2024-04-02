@@ -1,5 +1,5 @@
 open import Realizability.CombinatoryAlgebra
-open import Realizability.ApplicativeStructure renaming (⟦_⟧ to `⟦_⟧; λ*-naturality to `λ*ComputationRule; λ*-chain to `λ*) hiding (λ*)
+open import Realizability.ApplicativeStructure
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Univalence

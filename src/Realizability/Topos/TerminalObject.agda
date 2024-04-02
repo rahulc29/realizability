@@ -1,11 +1,10 @@
-open import Realizability.ApplicativeStructure renaming (Term to ApplStrTerm; λ*-naturality to `λ*ComputationRule; λ*-chain to `λ*) hiding (λ*)
+open import Realizability.ApplicativeStructure renaming (Term to ApplStrTerm)
 open import Realizability.CombinatoryAlgebra
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.HLevels
 open import Cubical.Data.Unit
 open import Cubical.Data.Empty
-open import Cubical.Data.Fin
-open import Cubical.Data.Fin.Literals
+open import Cubical.Data.FinData
 open import Cubical.Data.Vec
 open import Cubical.HITs.PropositionalTruncation
 open import Cubical.HITs.PropositionalTruncation.Monad
@@ -27,9 +26,6 @@ open import Realizability.Topos.FunctionalRelation {ℓ' = ℓ'} {ℓ'' = ℓ''}
 open Combinators ca renaming (i to Id; ia≡a to Ida≡a)
 open PartialEquivalenceRelation
 open Predicate renaming (isSetX to isSetPredicateBase)
-private
-  λ*ComputationRule = `λ*ComputationRule as fefermanStructure
-  λ* = `λ* as fefermanStructure
 
 opaque
   terminalPer : PartialEquivalenceRelation Unit*
@@ -64,13 +60,13 @@ opaque
             (s , s⊩isSymmetric) ← perY .isSymmetric
             let
               prover : ApplStrTerm as 3
-              prover = ` t ̇ (` s ̇ # fzero) ̇ # fzero
+              prover = ` t ̇ (` s ̇ # two) ̇ # two
             return
-              (λ* prover ,
+              (λ*3 prover ,
               (λ { y y' tt* tt* a b c a⊩y~y' b⊩y~y tt* →
                 subst
                   (λ r' → r' ⊩ ∣ perY .equality ∣ (y' , y'))
-                  (sym (λ*ComputationRule prover (a ∷ b ∷ c ∷ [])))
+                  (sym (λ*3ComputationRule prover a b c))
                   (t⊩isTransitive y' y y' (s ⨾ a) a (s⊩isSymmetric y y' a a⊩y~y') a⊩y~y') })))
           ; isSingleValued = (return (k , (λ { y tt* tt* r₁ r₂ r₁⊩y~y r₂⊩y~y → tt* })))
           ; isTotal = return
@@ -96,7 +92,7 @@ opaque
                   (stFD , stFD⊩isStrictDomainF) ← F .isStrictDomain
                   let
                     prover : ApplStrTerm as 1
-                    prover = ` tlG ̇ (` stFD ̇ # fzero)
+                    prover = ` tlG ̇ (` stFD ̇ # zero)
                   return
                     (λ* prover ,
                     (λ { y tt* r r⊩Fy →
@@ -104,7 +100,7 @@ opaque
                         (propTruncIdempotent (G .relation .isPropValued _ _))
                         (do
                           (tt* , tlGstFD⊩Gy) ← tlG⊩isTotalG y (stFD ⨾ r) (stFD⊩isStrictDomainF y tt* r r⊩Fy)
-                          return (subst (λ r' → r' ⊩ ∣ G .relation ∣ (y , tt*)) (sym (λ*ComputationRule prover (r ∷ []))) tlGstFD⊩Gy)) }))
+                          return (subst (λ r' → r' ⊩ ∣ G .relation ∣ (y , tt*)) (sym (λ*ComputationRule prover r)) tlGstFD⊩Gy)) }))
             in
             eq/ _ _ (answer , F≤G→G≤F perY terminalPer F G answer))
           f g

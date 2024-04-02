@@ -1,10 +1,10 @@
-open import Realizability.ApplicativeStructure renaming (Term to ApplStrTerm; λ*-naturality to `λ*ComputationRule; λ*-chain to `λ*) hiding (λ*)
+open import Realizability.ApplicativeStructure renaming (Term to ApplStrTerm)
 open import Realizability.CombinatoryAlgebra
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.HLevels
 open import Cubical.Data.Unit
 open import Cubical.Data.Empty
-open import Cubical.Data.Fin
+open import Cubical.Data.FinData
 open import Cubical.Data.Vec
 open import Cubical.Data.Sigma
 open import Cubical.HITs.PropositionalTruncation
@@ -27,10 +27,6 @@ open Realizability.CombinatoryAlgebra.Combinators ca renaming (i to Id; ia≡a t
 open Predicate renaming (isSetX to isSetPredicateBase)
 open PredicateProperties
 open Morphism
-
-private
-  λ*ComputationRule = `λ*ComputationRule as fefermanStructure
-  λ* = `λ* as fefermanStructure
 
 open FunctionalRelation
 open PartialEquivalenceRelation hiding (isSetX)
@@ -62,17 +58,17 @@ module _
         (sY , sY⊩isSymmetricY) ← perY .isSymmetric
         let
           prover : ApplStrTerm as 1
-          prover = ` pair ̇ (` sX ̇ (` pr₁ ̇ # fzero)) ̇ (` sY ̇ (` pr₂ ̇ # fzero))
+          prover = ` pair ̇ (` sX ̇ (` pr₁ ̇ # zero)) ̇ (` sY ̇ (` pr₂ ̇ # zero))
         return
           (λ* prover ,
           (λ { (x , y) (x' , y') r (pr₁r⊩x~x' , pr₂r⊩y~y') →
             subst
               (λ r' → r' ⊩ ∣ perX .equality ∣ (x' , x))
-              (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule prover (r ∷ [])) ∙ pr₁pxy≡x _ _))
+              (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule prover r) ∙ pr₁pxy≡x _ _))
               (sX⊩isSymmetricX x x' (pr₁ ⨾ r) pr₁r⊩x~x') ,
             subst
               (λ r' → r' ⊩ ∣ perY .equality ∣ (y' , y))
-              (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule prover (r ∷ [])) ∙ pr₂pxy≡y _ _))
+              (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule prover r) ∙ pr₂pxy≡y _ _))
               (sY⊩isSymmetricY y y' (pr₂ ⨾ r) pr₂r⊩y~y') }))
     isPartialEquivalenceRelation.isTransitive (PartialEquivalenceRelation.isPerEquality binProdObRT) =
       do
@@ -80,17 +76,17 @@ module _
         (tY , tY⊩isTransitiveY) ← perY .isTransitive
         let
           prover : ApplStrTerm as 2
-          prover = ` pair ̇ (` tX ̇ (` pr₁ ̇ # fzero) ̇ (` pr₁ ̇ # fone)) ̇ (` tY ̇ (` pr₂ ̇ # fzero) ̇ (` pr₂ ̇ # fone))
+          prover = ` pair ̇ (` tX ̇ (` pr₁ ̇ # one) ̇ (` pr₁ ̇ # zero)) ̇ (` tY ̇ (` pr₂ ̇ # one) ̇ (` pr₂ ̇ # zero))
         return
-          (λ* prover ,
+          (λ*2 prover ,
           (λ { (x , y) (x' , y') (x'' , y'') a b (pr₁a⊩x~x' , pr₂a⊩y~y') (pr₁b⊩x'~x'' , pr₂b⊩y'~y'') →
             subst
               (λ r' → r' ⊩ ∣ perX .equality ∣ (x , x''))
-              (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule prover (a ∷ b ∷ [])) ∙ pr₁pxy≡x _ _))
+              (sym (cong (λ x → pr₁ ⨾ x) (λ*2ComputationRule prover a b) ∙ pr₁pxy≡x _ _))
               (tX⊩isTransitiveX x x' x'' (pr₁ ⨾ a) (pr₁ ⨾ b) pr₁a⊩x~x' pr₁b⊩x'~x'') ,
             subst
               (λ r' → r' ⊩ ∣ perY .equality ∣ (y , y''))
-              (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule prover (a ∷ b ∷ [])) ∙ pr₂pxy≡y _ _))
+              (sym (cong (λ x → pr₂ ⨾ x) (λ*2ComputationRule prover a b) ∙ pr₂pxy≡y _ _))
               (tY⊩isTransitiveY y y' y'' (pr₂ ⨾ a) (pr₂ ⨾ b) pr₂a⊩y~y' pr₂b⊩y'~y'') }))
 
   opaque
@@ -109,30 +105,30 @@ module _
            (stD , stD⊩isStrictDomainEqX) ← idFuncRel perX .isStrictDomain
            let
              prover : ApplStrTerm as 1
-             prover = ` pair ̇ (` stD ̇ (` pr₁ ̇ # fzero)) ̇ (` pr₂ ̇ (# fzero))
+             prover = ` pair ̇ (` stD ̇ (` pr₁ ̇ # zero)) ̇ (` pr₂ ̇ (# zero))
            return
              (λ* prover ,
              (λ { (x , y) x' r (pr₁r⊩x~x' , pr₂r⊩y~y) →
                subst
                  (λ r' → r' ⊩ ∣ perX .equality ∣ (x , x))
-                 (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule prover (r ∷ [])) ∙ pr₁pxy≡x _ _))
+                 (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule prover r) ∙ pr₁pxy≡x _ _))
                  (stD⊩isStrictDomainEqX x x' (pr₁ ⨾ r) pr₁r⊩x~x') ,
                subst
                  (λ r' → r' ⊩ ∣ perY .equality ∣ (y , y))
-                 (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule prover (r ∷ [])) ∙ pr₂pxy≡y _ _))
+                 (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule prover r) ∙ pr₂pxy≡y _ _))
                  pr₂r⊩y~y }))
        ; isStrictCodomain =
          do
            (stC , stC⊩isStrictCodomainEqX) ← idFuncRel perX .isStrictCodomain
            let
              prover : ApplStrTerm as 1
-             prover = ` stC ̇ (` pr₁ ̇ # fzero)
+             prover = ` stC ̇ (` pr₁ ̇ # zero)
            return
              (λ* prover ,
               λ { (x , y) x' r (pr₁r⊩x~x' , pr₂r⊩y~y) →
                 subst
                   (λ r' → r' ⊩ ∣ perX .equality ∣ (x' , x'))
-                  (sym (λ*ComputationRule prover (r ∷ [])))
+                  (sym (λ*ComputationRule prover r))
                   (stC⊩isStrictCodomainEqX x x' (pr₁ ⨾ r) pr₁r⊩x~x') })
        ; isRelational =
          do
@@ -141,13 +137,13 @@ module _
            (s , s⊩isSymmetricX) ← perX .isSymmetric
            let
              prover : ApplStrTerm as 3
-             prover = ` pair ̇ (` t ̇ (` s ̇ (` pr₁ ̇ # fzero)) ̇ (` t ̇ (` pr₁ ̇ # fone) ̇ # (fsuc fone))) ̇ (` stC ̇ (` pr₂ ̇ # fzero))
+             prover = ` pair ̇ (` t ̇ (` s ̇ (` pr₁ ̇ # two)) ̇ (` t ̇ (` pr₁ ̇ # one) ̇ # zero)) ̇ (` stC ̇ (` pr₂ ̇ # two))
            return
-             (λ* prover ,
+             (λ*3 prover ,
               ((λ { (x , y) (x' , y') x'' x''' a b c (pr₁a⊩x~x' , pr₂a⊩y~y') (pr₁b⊩x~x'' , pr₂b⊩y~y) c⊩x''~x''' →
                 subst
                   (λ r' → r' ⊩ ∣ perX .equality ∣ (x' , x'''))
-                  (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule prover (a ∷ b ∷ c ∷ [])) ∙ pr₁pxy≡x _ _))
+                  (sym (cong (λ x → pr₁ ⨾ x) (λ*3ComputationRule prover a b c) ∙ pr₁pxy≡x _ _))
                   (t⊩isTransitiveX
                     x' x x'''
                     (s ⨾ (pr₁ ⨾ a)) (t ⨾ (pr₁ ⨾ b) ⨾ c)
@@ -155,7 +151,7 @@ module _
                     (t⊩isTransitiveX x x'' x''' (pr₁ ⨾ b) c pr₁b⊩x~x'' c⊩x''~x''')) ,
                 subst
                   (λ r' → r' ⊩ ∣ perY .equality ∣ (y' , y'))
-                  (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule prover (a ∷ b ∷ c ∷ [])) ∙ pr₂pxy≡y _ _))
+                  (sym (cong (λ x → pr₂ ⨾ x) (λ*3ComputationRule prover a b c) ∙ pr₂pxy≡y _ _))
                   (stC⊩isStrictCodomainEqY y y' (pr₂ ⨾ a) pr₂a⊩y~y') })))
        ; isSingleValued =
          do
@@ -163,13 +159,13 @@ module _
            (s , s⊩isSymmetric) ← perX .isSymmetric
            let
              prover : ApplStrTerm as 2
-             prover = ` t ̇ (` s ̇ (` pr₁ ̇ # fzero)) ̇ (` pr₁ ̇ # fone)
+             prover = ` t ̇ (` s ̇ (` pr₁ ̇ # one)) ̇ (` pr₁ ̇ # zero)
            return
-             (λ* prover ,
+             (λ*2 prover ,
               (λ { (x , y) x' x'' r₁ r₂ (pr₁r₁⊩x~x' , pr₂r₁⊩y~y) (pr₁r₂⊩x~x'' , pr₂r₂⊩y~y) →
                 subst
                   (λ r' → r' ⊩ ∣ perX .equality ∣ (x' , x''))
-                  (sym (λ*ComputationRule prover (r₁ ∷ r₂ ∷ [])))
+                  (sym (λ*2ComputationRule prover r₁ r₂))
                   (t⊩isTransitive x' x x'' (s ⨾ (pr₁ ⨾ r₁)) (pr₁ ⨾ r₂) (s⊩isSymmetric x x' (pr₁ ⨾ r₁) pr₁r₁⊩x~x') pr₁r₂⊩x~x'')}))
        ; isTotal =
          do
@@ -204,30 +200,30 @@ module _
            (stD , stD⊩isStrictDomainEqY) ← idFuncRel perY .isStrictDomain
            let
              prover : ApplStrTerm as 1
-             prover = ` pair ̇ (` pr₂ ̇ (# fzero)) ̇ (` stD ̇ (` pr₁ ̇ # fzero))
+             prover = ` pair ̇ (` pr₂ ̇ (# zero)) ̇ (` stD ̇ (` pr₁ ̇ # zero))
            return
              (λ* prover ,
              (λ { (x , y) y' r (pr₁r⊩y~y' , pr₂r⊩x~x) →
                 subst
                   (λ r' → r' ⊩ ∣ perX .equality ∣ (x , x))
-                  (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule prover (r ∷ [])) ∙ pr₁pxy≡x _ _))
+                  (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule prover r) ∙ pr₁pxy≡x _ _))
                   pr₂r⊩x~x ,
                 subst
                   (λ r' → r' ⊩ ∣ perY .equality ∣ (y , y))
-                  (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule prover (r ∷ [])) ∙ pr₂pxy≡y _ _))
+                  (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule prover r) ∙ pr₂pxy≡y _ _))
                   (stD⊩isStrictDomainEqY y y' (pr₁ ⨾ r) pr₁r⊩y~y') }))
        ; isStrictCodomain =
          do
            (stC , stC⊩isStrictCodomainEqY) ← idFuncRel perY .isStrictCodomain
            let
              prover : ApplStrTerm as 1
-             prover = ` stC ̇ (` pr₁ ̇ # fzero)
+             prover = ` stC ̇ (` pr₁ ̇ # zero)
            return
              (λ* prover ,
              (λ { (x , y) y' r (pr₁r⊩y~y' , pr₂r⊩x~x) →
                subst
                  (λ r' → r' ⊩ ∣ perY .equality ∣ (y' , y'))
-                 (sym (λ*ComputationRule prover (r ∷ [])))
+                 (sym (λ*ComputationRule prover r))
                  (stC⊩isStrictCodomainEqY y y' (pr₁ ⨾ r) pr₁r⊩y~y') }))
        ; isRelational =
          do
@@ -235,36 +231,36 @@ module _
            (relY , relY⊩isRelationalEqY) ← idFuncRel perY .isRelational
            let
              prover : ApplStrTerm as 3
-             prover = ` pair ̇ (` relY ̇ (` pr₂ ̇ # fzero) ̇ (` pr₁ ̇ # fone) ̇ # (fsuc fone)) ̇ (` stC ̇ (` pr₁ ̇ # fzero))
+             prover = ` pair ̇ (` relY ̇ (` pr₂ ̇ # two) ̇ (` pr₁ ̇ # one) ̇ # zero) ̇ (` stC ̇ (` pr₁ ̇ # two))
            return
-             (λ* prover ,
+             (λ*3 prover ,
              (λ { (x , y₁) (x' , y₂) y₃ y₄ a b c (pr₁a⊩x~x' , pr₂a⊩y₁~y₂) (pr₁b⊩y₁~y₃ , pr₂b⊩x~x) c⊩y₃~y₄ →
                subst
                  (λ r' → r' ⊩ ∣ perY .equality ∣ (y₂ , y₄))
-                 (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule prover (a ∷ b ∷ c ∷ [])) ∙ pr₁pxy≡x _ _))
+                 (sym (cong (λ x → pr₁ ⨾ x) (λ*3ComputationRule prover a b c) ∙ pr₁pxy≡x _ _))
                  (relY⊩isRelationalEqY y₁ y₂ y₃ y₄ (pr₂ ⨾ a) (pr₁ ⨾ b) c pr₂a⊩y₁~y₂ pr₁b⊩y₁~y₃ c⊩y₃~y₄) ,
                subst
                  (λ r' → r' ⊩ ∣ perX .equality ∣ (x' , x'))
-                 (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule prover (a ∷ b ∷ c ∷ [])) ∙ pr₂pxy≡y _ _))
+                 (sym (cong (λ x → pr₂ ⨾ x) (λ*3ComputationRule prover a b c) ∙ pr₂pxy≡y _ _))
                  (stC⊩isStrictCodomainEqX x x' (pr₁ ⨾ a) pr₁a⊩x~x') }))
        ; isSingleValued =
          do
            (svY , svY⊩isSingleValuedY) ← idFuncRel perY .isSingleValued
            let
              prover : ApplStrTerm as 2
-             prover = ` svY ̇ (` pr₁ ̇ # fzero) ̇ (` pr₁ ̇ # fone)
+             prover = ` svY ̇ (` pr₁ ̇ # one) ̇ (` pr₁ ̇ # zero)
            return
-             (λ* prover ,
+             (λ*2 prover ,
              (λ { (x , y) y' y'' r₁ r₂ (pr₁r₁⊩y~y' , pr₂r₁⊩x~x) (pr₁r₂⊩y~y'' , pr₂r₂⊩) →
                subst
                  (λ r' → r' ⊩ ∣ perY .equality ∣ (y' , y''))
-                 (sym (λ*ComputationRule prover (r₁ ∷ r₂ ∷ [])))
+                 (sym (λ*2ComputationRule prover r₁ r₂))
                  (svY⊩isSingleValuedY y y' y'' (pr₁ ⨾ r₁) (pr₁ ⨾ r₂) pr₁r₁⊩y~y' pr₁r₂⊩y~y'') }))
        ; isTotal =
          do
            let
              prover : ApplStrTerm as 1
-             prover = ` pair ̇ (` pr₂ ̇ # fzero) ̇ (` pr₁ ̇ # fzero)
+             prover = ` pair ̇ (` pr₂ ̇ # zero) ̇ (` pr₁ ̇ # zero)
            return
              (λ* prover ,
              (λ { (x , y) r (pr₁r⊩x~x , pr₂r⊩y~y) →
@@ -272,11 +268,11 @@ module _
                  (y ,
                    (subst
                      (λ r' → r' ⊩ ∣ perY .equality ∣ (y , y))
-                     (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule prover (r ∷ [])) ∙ pr₁pxy≡x _ _))
+                     (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule prover r) ∙ pr₁pxy≡x _ _))
                      pr₂r⊩y~y ,
                     subst
                      (λ r' → r' ⊩ ∣ perX .equality ∣ (x , x))
-                     (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule prover (r ∷ [])) ∙ pr₂pxy≡y _ _))
+                     (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule prover r) ∙ pr₂pxy≡y _ _))
                      pr₁r⊩x~x)) }))
        }
 
@@ -308,13 +304,13 @@ module _
                      (stFD , stFD⊩isStrictDomain) ← F .isStrictDomain
                      let
                        prover : ApplStrTerm as 1
-                       prover = ` stFD ̇ (` pr₁ ̇ # fzero)
+                       prover = ` stFD ̇ (` pr₁ ̇ # zero)
                      return
                        (λ* prover ,
                         (λ { z (x , y) r (pr₁r⊩Fzx , pr₂r⊩Gzy) →
                           subst
                             (λ r' → r' ⊩ ∣ perZ .equality ∣ (z , z))
-                            (sym (λ*ComputationRule prover (r ∷ [])))
+                            (sym (λ*ComputationRule prover r))
                             (stFD⊩isStrictDomain z x (pr₁ ⨾ r) pr₁r⊩Fzx) }))
                  ; isStrictCodomain =
                    do
@@ -322,17 +318,17 @@ module _
                      (stGC , stGC⊩isStrictCodomainG) ← G .isStrictCodomain
                      let
                        prover : ApplStrTerm as 1
-                       prover = ` pair ̇ (` stFC ̇ (` pr₁ ̇ # fzero)) ̇ (` stGC ̇ (` pr₂ ̇ # fzero))
+                       prover = ` pair ̇ (` stFC ̇ (` pr₁ ̇ # zero)) ̇ (` stGC ̇ (` pr₂ ̇ # zero))
                      return
                        (λ* prover ,
                        (λ { z (x , y) r (pr₁r⊩Fzx , pr₂r⊩Gzy) →
                          subst
                            (λ r' → r' ⊩ ∣ perX .equality ∣ (x , x))
-                           (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule prover (r ∷ [])) ∙ pr₁pxy≡x _ _))
+                           (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule prover r) ∙ pr₁pxy≡x _ _))
                            (stFC⊩isStrictCodomainF z x (pr₁ ⨾ r) pr₁r⊩Fzx) ,
                          subst
                            (λ r' → r' ⊩ ∣ perY .equality ∣ (y , y))
-                           (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule prover (r ∷ [])) ∙ pr₂pxy≡y _ _))
+                           (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule prover r) ∙ pr₂pxy≡y _ _))
                            (stGC⊩isStrictCodomainG z y (pr₂ ⨾ r) pr₂r⊩Gzy) }))
                  ; isRelational =
                    do
@@ -340,35 +336,29 @@ module _
                      (relG , relG⊩isRelationalG) ← G .isRelational
                      let
                        prover : ApplStrTerm as 3
-                       prover = ` pair ̇ (` relF ̇ # fzero ̇ (` pr₁ ̇ # fone) ̇ (` pr₁ ̇ # (fsuc fone))) ̇ (` relG ̇ # fzero ̇ (` pr₂ ̇ # fone) ̇ (` pr₂ ̇ # (fsuc fone)))
+                       prover = ` pair ̇ (` relF ̇ # two ̇ (` pr₁ ̇ # one) ̇ (` pr₁ ̇ # zero)) ̇ (` relG ̇ # two ̇ (` pr₂ ̇ # one) ̇ (` pr₂ ̇ # zero))
                      return
-                       (λ* prover ,
+                       (λ*3 prover ,
                        (λ { z z' (x , y) (x' , y') a b c a⊩z~z' (pr₁b⊩Fzx , pr₂b⊩Gzy) (pr₁c⊩x~x' , pr₂c⊩y~y') →
-                         (subst
-                           (λ r → r ⊩ ∣ F .relation ∣ (z' , x'))
-                           (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule prover (a ∷ b ∷ c ∷ [])) ∙ pr₁pxy≡x _ _))
-                           (relF⊩isRelationalF z z' x x' a (pr₁ ⨾ b) (pr₁ ⨾ c) a⊩z~z' pr₁b⊩Fzx pr₁c⊩x~x')) ,
-                         (subst
-                           (λ r → r ⊩ ∣ G .relation ∣ (z' , y'))
-                           (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule prover (a ∷ b ∷ c ∷ [])) ∙ pr₂pxy≡y _ _))
-                           (relG⊩isRelationalG z z' y y' a (pr₂ ⨾ b) (pr₂ ⨾ c) a⊩z~z' pr₂b⊩Gzy pr₂c⊩y~y')) }))
+                         (subst (λ r' → r' ⊩ ∣ F .relation ∣ (z' , x')) (sym (cong (λ x → pr₁ ⨾ x) (λ*3ComputationRule prover a b c) ∙ pr₁pxy≡x _ _)) (relF⊩isRelationalF z z' x x' _ _ _ a⊩z~z' pr₁b⊩Fzx pr₁c⊩x~x')) ,
+                         subst (λ r' → r' ⊩ ∣ G .relation ∣ (z' , y')) (sym (cong (λ x → pr₂ ⨾ x) (λ*3ComputationRule prover a b c) ∙ pr₂pxy≡y _ _)) (relG⊩isRelationalG z z' y y' _ _ _ a⊩z~z' pr₂b⊩Gzy pr₂c⊩y~y') }))
                  ; isSingleValued =
                    do
                      (svF , svF⊩isSingleValuedF) ← F .isSingleValued
                      (svG , svG⊩isSingleValuedG) ← G .isSingleValued
                      let
                        prover : ApplStrTerm as 2
-                       prover = ` pair ̇ (` svF ̇ (` pr₁ ̇ # fzero) ̇ (` pr₁ ̇ # fone)) ̇ (` svG ̇ (` pr₂ ̇ # fzero) ̇ (` pr₂ ̇ # fone))
+                       prover = ` pair ̇ (` svF ̇ (` pr₁ ̇ # one) ̇ (` pr₁ ̇ # zero)) ̇ (` svG ̇ (` pr₂ ̇ # one) ̇ (` pr₂ ̇ # zero))
                      return
-                       (λ* prover ,
+                       (λ*2 prover ,
                        (λ { z (x , y) (x' , y') r₁ r₂ (pr₁r₁⊩Fzx , pr₂r₁⊩Gzy) (pr₁r₂⊩Fzx' , pr₂r₂⊩Gzy') →
                          subst
                            (λ r' → r' ⊩ ∣ perX .equality ∣ (x , x'))
-                           (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule prover (r₁ ∷ r₂ ∷ [])) ∙ pr₁pxy≡x _ _))
+                           (sym (cong (λ x → pr₁ ⨾ x) (λ*2ComputationRule prover r₁ r₂) ∙ pr₁pxy≡x _ _))
                            (svF⊩isSingleValuedF z x x' (pr₁ ⨾ r₁) (pr₁ ⨾ r₂) pr₁r₁⊩Fzx pr₁r₂⊩Fzx') ,
                          subst
                            (λ r' → r' ⊩ ∣ perY .equality ∣ (y , y'))
-                           (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule prover (r₁ ∷ r₂ ∷ [])) ∙ pr₂pxy≡y _ _))
+                           (sym (cong (λ x → pr₂ ⨾ x) (λ*2ComputationRule prover r₁ r₂) ∙ pr₂pxy≡y _ _))
                            (svG⊩isSingleValuedG z y y' (pr₂ ⨾ r₁) (pr₂ ⨾ r₂) pr₂r₁⊩Gzy pr₂r₂⊩Gzy') }))
                  ; isTotal =
                    do
@@ -376,7 +366,7 @@ module _
                      (tlG , tlG⊩isTotalG) ← G .isTotal
                      let
                        prover : ApplStrTerm as 1
-                       prover = ` pair ̇ (` tlF ̇ # fzero) ̇ (` tlG ̇ # fzero)
+                       prover = ` pair ̇ (` tlF ̇ # zero) ̇ (` tlG ̇ # zero)
                      return
                        (λ* prover ,
                        (λ { z r r⊩z~z →
@@ -387,11 +377,11 @@ module _
                              ((x , y) ,
                               (subst
                                 (λ r' → r' ⊩ ∣ F .relation ∣ (z , x))
-                                (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule prover (r ∷ [])) ∙ pr₁pxy≡x _ _))
+                                (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule prover r) ∙ pr₁pxy≡x _ _))
                                 tlFr⊩Fzx ,
                                subst
                                 (λ r' → r' ⊩ ∣ G .relation ∣ (z , y))
-                                (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule prover (r ∷ [])) ∙ pr₂pxy≡y _ _))
+                                (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule prover r) ∙ pr₂pxy≡y _ _))
                                 tlGr⊩Gzy)) }))
                  }}
 
@@ -411,17 +401,17 @@ module _
                   (s , s⊩F≤F') ← F≤F'
                   let
                     prover : ApplStrTerm as 1
-                    prover = ` pair ̇ (` s ̇ (` pr₁ ̇ # fzero)) ̇ (` pr₂ ̇ # fzero)
+                    prover = ` pair ̇ (` s ̇ (` pr₁ ̇ # zero)) ̇ (` pr₂ ̇ # zero)
                   return
                     (λ* prover ,
                      (λ { z (x , y) r (pr₁r⊩Fzx , pr₂r⊩Gzy) →
                        subst
                          (λ r' → r' ⊩ ∣ F' .relation ∣ (z , x))
-                         (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule prover (r ∷ [])) ∙ pr₁pxy≡x _ _))
+                         (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule prover r) ∙ pr₁pxy≡x _ _))
                          (s⊩F≤F' z x (pr₁ ⨾ r) pr₁r⊩Fzx) ,
                        subst
                          (λ r' → r' ⊩ ∣ G .relation ∣ (z , y))
-                         (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule prover (r ∷ [])) ∙ pr₂pxy≡y _ _))
+                         (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule prover r) ∙ pr₂pxy≡y _ _))
                          pr₂r⊩Gzy }))
             in
             eq/ _ _ (answer , F≤G→G≤F perZ binProdObRT (theFuncRel F G) (theFuncRel F' G) answer) })
@@ -432,17 +422,17 @@ module _
                   (s , s⊩G≤G') ← G≤G'
                   let
                     prover : ApplStrTerm as 1
-                    prover = ` pair ̇ (` pr₁ ̇ # fzero) ̇ (` s ̇ (` pr₂ ̇ # fzero))
+                    prover = ` pair ̇ (` pr₁ ̇ # zero) ̇ (` s ̇ (` pr₂ ̇ # zero))
                   return
                     (λ* prover ,
                     (λ { z (x , y) r (pr₁r⊩Fzx , pr₂r⊩Gzy) →
                       (subst
                         (λ r' → r' ⊩ ∣ F .relation ∣ (z , x))
-                        (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule prover (r ∷ [])) ∙ pr₁pxy≡x _ _))
+                        (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule prover r) ∙ pr₁pxy≡x _ _))
                         pr₁r⊩Fzx) ,
                       (subst
                         (λ r' → r' ⊩ ∣ G' .relation ∣ (z , y))
-                        (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule prover (r ∷ [])) ∙ pr₂pxy≡y _ _))
+                        (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule prover r) ∙ pr₂pxy≡y _ _))
                         (s⊩G≤G' z y (pr₂ ⨾ r) pr₂r⊩Gzy)) }))
             in eq/ _ _ (answer , (F≤G→G≤F perZ binProdObRT (theFuncRel F G) (theFuncRel F G') answer)) })
           f g
@@ -482,7 +472,7 @@ module _
                   (stD , stD⊩isStrictDomain) ← theFuncRel' .isStrictDomain
                   let
                     prover : ApplStrTerm as 1
-                    prover = ` relF ̇ (` stD ̇ (` pr₁ ̇ # fzero)) ̇ (` pr₁ ̇ (` p ̇ (` pr₁ ̇ # fzero))) ̇ (` pr₁ ̇ (` pr₂ ̇ # fzero))
+                    prover = ` relF ̇ (` stD ̇ (` pr₁ ̇ # zero)) ̇ (` pr₁ ̇ (` p ̇ (` pr₁ ̇ # zero))) ̇ (` pr₁ ̇ (` pr₂ ̇ # zero))
                   return
                     (λ* prover ,
                     λ z x r r⊩∃ →
@@ -493,7 +483,7 @@ module _
                           return
                             (subst
                               (λ r' → r' ⊩ ∣ F .relation ∣ (z , x))
-                              (sym (λ*ComputationRule prover (r ∷ [])))
+                              (sym (λ*ComputationRule prover r))
                               (relF⊩isRelationalF
                                 z z x' x
                                 (stD ⨾ (pr₁ ⨾ r)) (pr₁ ⨾ (p ⨾ (pr₁ ⨾ r))) (pr₁ ⨾ (pr₂ ⨾ r))
@@ -526,7 +516,7 @@ module _
                   (st , st⊩isStrictDomainTheFuncRel') ← theFuncRel' .isStrictDomain
                   let
                     prover : ApplStrTerm as 1
-                    prover = ` relG ̇ (` st ̇ (` pr₁ ̇ # fzero)) ̇ (` pr₂ ̇ (` p ̇ (` pr₁ ̇ # fzero))) ̇ (` pr₁ ̇ (` pr₂ ̇ # fzero))
+                    prover = ` relG ̇ (` st ̇ (` pr₁ ̇ # zero)) ̇ (` pr₂ ̇ (` p ̇ (` pr₁ ̇ # zero))) ̇ (` pr₁ ̇ (` pr₂ ̇ # zero))
                   return
                     (λ* prover ,
                     (λ z y r r⊩∃ →
@@ -537,7 +527,7 @@ module _
                           return
                             (subst
                               (λ r' → r' ⊩ ∣ G .relation ∣ (z , y))
-                              (sym (λ*ComputationRule prover (r ∷ []))) 
+                              (sym (λ*ComputationRule prover r)) 
                               (relG⊩isRelationalG
                                 z z y' y
                                 (st ⨾ (pr₁ ⨾ r)) (pr₂ ⨾ (p ⨾ (pr₁ ⨾ r))) (pr₁ ⨾ (pr₂ ⨾ r))
@@ -571,15 +561,15 @@ module _
                     let
                       realizer : ApplStrTerm as 1 -- cursed
                       realizer =
-                        ` rel!' ̇ (` stD!' ̇ (` pr₁ ̇ (` q ̇ (` pr₁ ̇ # fzero)))) ̇
-                          (` pr₁ ̇ (` q' ̇ (` pr₂ ̇ # fzero))) ̇
+                        ` rel!' ̇ (` stD!' ̇ (` pr₁ ̇ (` q ̇ (` pr₁ ̇ # zero)))) ̇
+                          (` pr₁ ̇ (` q' ̇ (` pr₂ ̇ # zero))) ̇
                           (` pair ̇
                            (` tX ̇
                             (` sX ̇
                              (` pr₁ ̇
-                              (` sv!' ̇ (` pr₁ ̇ (` q ̇ (` pr₁ ̇ # fzero))) ̇ (` pr₁ ̇ (` q' ̇ (` pr₂ ̇ # fzero)))))) ̇
-                            (` pr₁ ̇ (` pr₂ ̇ (` q ̇ (` pr₁ ̇ # fzero))))) ̇
-                           (` pr₁ ̇ (` pr₂ ̇ (` q' ̇ (` pr₂ ̇ # fzero)))))
+                              (` sv!' ̇ (` pr₁ ̇ (` q ̇ (` pr₁ ̇ # zero))) ̇ (` pr₁ ̇ (` q' ̇ (` pr₂ ̇ # zero)))))) ̇
+                            (` pr₁ ̇ (` pr₂ ̇ (` q ̇ (` pr₁ ̇ # zero))))) ̇
+                           (` pr₁ ̇ (` pr₂ ̇ (` q' ̇ (` pr₂ ̇ # zero)))))
                     return
                       (λ* realizer ,
                       (λ { z (x , y) r (pr₁r⊩Fzx , pr₂r⊩Gzy) →
@@ -594,7 +584,7 @@ module _
                             return
                               (subst
                                 (λ r' → r' ⊩ ∣ !' .relation ∣ (z , x , y))
-                                (sym (λ*ComputationRule realizer (r ∷ [])))
+                                (sym (λ*ComputationRule realizer r))
                                 (rel!'⊩isRelational!'
                                   z z
                                   (x'' , y'')

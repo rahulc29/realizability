@@ -1,5 +1,5 @@
 open import Realizability.CombinatoryAlgebra
-open import Realizability.ApplicativeStructure renaming (Term to ApplStrTerm; λ*-naturality to `λ*ComputationRule; λ*-chain to `λ*) hiding (λ*)
+open import Realizability.ApplicativeStructure renaming (Term to ApplStrTerm)
 open import Cubical.Foundations.Prelude as P
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Equiv
@@ -25,8 +25,6 @@ open import Realizability.Tripos.Prealgebra.Predicate.Base {ℓ = ℓ} {ℓ' = �
 open CombinatoryAlgebra ca
 open Realizability.CombinatoryAlgebra.Combinators ca renaming (i to Id; ia≡a to Ida≡a)
 open Predicate
-private λ*ComputationRule = `λ*ComputationRule as fefermanStructure
-private λ* = `λ* as fefermanStructure
 
 module PredicateProperties (X : Type ℓ') where
   private PredicateX = Predicate X
@@ -106,7 +104,7 @@ module _ where
         let
           prover : ApplStrTerm as 1
           prover = ` k'
-        return (λ* prover , λ { x a (lift a≡k) → lift (λ*ComputationRule prover (a ∷ [])) })
+        return (λ* prover , λ { x a (lift a≡k) → lift (λ*ComputationRule prover a) })
 
     k'Realized≤kRealized : k'Realized ≤ kRealized
     k'Realized≤kRealized =
@@ -114,7 +112,7 @@ module _ where
         let
           prover : ApplStrTerm as 1
           prover = ` k
-        return (λ* prover , λ { x a (lift a≡k') → lift (λ*ComputationRule prover (a ∷ [])) })
+        return (λ* prover , λ { x a (lift a≡k') → lift (λ*ComputationRule prover a) })
 
     kRealized≡k'Realized : kRealized ≡ k'Realized
     kRealized≡k'Realized = antiSym kRealized k'Realized kRealized≤k'Realized k'Realized≤kRealized

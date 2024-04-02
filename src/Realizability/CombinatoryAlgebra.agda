@@ -5,18 +5,17 @@ open import Cubical.Data.Empty
 open import Cubical.Data.Unit
 open import Cubical.Data.Nat
 
-open import Realizability.ApplicativeStructure hiding (S;K)
+open import Realizability.ApplicativeStructure
 
 module Realizability.CombinatoryAlgebra where
 
 record CombinatoryAlgebra {ℓ} (A : Type ℓ) : Type ℓ where
   field
     as : ApplicativeStructure A
-    completeness : isCombinatoriallyComplete as
-  fefermanStructure : Feferman as
-  fefermanStructure = completeness→feferman as completeness
+    fefermanStructure : Feferman as
   open Feferman fefermanStructure public
   open ApplicativeStructure as public
+  open ComputationRules as fefermanStructure public
 
 module Combinators {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
   open CombinatoryAlgebra ca
@@ -74,19 +73,21 @@ module Combinators {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
                         ∎
 
   -- I used a Scheme script to generate this
-  pair : A
-  pair = s ⨾ (s ⨾ (k ⨾ (s)) ⨾ (s ⨾ (s ⨾ (k ⨾ (s)) ⨾ (s ⨾ (k ⨾ (k)) ⨾ (k ⨾ (s)))) ⨾
-         (s ⨾ (s ⨾ (k ⨾ (s)) ⨾ (s ⨾ (s ⨾ (k ⨾ (s)) ⨾ (s ⨾ (k ⨾ (k)) ⨾ (k ⨾ (s)))) ⨾
-         (s ⨾ (s ⨾ (k ⨾ (s)) ⨾ (s ⨾ (s ⨾ (k ⨾ (s)) ⨾ (s ⨾ (k ⨾ (k)) ⨾ (k ⨾ (s)))) ⨾
-         (s ⨾ (k ⨾ (k)) ⨾ (k ⨾ (k))))) ⨾ (s ⨾ (k ⨾ (k)) ⨾ (k ⨾ (k)))))) ⨾ (s ⨾
-         (s ⨾ (k ⨾ (s)) ⨾ (s ⨾ (k ⨾ (k)) ⨾ (k ⨾ (k)))) ⨾ (s ⨾ (k ⨾ (k)) ⨾ (s ⨾ (k) ⨾ (k))))))) ⨾
-         (s ⨾ (s ⨾ (k ⨾ (s)) ⨾ (s ⨾ (k ⨾ (k)) ⨾ (k ⨾ (k)))) ⨾ (s ⨾ (s ⨾ (k ⨾ (s)) ⨾ (k ⨾ (k))) ⨾ (k ⨾ (k))))
+  opaque
+    pair : A
+    pair = s ⨾ (s ⨾ (k ⨾ (s)) ⨾ (s ⨾ (s ⨾ (k ⨾ (s)) ⨾ (s ⨾ (k ⨾ (k)) ⨾ (k ⨾ (s)))) ⨾
+           (s ⨾ (s ⨾ (k ⨾ (s)) ⨾ (s ⨾ (s ⨾ (k ⨾ (s)) ⨾ (s ⨾ (k ⨾ (k)) ⨾ (k ⨾ (s)))) ⨾
+           (s ⨾ (s ⨾ (k ⨾ (s)) ⨾ (s ⨾ (s ⨾ (k ⨾ (s)) ⨾ (s ⨾ (k ⨾ (k)) ⨾ (k ⨾ (s)))) ⨾
+           (s ⨾ (k ⨾ (k)) ⨾ (k ⨾ (k))))) ⨾ (s ⨾ (k ⨾ (k)) ⨾ (k ⨾ (k)))))) ⨾ (s ⨾
+           (s ⨾ (k ⨾ (s)) ⨾ (s ⨾ (k ⨾ (k)) ⨾ (k ⨾ (k)))) ⨾ (s ⨾ (k ⨾ (k)) ⨾ (s ⨾ (k) ⨾ (k))))))) ⨾
+           (s ⨾ (s ⨾ (k ⨾ (s)) ⨾ (s ⨾ (k ⨾ (k)) ⨾ (k ⨾ (k)))) ⨾ (s ⨾ (s ⨾ (k ⨾ (s)) ⨾ (k ⨾ (k))) ⨾ (k ⨾ (k))))
 
-  pr₁ : A
-  pr₁ = s ⨾ (s ⨾ k ⨾ k) ⨾ (k ⨾ k)
+  opaque
+    pr₁ : A
+    pr₁ = s ⨾ (s ⨾ k ⨾ k) ⨾ (k ⨾ k)
 
-  pr₂ : A
-  pr₂ = s ⨾ (s ⨾ k ⨾ k) ⨾ (k ⨾ k')
+    pr₂ : A
+    pr₂ = s ⨾ (s ⨾ k ⨾ k) ⨾ (k ⨾ k')
 
   -- TODO : Prove computation rules
   postulate pr₁pxy≡x : ∀ x y → pr₁ ⨾ (pair ⨾ x ⨾ y) ≡ x
@@ -100,8 +101,10 @@ module Combinators {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
   Z : A
   Z = pr₁
 
-  Zzero≡true : Z ⨾ (ℕ→curry zero) ≡ true
-  Zzero≡true = Z ⨾ (ℕ→curry zero)
+  opaque
+    unfolding pr₁
+    Zzero≡true : Z ⨾ (ℕ→curry zero) ≡ true
+    Zzero≡true = Z ⨾ (ℕ→curry zero)
                  ≡⟨ cong (λ x → Z ⨾ x) refl ⟩
                Z ⨾ i
                  ≡⟨ cong (λ x → x ⨾ i) refl ⟩

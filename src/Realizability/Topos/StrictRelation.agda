@@ -1,4 +1,4 @@
-open import Realizability.ApplicativeStructure renaming (Term to ApplStrTerm; λ*-naturality to `λ*ComputationRule; λ*-chain to `λ*) hiding (λ*)
+open import Realizability.ApplicativeStructure renaming (Term to ApplStrTerm)
 open import Realizability.CombinatoryAlgebra
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Structure
@@ -44,9 +44,6 @@ open PartialEquivalenceRelation
 open FunctionalRelation
 open Category RT
 
-private λ*ComputationRule = `λ*ComputationRule as fefermanStructure
-private λ* = `λ* as fefermanStructure
-
 record isStrictRelation {X : Type ℓ'} (perX : PartialEquivalenceRelation X) (ϕ : Predicate X) : Type (ℓ-max ℓ (ℓ-max ℓ' ℓ'')) where
   field
     isStrict : ∃[ st ∈ A ] (∀ x r → r ⊩ ∣ ϕ ∣ x → (st ⨾ r) ⊩ ∣ perX .equality ∣ (x , x))
@@ -75,17 +72,17 @@ module InducedSubobject {X : Type ℓ'} (perX : PartialEquivalenceRelation X) (�
       (relϕ , relϕ⊩isRelationalϕ) ← ϕ .isRelational
       let
         realizer : ApplStrTerm as 1
-        realizer = ` pair ̇ (` s ̇ (` pr₁ ̇ # fzero)) ̇ (` relϕ ̇ (` pr₂ ̇ # fzero) ̇ (` pr₁ ̇ # fzero))
+        realizer = ` pair ̇ (` s ̇ (` pr₁ ̇ # zero)) ̇ (` relϕ ̇ (` pr₂ ̇ # zero) ̇ (` pr₁ ̇ # zero))
       return
         (λ* realizer ,
         (λ { x x' r (pr₁r⊩x~x' , pr₂r⊩ϕx) →
           subst
             (λ r' → r' ⊩ ∣ perX .equality ∣ (x' , x))
-            (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule realizer (r ∷ [])) ∙ pr₁pxy≡x _ _))
+            (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule realizer r) ∙ pr₁pxy≡x _ _))
             (s⊩isSymmetricX x x' _ pr₁r⊩x~x') ,
           subst
             (λ r' → r' ⊩ ∣ ϕ .predicate ∣ x')
-            (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule realizer (r ∷ [])) ∙ pr₂pxy≡y _ _))
+            (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule realizer r) ∙ pr₂pxy≡y _ _))
             (relϕ⊩isRelationalϕ x x' _ _ pr₂r⊩ϕx pr₁r⊩x~x') }))
   isPartialEquivalenceRelation.isTransitive (isPerEquality subPer) =
     do
@@ -93,17 +90,17 @@ module InducedSubobject {X : Type ℓ'} (perX : PartialEquivalenceRelation X) (�
       (relϕ , relϕ⊩isRelationalϕ) ← ϕ .isRelational
       let
         realizer : ApplStrTerm as 2
-        realizer = ` pair ̇ (` t ̇ (` pr₁ ̇ # fzero) ̇ (` pr₁ ̇ # fone)) ̇ (` pr₂ ̇ # fzero)
+        realizer = ` pair ̇ (` t ̇ (` pr₁ ̇ # one) ̇ (` pr₁ ̇ # zero)) ̇ (` pr₂ ̇ # one)
       return
-        (λ* realizer ,
+        (λ*2 realizer ,
         (λ { x₁ x₂ x₃ a b (⊩x₁~x₂ , ⊩ϕx₁) (⊩x₂~x₃ , ⊩ϕx₂) →
           subst
             (λ r' → r' ⊩ ∣ perX .equality ∣ (x₁ , x₃))
-            (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule realizer (a ∷ b ∷ [])) ∙ pr₁pxy≡x _ _))
+            (sym (cong (λ x → pr₁ ⨾ x) (λ*2ComputationRule realizer a b) ∙ pr₁pxy≡x _ _))
             (t⊩isTransitiveX x₁ x₂ x₃ _ _ ⊩x₁~x₂ ⊩x₂~x₃) ,
           subst
             (λ r' → r' ⊩ ∣ ϕ .predicate ∣ x₁)
-            (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule realizer (a ∷ b ∷ [])) ∙ pr₂pxy≡y _ _))
+            (sym (cong (λ x → pr₂ ⨾ x) (λ*2ComputationRule realizer a b) ∙ pr₂pxy≡y _ _))
             ⊩ϕx₁ }))
 
   opaque
@@ -118,49 +115,49 @@ module InducedSubobject {X : Type ℓ'} (perX : PartialEquivalenceRelation X) (�
         (stD , stD⊩isStrictDomain) ← idFuncRel perX .isStrictDomain
         let
           realizer : ApplStrTerm as 1
-          realizer = ` pair ̇ (` stD ̇ (` pr₁ ̇ # fzero)) ̇ (` pr₂ ̇ # fzero)
+          realizer = ` pair ̇ (` stD ̇ (` pr₁ ̇ # zero)) ̇ (` pr₂ ̇ # zero)
         return
           (λ* realizer ,
           (λ { x x' r (⊩x~x' , ⊩ϕx) →
-            (subst (λ r' → r' ⊩ ∣ perX .equality ∣ (x , x)) (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule realizer (r ∷ [])) ∙ pr₁pxy≡x _ _)) (stD⊩isStrictDomain x x' _ ⊩x~x')) ,
-            (subst (λ r' → r' ⊩ ∣ ϕ .predicate ∣ x) (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule realizer (r ∷ [])) ∙ pr₂pxy≡y _ _)) ⊩ϕx) }))
+            (subst (λ r' → r' ⊩ ∣ perX .equality ∣ (x , x)) (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule realizer r) ∙ pr₁pxy≡x _ _)) (stD⊩isStrictDomain x x' _ ⊩x~x')) ,
+            (subst (λ r' → r' ⊩ ∣ ϕ .predicate ∣ x) (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule realizer r) ∙ pr₂pxy≡y _ _)) ⊩ϕx) }))
     isFunctionalRelation.isStrictCodomain (isFuncRel incFuncRel) =
       do
         (stC , stC⊩isStrictCodomain) ← idFuncRel perX .isStrictCodomain
         let
           realizer : ApplStrTerm as 1
-          realizer = ` stC ̇ (` pr₁ ̇ # fzero)
+          realizer = ` stC ̇ (` pr₁ ̇ # zero)
         return
           (λ* realizer ,
-          (λ { x x' r (⊩x~x' , ⊩ϕx) → subst (λ r' → r' ⊩ ∣ perX .equality ∣ (x' , x')) (sym (λ*ComputationRule realizer (r ∷ []))) (stC⊩isStrictCodomain x x' _ ⊩x~x')}))
+          (λ { x x' r (⊩x~x' , ⊩ϕx) → subst (λ r' → r' ⊩ ∣ perX .equality ∣ (x' , x')) (sym (λ*ComputationRule realizer r)) (stC⊩isStrictCodomain x x' _ ⊩x~x')}))
     isFunctionalRelation.isRelational (isFuncRel incFuncRel) =
       do
         (relX , relX⊩isRelationalX) ← idFuncRel perX .isRelational
         (relϕ , relϕ⊩isRelationalϕ) ← ϕ .isRelational
         let
           realizer : ApplStrTerm as 3
-          realizer = ` pair ̇ (` relX ̇ (` pr₁ ̇ # fzero) ̇ (` pr₁ ̇ # fone) ̇ # (fsuc fone)) ̇ (` relϕ ̇ (` pr₂ ̇ # fzero) ̇ (` pr₁ ̇ # fzero))
+          realizer = ` pair ̇ (` relX ̇ (` pr₁ ̇ # two) ̇ (` pr₁ ̇ # one) ̇ # zero) ̇ (` relϕ ̇ (` pr₂ ̇ # two) ̇ (` pr₁ ̇ # two))
         return
-          (λ* realizer ,
+          (λ*3 realizer ,
           (λ { x₁ x₂ x₃ x₄ a b c (⊩x₁~x₂ , ⊩ϕx₁) (⊩x₁~x₃ , ⊩ϕx₁') c⊩x₃~x₄ →
             subst
               (λ r' → r' ⊩ ∣ perX .equality ∣ (x₂ , x₄))
-              (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule realizer (a ∷ b ∷ c ∷ [])) ∙ pr₁pxy≡x _ _))
+              (sym (cong (λ x → pr₁ ⨾ x) (λ*3ComputationRule realizer a b c) ∙ pr₁pxy≡x _ _))
               (relX⊩isRelationalX x₁ x₂ x₃ x₄ _ _ _ ⊩x₁~x₂ ⊩x₁~x₃ c⊩x₃~x₄) ,
             subst
               (λ r' → r' ⊩ ∣ ϕ .predicate ∣ x₂)
-              (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule realizer (a ∷ b ∷ c ∷ [])) ∙ pr₂pxy≡y _ _))
+              (sym (cong (λ x → pr₂ ⨾ x) (λ*3ComputationRule realizer a b c) ∙ pr₂pxy≡y _ _))
               (relϕ⊩isRelationalϕ x₁ x₂ _ _ ⊩ϕx₁ ⊩x₁~x₂) }))
     isFunctionalRelation.isSingleValued (isFuncRel incFuncRel) =
       do
         (sv , sv⊩isSingleValuedX) ← idFuncRel perX .isSingleValued
         let
           realizer : ApplStrTerm as 2
-          realizer = ` sv ̇ (` pr₁ ̇ # fzero) ̇ (` pr₁ ̇ # fone)
+          realizer = ` sv ̇ (` pr₁ ̇ # one) ̇ (` pr₁ ̇ # zero)
         return
-          (λ* realizer ,
+          (λ*2 realizer ,
           (λ { x x' x'' r₁ r₂ (⊩x~x' , ⊩ϕx) (⊩x~x'' , ⊩ϕx') →
-            subst (λ r' → r' ⊩ ∣ perX .equality ∣ (x' , x'')) (sym (λ*ComputationRule realizer (r₁ ∷ r₂ ∷ []))) (sv⊩isSingleValuedX x x' x'' _ _ ⊩x~x' ⊩x~x'') }))
+            subst (λ r' → r' ⊩ ∣ perX .equality ∣ (x' , x'')) (sym (λ*2ComputationRule realizer r₁ r₂)) (sv⊩isSingleValuedX x x' x'' _ _ ⊩x~x' ⊩x~x'') }))
     isFunctionalRelation.isTotal (isFuncRel incFuncRel) =
       do
         return
@@ -181,17 +178,17 @@ module InducedSubobject {X : Type ℓ'} (perX : PartialEquivalenceRelation X) (�
         (s , s⊩isSymmetricX) ← perX .isSymmetric
         let
           realizer : ApplStrTerm as 2
-          realizer = ` pair ̇ (` t ̇ (` pr₁ ̇ # fzero) ̇ (` s ̇ (` pr₁ ̇ # fone))) ̇ (` pr₂ ̇ # fzero)
+          realizer = ` pair ̇ (` t ̇ (` pr₁ ̇ # one) ̇ (` s ̇ (` pr₁ ̇ # zero))) ̇ (` pr₂ ̇ # one)
         return
-          (λ* realizer ,
+          (λ*2 realizer ,
           (λ x₁ x₂ x₃ r₁ r₂ (⊩x₁~x₃ , ⊩ϕx₁) (⊩x₂~x₃ , ⊩ϕx₂) →
             subst
               (λ r' → r' ⊩ ∣ perX .equality ∣ (x₁ , x₂))
-              (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule realizer (r₁ ∷ r₂ ∷ [])) ∙ pr₁pxy≡x _ _))
+              (sym (cong (λ x → pr₁ ⨾ x) (λ*2ComputationRule realizer r₁ r₂) ∙ pr₁pxy≡x _ _))
               (t⊩isTransitiveX x₁ x₃ x₂ _ _ ⊩x₁~x₃ (s⊩isSymmetricX x₂ x₃ _ ⊩x₂~x₃)) ,
             subst
               (λ r' → r' ⊩ ∣ ϕ .predicate ∣ x₁)
-              (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule realizer (r₁ ∷ r₂ ∷ [])) ∙ pr₂pxy≡y _ _))
+              (sym (cong (λ x → pr₂ ⨾ x) (λ*2ComputationRule realizer r₁  r₂) ∙ pr₂pxy≡y _ _))
               ⊩ϕx₁))
 
   isMonicInc : isMonic RT [ incFuncRel ]
@@ -227,9 +224,9 @@ module SubobjectIsoMonicFuncRel
       (stDF , stDF⊩isStrictDomainF) ← F .isStrictDomain
       let
         realizer : ApplStrTerm as 2
-        realizer = ` relF ̇ (` stDF ̇ # fzero) ̇ # fzero ̇ # fone
+        realizer = ` relF ̇ (` stDF ̇ # one) ̇ # one ̇ # zero
       return
-        (λ* realizer ,
+        (λ*2 realizer ,
         (λ x x' r s r⊩∃y s⊩x~x' →
           do
             (y , ⊩Fyx) ← r⊩∃y
@@ -237,7 +234,7 @@ module SubobjectIsoMonicFuncRel
               (y ,
               subst
                 (λ r' → r' ⊩ ∣ F .relation ∣ (y , x'))
-                (sym (λ*ComputationRule realizer (r ∷ s ∷ [])))
+                (sym (λ*2ComputationRule realizer r s))
                 (relF⊩isRelationalF y y x x' _ _ _ (stDF⊩isStrictDomainF y x _ ⊩Fyx) ⊩Fyx s⊩x~x'))))
 
   perψ : PartialEquivalenceRelation X
@@ -257,46 +254,46 @@ module SubobjectIsoMonicFuncRel
       (stCF , stCF⊩isStrictCodomain) ← F .isStrictCodomain
       let
         realizer : ApplStrTerm as 1
-        realizer = ` pair ̇ (` stCF ̇ # fzero) ̇ # fzero
+        realizer = ` pair ̇ (` stCF ̇ # zero) ̇ # zero
       return
         (λ* realizer ,
         (λ y x r ⊩Fyx →
           subst
             (λ r' → r' ⊩ ∣ perX .equality ∣ (x , x))
-            (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule realizer (r ∷ [])) ∙ pr₁pxy≡x _ _))
+            (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule realizer r) ∙ pr₁pxy≡x _ _))
             (stCF⊩isStrictCodomain y x _ ⊩Fyx) ,
           ∣ y ,
             subst
               (λ r' → r' ⊩ ∣ F .relation ∣ (y , x))
-              (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule realizer (r ∷ [])) ∙ pr₂pxy≡y _ _))
+              (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule realizer r) ∙ pr₂pxy≡y _ _))
               ⊩Fyx ∣₁))
   isFunctionalRelation.isRelational (isFuncRel perY≤perψFuncRel) =
     do
       (relF , relF⊩isRelationalF) ← F .isRelational
       let
         realizer : ApplStrTerm as 3
-        realizer = ` relF ̇ # fzero ̇ # fone ̇ (` pr₁ ̇ # (fsuc fone))
+        realizer = ` relF ̇ # two ̇ # one ̇ (` pr₁ ̇ # zero)
       return
-        (λ* realizer ,
+        (λ*3 realizer ,
         (λ { y y' x x' a b c ⊩y~y' ⊩Fyx (⊩x~x' , ⊩Fy''x) →
-          subst (λ r' → r' ⊩ ∣ F .relation ∣ (y' , x')) (sym (λ*ComputationRule realizer (a ∷ b ∷ c ∷ []))) (relF⊩isRelationalF y y' x x' _ _ _ ⊩y~y' ⊩Fyx ⊩x~x') }))
+          subst (λ r' → r' ⊩ ∣ F .relation ∣ (y' , x')) (sym (λ*3ComputationRule realizer a b c)) (relF⊩isRelationalF y y' x x' _ _ _ ⊩y~y' ⊩Fyx ⊩x~x') }))
   isFunctionalRelation.isSingleValued (isFuncRel perY≤perψFuncRel) =
     do
       (svF , svF⊩isSingleValuedF) ← F .isSingleValued
       let
         realizer : ApplStrTerm as 2
-        realizer = ` pair ̇ (` svF ̇ # fzero ̇ # fone) ̇ # fzero
+        realizer = ` pair ̇ (` svF ̇ # one ̇ # zero) ̇ # one
       return
-        (λ* realizer ,
+        (λ*2 realizer ,
         (λ y x x' r₁ r₂ ⊩Fyx ⊩Fyx' →
           subst
             (λ r' → r' ⊩ ∣ perX .equality ∣ (x , x'))
-            (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule realizer (r₁ ∷ r₂ ∷ [])) ∙ pr₁pxy≡x _ _))
+            (sym (cong (λ x → pr₁ ⨾ x) (λ*2ComputationRule realizer r₁ r₂) ∙ pr₁pxy≡x _ _))
             (svF⊩isSingleValuedF y x x' _ _ ⊩Fyx ⊩Fyx') ,
           ∣ y ,
             (subst
               (λ r' → r' ⊩ ∣ F .relation ∣ (y , x))
-              (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule realizer (r₁ ∷ r₂ ∷ [])) ∙ pr₂pxy≡y _ _))
+              (sym (cong (λ x → pr₂ ⨾ x) (λ*2ComputationRule realizer r₁ r₂) ∙ pr₂pxy≡y _ _))
               ⊩Fyx) ∣₁))
   isFunctionalRelation.isTotal (isFuncRel perY≤perψFuncRel) =
     do
@@ -321,7 +318,7 @@ module SubobjectIsoMonicFuncRel
             (relF , relF⊩isRelationalF) ← F .isRelational
             let
               realizer : ApplStrTerm as 1
-              realizer = ` relF ̇ (` stDF ̇ (` pr₁ ̇ # fzero)) ̇ (` pr₁ ̇ # fzero) ̇ (` pr₁ ̇ (` pr₂ ̇ # fzero))
+              realizer = ` relF ̇ (` stDF ̇ (` pr₁ ̇ # zero)) ̇ (` pr₁ ̇ # zero) ̇ (` pr₁ ̇ (` pr₂ ̇ # zero))
             return
               (λ* realizer ,
               (λ y x r r⊩∃x' →
@@ -332,7 +329,7 @@ module SubobjectIsoMonicFuncRel
                     return
                       (subst
                         (λ r → r ⊩ ∣ F .relation ∣ (y , x))
-                        (sym (λ*ComputationRule realizer (r ∷ [])))
+                        (sym (λ*ComputationRule realizer r))
                         (relF⊩isRelationalF y y x' x _ _ _ (stDF⊩isStrictDomainF y x' _ ⊩Fyx') ⊩Fyx' ⊩x'~x)))))
       in
       eq/ _ _ (answer , F≤G→G≤F perY perX (composeFuncRel _ _ _ perY≤perψFuncRel (InducedSubobject.incFuncRel perX ψ)) F answer)
@@ -349,19 +346,19 @@ module SubobjectIsoMonicFuncRel
         (stCF , stCF⊩isStrictCodomainF) ← F .isStrictCodomain
         let
           realizer : ApplStrTerm as 1
-          realizer = ` pair ̇ (` stCF ̇ # fzero) ̇ # fzero
+          realizer = ` pair ̇ (` stCF ̇ # zero) ̇ # zero
         return
           (λ* realizer ,
           (λ x y r ⊩Fyx →
             (subst
               (λ r' → r' ⊩ ∣ perX .equality ∣ (x , x))
-              (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule realizer (r ∷ [])) ∙ pr₁pxy≡x _ _))
+              (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule realizer r) ∙ pr₁pxy≡x _ _))
               (stCF⊩isStrictCodomainF y x _ ⊩Fyx)) ,
             (return
               (y ,
               (subst
                 (λ r' → r' ⊩ ∣ F .relation ∣ (y , x))
-                (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule realizer (r ∷ [])) ∙ pr₂pxy≡y _ _))
+                (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule realizer r) ∙ pr₂pxy≡y _ _))
                 ⊩Fyx)))))
     isFunctionalRelation.isStrictCodomain (isFuncRel perψ≤perYFuncRel) =
       do
@@ -374,11 +371,11 @@ module SubobjectIsoMonicFuncRel
         (relF , relF⊩isRelationalF) ← F .isRelational
         let
           realizer : ApplStrTerm as 3
-          realizer = ` relF ̇ # (fsuc fone) ̇ # fone ̇ (` pr₁ ̇ # fzero)
+          realizer = ` relF ̇ # zero ̇ # one ̇ (` pr₁ ̇ # two)
         return
-          (λ* realizer ,
+          (λ*3 realizer ,
           (λ { x x' y y' a b c (⊩x~x' , ⊩ψx) ⊩Fyx ⊩y~y' →
-            subst (λ r' → r' ⊩ ∣ F .relation ∣ (y' , x')) (sym (λ*ComputationRule realizer (a ∷ b ∷ c ∷ []))) (relF⊩isRelationalF y y' x x' _ _ _ ⊩y~y' ⊩Fyx ⊩x~x') }))
+            subst (λ r' → r' ⊩ ∣ F .relation ∣ (y' , x')) (sym (λ*3ComputationRule realizer a b c)) (relF⊩isRelationalF y y' x x' _ _ _ ⊩y~y' ⊩Fyx ⊩x~x') }))
     isFunctionalRelation.isSingleValued (isFuncRel perψ≤perYFuncRel) =
       let
         isInjectiveFuncRelF = isMonic→isInjectiveFuncRel perY perX F isMonicF
@@ -407,7 +404,7 @@ module SubobjectIsoMonicFuncRel
             (svF , svF⊩isSingleValuedF) ← F .isSingleValued
             let
               realizer : ApplStrTerm as 1
-              realizer = ` pair ̇ (` svF ̇ (` pr₁ ̇ # fzero) ̇ (` pr₂ ̇ # fzero)) ̇ (` pr₁ ̇ # fzero)
+              realizer = ` pair ̇ (` svF ̇ (` pr₁ ̇ # zero) ̇ (` pr₂ ̇ # zero)) ̇ (` pr₁ ̇ # zero)
             return
               (λ* realizer ,
               (λ x x' r r⊩∃y →
@@ -418,13 +415,13 @@ module SubobjectIsoMonicFuncRel
                     return
                       (subst
                         (λ r' → r' ⊩ ∣ perX .equality ∣ (x , x'))
-                        (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule realizer (r ∷ [])) ∙ pr₁pxy≡x _ _))
+                        (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule realizer r) ∙ pr₁pxy≡x _ _))
                         (svF⊩isSingleValuedF y x x' _ _ ⊩Fyx ⊩Fyx') ,
                       return
                         (y ,
                         (subst
                           (λ r' → r' ⊩ ∣ F .relation ∣ (y , x))
-                          (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule realizer (r ∷ [])) ∙ pr₂pxy≡y _ _))
+                          (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule realizer r) ∙ pr₂pxy≡y _ _))
                           ⊩Fyx))))))
       in
       eq/ _ _ (answer , F≤G→G≤F perψ perX (composeFuncRel _ _ _ perψ≤perYFuncRel F) (InducedSubobject.incFuncRel perX ψ) answer)
@@ -476,7 +473,7 @@ module InclusionEntailment
             (q , q⊩incϕ≤F⋆incψ) ← q
             let
               realizer : ApplStrTerm as 1
-              realizer = ` relψ ̇ (` pr₂ ̇ (` pr₂ ̇ (` q ̇ (` pair ̇ (` stϕ ̇ # fzero) ̇ # fzero)))) ̇ (` pr₁ ̇ (` pr₂ ̇ (` q ̇ (` pair ̇ (` stϕ ̇ # fzero) ̇ # fzero))))
+              realizer = ` relψ ̇ (` pr₂ ̇ (` pr₂ ̇ (` q ̇ (` pair ̇ (` stϕ ̇ # zero) ̇ # zero)))) ̇ (` pr₁ ̇ (` pr₂ ̇ (` q ̇ (` pair ̇ (` stϕ ̇ # zero) ̇ # zero))))
             return
               (λ* realizer ,
               (λ x a a⊩ϕx →
@@ -489,7 +486,7 @@ module InclusionEntailment
                         (pair ⨾ (stϕ ⨾ a) ⨾ a)
                         ((subst (λ r' → r' ⊩ ∣ perX .equality ∣ (x , x)) (sym (pr₁pxy≡x _ _)) (stϕ⊩isStrictϕ x a a⊩ϕx)) ,
                          (subst (λ r' → r' ⊩ ∣ ϕ .predicate ∣ x) (sym (pr₂pxy≡y _ _)) a⊩ϕx))
-                    return (subst (λ r' → r' ⊩ ∣ ψ .predicate ∣ x) (sym (λ*ComputationRule realizer (a ∷ []))) (relψ⊩isRelationalψ x' x _ _ ⊩ψx' ⊩x'~x))))))
+                    return (subst (λ r' → r' ⊩ ∣ ψ .predicate ∣ x) (sym (λ*ComputationRule realizer a)) (relψ⊩isRelationalψ x' x _ _ ⊩ψx' ⊩x'~x))))))
         f
         f⋆incψ≡incϕ
 
@@ -509,29 +506,29 @@ module InclusionEntailment
         (stϕ , stϕ⊩isStrictϕ) ← ϕ .isStrict
         let
           realizer : ApplStrTerm as 1
-          realizer = ` pair ̇ (` stϕ ̇ (` pr₁ ̇ (` pr₂ ̇ # fzero))) ̇ (` pr₁ ̇ (` pr₂ ̇ # fzero))
+          realizer = ` pair ̇ (` stϕ ̇ (` pr₁ ̇ (` pr₂ ̇ # zero))) ̇ (` pr₁ ̇ (` pr₂ ̇ # zero))
         return
           (λ* realizer ,
           (λ { x x' r (⊩x~x' , ⊩ϕx , ⊩ψx) →
-            subst (λ r' → r' ⊩ ∣ perX .equality ∣ (x , x)) (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule realizer (r ∷ [])) ∙ pr₁pxy≡x _ _)) (stϕ⊩isStrictϕ x _ ⊩ϕx) ,
-            subst (λ r' → r' ⊩ ∣ ϕ .predicate ∣ x) (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule realizer (r ∷ [])) ∙ pr₂pxy≡y _ _)) ⊩ϕx}))
+            subst (λ r' → r' ⊩ ∣ perX .equality ∣ (x , x)) (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule realizer r) ∙ pr₁pxy≡x _ _)) (stϕ⊩isStrictϕ x _ ⊩ϕx) ,
+            subst (λ r' → r' ⊩ ∣ ϕ .predicate ∣ x) (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule realizer r) ∙ pr₂pxy≡y _ _)) ⊩ϕx}))
     isFunctionalRelation.isStrictCodomain (isFuncRel funcRel) =
       do
         (stCX , stCX⊩isStrictCodomainX) ← idFuncRel perX .isStrictCodomain
         (relψ , relψ⊩isRelationalψ) ← ψ .isRelational
         let
           realizer : ApplStrTerm as 1
-          realizer = ` pair ̇ (` stCX ̇ (` pr₁ ̇ # fzero)) ̇ (` relψ ̇ (` pr₂ ̇ (` pr₂ ̇ # fzero)) ̇ (` pr₁ ̇ # fzero))
+          realizer = ` pair ̇ (` stCX ̇ (` pr₁ ̇ # zero)) ̇ (` relψ ̇ (` pr₂ ̇ (` pr₂ ̇ # zero)) ̇ (` pr₁ ̇ # zero))
         return
           (λ* realizer ,
           (λ { x x' r (⊩x~x' , ⊩ϕx , ⊩ψx) →
             subst
               (λ r' → r' ⊩ ∣ perX .equality ∣ (x' , x'))
-              (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule realizer (r ∷ [])) ∙ pr₁pxy≡x _ _))
+              (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule realizer r) ∙ pr₁pxy≡x _ _))
               (stCX⊩isStrictCodomainX x x' _ ⊩x~x') ,
             subst
               (λ r' → r' ⊩ ∣ ψ .predicate ∣ x')
-              (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule realizer (r ∷ [])) ∙ pr₂pxy≡y _ _))
+              (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule realizer r) ∙ pr₂pxy≡y _ _))
               (relψ⊩isRelationalψ x x' _ _ ⊩ψx ⊩x~x')}))
     isFunctionalRelation.isRelational (isFuncRel funcRel) =
       do
@@ -541,21 +538,21 @@ module InclusionEntailment
         let
           realizer : ApplStrTerm as 3
           realizer =
-            ` pair ̇ (` relX ̇ (` pr₁ ̇ # fzero) ̇ (` pr₁ ̇ # fone) ̇ (` pr₁ ̇ # (fsuc fone))) ̇ (` pair ̇ (` relϕ ̇ (` pr₂ ̇ # fzero) ̇ (` pr₁ ̇ # fzero)) ̇ (` relψ ̇ (` pr₂ ̇ (` pr₂ ̇ # fone)) ̇ (` pr₁ ̇ # fzero)))
+            ` pair ̇ (` relX ̇ (` pr₁ ̇ # two) ̇ (` pr₁ ̇ # one) ̇ (` pr₁ ̇ # zero)) ̇ (` pair ̇ (` relϕ ̇ (` pr₂ ̇ # two) ̇ (` pr₁ ̇ # two)) ̇ (` relψ ̇ (` pr₂ ̇ (` pr₂ ̇ # one)) ̇ (` pr₁ ̇ # two)))
         return
-          (λ* realizer ,
+          (λ*3 realizer ,
           λ { x₁ x₂ x₃ x₄ a b c (⊩x₁~x₂ , ⊩ϕx₁) (⊩x₁~x₃ , ⊩'ϕx₁ , ⊩ψx₁) (⊩x₃~x₄ , ⊩ψx₃) →
             subst
               (λ r' → r' ⊩ ∣ perX .equality ∣ (x₂ , x₄))
-              (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule realizer (a ∷ b ∷ c ∷ [])) ∙ pr₁pxy≡x _ _))
+              (sym (cong (λ x → pr₁ ⨾ x) (λ*3ComputationRule realizer a b c) ∙ pr₁pxy≡x _ _))
               (relX⊩isRelationalX x₁ x₂ x₃ x₄ _ _ _ ⊩x₁~x₂ ⊩x₁~x₃ ⊩x₃~x₄) ,
             subst
               (λ r' → r' ⊩ ∣ ϕ .predicate ∣ x₂)
-              (sym (cong (λ x → pr₁ ⨾ (pr₂ ⨾ x)) (λ*ComputationRule realizer (a ∷ b ∷ c ∷ [])) ∙ cong (λ x → pr₁ ⨾ x) (pr₂pxy≡y _ _) ∙ pr₁pxy≡x _ _))
+              (sym (cong (λ x → pr₁ ⨾ (pr₂ ⨾ x)) (λ*3ComputationRule realizer a b c) ∙ cong (λ x → pr₁ ⨾ x) (pr₂pxy≡y _ _) ∙ pr₁pxy≡x _ _))
               (relϕ⊩isRelationalϕ x₁ x₂ _ _ ⊩ϕx₁ ⊩x₁~x₂) ,
             subst
               (λ r' → r' ⊩ ∣ ψ .predicate ∣ x₂)
-              (sym (cong (λ x → pr₂ ⨾ (pr₂ ⨾ x)) (λ*ComputationRule realizer (a ∷ b ∷ c ∷ [])) ∙ cong (λ x → pr₂ ⨾ x) (pr₂pxy≡y _ _) ∙ pr₂pxy≡y _ _))
+              (sym (cong (λ x → pr₂ ⨾ (pr₂ ⨾ x)) (λ*3ComputationRule realizer a b c) ∙ cong (λ x → pr₂ ⨾ x) (pr₂pxy≡y _ _) ∙ pr₂pxy≡y _ _))
               (relψ⊩isRelationalψ x₁ x₂ _ _ ⊩ψx₁ ⊩x₁~x₂)})
     isFunctionalRelation.isSingleValued (isFuncRel funcRel) =
       do
@@ -563,19 +560,19 @@ module InclusionEntailment
         (relψ , relψ⊩isRelationalψ) ← ψ .isRelational
         let
           realizer : ApplStrTerm as 2
-          realizer = ` pair ̇ (` svX ̇ (` pr₁ ̇ # fzero) ̇ (` pr₁ ̇ # fone)) ̇ (` relψ ̇ (` pr₂ ̇ (` pr₂ ̇ # fzero)) ̇ (` pr₁ ̇ # fzero))
+          realizer = ` pair ̇ (` svX ̇ (` pr₁ ̇ # one) ̇ (` pr₁ ̇ # zero)) ̇ (` relψ ̇ (` pr₂ ̇ (` pr₂ ̇ # one)) ̇ (` pr₁ ̇ # one))
         return
-          (λ* realizer ,
+          (λ*2 realizer ,
           (λ { x₁ x₂ x₃ r₁ r₂ (⊩x₁~x₂ , ⊩ϕx , ⊩ψx) (⊩x₁~x₃ , ⊩'ϕx , ⊩'ψx) →
-            (subst (λ r' → r' ⊩ ∣ perX .equality ∣ (x₂ , x₃)) (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule realizer (r₁ ∷ r₂ ∷ [])) ∙ pr₁pxy≡x _ _)) (svX⊩isSingleValuedX x₁ x₂ x₃ _ _ ⊩x₁~x₂ ⊩x₁~x₃)) ,
-             subst (λ r' → r' ⊩ ∣ ψ .predicate ∣ x₂) (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule realizer (r₁ ∷ r₂ ∷ [])) ∙ pr₂pxy≡y _ _)) (relψ⊩isRelationalψ x₁ x₂ _ _ ⊩ψx ⊩x₁~x₂)}))
+            (subst (λ r' → r' ⊩ ∣ perX .equality ∣ (x₂ , x₃)) (sym (cong (λ x → pr₁ ⨾ x) (λ*2ComputationRule realizer r₁ r₂) ∙ pr₁pxy≡x _ _)) (svX⊩isSingleValuedX x₁ x₂ x₃ _ _ ⊩x₁~x₂ ⊩x₁~x₃)) ,
+             subst (λ r' → r' ⊩ ∣ ψ .predicate ∣ x₂) (sym (cong (λ x → pr₂ ⨾ x) (λ*2ComputationRule realizer r₁ r₂) ∙ pr₂pxy≡y _ _)) (relψ⊩isRelationalψ x₁ x₂ _ _ ⊩ψx ⊩x₁~x₂)}))
     isFunctionalRelation.isTotal (isFuncRel funcRel) =
       do
         (tl , tl⊩isTotalIncψ) ← incψ .isTotal
         (s , s⊩ϕ≤ψ) ← ϕ≤ψ
         let
           realizer : ApplStrTerm as 1
-          realizer = ` pair ̇ (` pr₁ ̇ # fzero) ̇ (` pair ̇ (` pr₂ ̇ # fzero) ̇ (` s ̇ (` pr₂ ̇ # fzero)))
+          realizer = ` pair ̇ (` pr₁ ̇ # zero) ̇ (` pair ̇ (` pr₂ ̇ # zero) ̇ (` s ̇ (` pr₂ ̇ # zero)))
         return
           (λ* realizer ,
           (λ { x r (⊩x~x , ⊩ϕx) →
@@ -583,15 +580,15 @@ module InclusionEntailment
               (x ,
               subst
                 (λ r' → r' ⊩ ∣ perX .equality ∣ (x , x))
-                (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule realizer (r ∷ [])) ∙ pr₁pxy≡x _ _))
+                (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule realizer r) ∙ pr₁pxy≡x _ _))
                 ⊩x~x ,
               subst
                 (λ r' → r' ⊩ ∣ ϕ .predicate ∣ x)
-                (sym (cong (λ x → pr₁ ⨾ (pr₂ ⨾ x)) (λ*ComputationRule realizer (r ∷ [])) ∙ cong (λ x → pr₁ ⨾ x) (pr₂pxy≡y _ _) ∙ pr₁pxy≡x _ _))
+                (sym (cong (λ x → pr₁ ⨾ (pr₂ ⨾ x)) (λ*ComputationRule realizer r) ∙ cong (λ x → pr₁ ⨾ x) (pr₂pxy≡y _ _) ∙ pr₁pxy≡x _ _))
                 ⊩ϕx ,
               subst
                 (λ r' → r' ⊩ ∣ ψ .predicate ∣ x)
-                (sym (cong (λ x → pr₂ ⨾ (pr₂ ⨾ x)) (λ*ComputationRule realizer (r ∷ [])) ∙ cong (λ x → pr₂ ⨾ x) (pr₂pxy≡y _ _) ∙ pr₂pxy≡y _ _))
+                (sym (cong (λ x → pr₂ ⨾ (pr₂ ⨾ x)) (λ*ComputationRule realizer r) ∙ cong (λ x → pr₂ ⨾ x) (pr₂pxy≡y _ _) ∙ pr₂pxy≡y _ _))
                 (s⊩ϕ≤ψ x _ ⊩ϕx))}))
     
     funcRel⋆incψ≡incϕ : [ funcRel ] ⋆ [ incψ ] ≡ [ incϕ ]
@@ -602,7 +599,7 @@ module InclusionEntailment
             (t , t⊩isTransitiveX) ← perX .isTransitive
             let
               realizer : ApplStrTerm as 1
-              realizer = ` pair ̇ (` t ̇ (` pr₁ ̇ (` pr₁ ̇ # fzero)) ̇ (` pr₁ ̇ (` pr₂ ̇ # fzero))) ̇ (` pr₁ ̇ (` pr₂ ̇ (` pr₁ ̇ # fzero)))
+              realizer = ` pair ̇ (` t ̇ (` pr₁ ̇ (` pr₁ ̇ # zero)) ̇ (` pr₁ ̇ (` pr₂ ̇ # zero))) ̇ (` pr₁ ̇ (` pr₂ ̇ (` pr₁ ̇ # zero)))
             return
               (λ* realizer ,
               (λ { x x' r ⊩∃x'' →
@@ -613,11 +610,11 @@ module InclusionEntailment
                     return
                       ((subst
                         (λ r' → r' ⊩ ∣ perX .equality ∣ (x , x'))
-                        (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule realizer (r ∷ [])) ∙ pr₁pxy≡x _ _))
+                        (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule realizer r) ∙ pr₁pxy≡x _ _))
                         (t⊩isTransitiveX x x'' x' _ _ ⊩x~x'' ⊩x''~x')) ,
                        (subst
                          (λ r' → r' ⊩ ∣ ϕ .predicate ∣ x)
-                         (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule realizer (r ∷ [])) ∙ pr₂pxy≡y _ _))
+                         (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule realizer r) ∙ pr₂pxy≡y _ _))
                          ⊩ϕx)))}))
       in
       eq/ _ _ (answer , F≤G→G≤F perϕ perX (composeFuncRel _ _ _ funcRel incψ) incϕ answer)
