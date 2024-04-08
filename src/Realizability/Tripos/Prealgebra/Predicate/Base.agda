@@ -14,7 +14,7 @@ open CombinatoryAlgebra ca
 open Realizability.CombinatoryAlgebra.Combinators ca renaming (i to Id; ia≡a to Ida≡a)
 
 record Predicate (X : Type ℓ') : Type (ℓ-max (ℓ-max (ℓ-suc ℓ) (ℓ-suc ℓ')) (ℓ-suc ℓ'')) where
-  constructor consPredicate
+  constructor makePredicate
   field
     isSetX : isSet X
     ∣_∣ : X → A → Type (ℓ-max (ℓ-max ℓ ℓ') ℓ'')
