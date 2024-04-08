@@ -71,6 +71,7 @@ module _
         (∀ x r → r ⊩ ∣ equalityX ∣ (x , x) → ∃[ y ∈ Y ] (tl ⨾ r) ⊩ ∣ relation ∣ (x , y))
     
   record isFunctionalRelation : Type (ℓ-max (ℓ-max (ℓ-suc ℓ) (ℓ-suc ℓ')) (ℓ-suc ℓ'')) where
+    constructor makeIsFunctionalRelation
     field
       isStrictDomain : ∃[ stD ∈ A ] (realizesStrictDomain stD)
       isStrictCodomain : ∃[ stC ∈ A ] (realizesStrictCodomain stC)
@@ -79,6 +80,7 @@ module _
       isTotal : ∃[ tl ∈ A ] (realizesTotal tl)
 
 record FunctionalRelation {X Y : Type ℓ'} (perX : PartialEquivalenceRelation X) (perY : PartialEquivalenceRelation Y) : Type (ℓ-max (ℓ-max (ℓ-suc ℓ) (ℓ-suc ℓ')) (ℓ-suc ℓ'')) where
+  constructor makeFunctionalRelation
   field
     relation : Predicate (X × Y)
     isFuncRel : isFunctionalRelation perX perY relation

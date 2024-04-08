@@ -1,4 +1,4 @@
-open import Realizability.ApplicativeStructure renaming (Term to ApplStrTerm)
+open import Realizability.ApplicativeStructure renaming (Term to ApplStrTerm; ⟦_⟧ to pre⟦_⟧)
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Equiv
@@ -42,6 +42,8 @@ open PartialEquivalenceRelation
 open FunctionalRelation
 open Category RT
 
+⟦_⟧ = pre⟦_⟧ as
+
 Ωper : PartialEquivalenceRelation (ResizedPredicate Unit*)
 Predicate.isSetX (equality Ωper) = isSet× isSetResizedPredicate isSetResizedPredicate
 Predicate.∣ equality Ωper ∣ (α , β) r =
@@ -56,10 +58,10 @@ isPartialEquivalenceRelation.isSymmetric (isPerEquality Ωper) =
   do
     let
       ent₁ : ApplStrTerm as 2
-      ent₁ = ` pr₂ ̇ # zero ̇ # one
+      ent₁ = ` pr₂ ̇ # one ̇ # zero
 
       ent₂ : ApplStrTerm as 2
-      ent₂ = ` pr₁ ̇ # zero ̇ # one
+      ent₂ = ` pr₁ ̇ # one ̇ # zero
 
       realizer : ApplStrTerm as 1
       realizer = ` pair ̇ (λ*abst ent₁) ̇ (λ*abst ent₂)
@@ -69,10 +71,31 @@ isPartialEquivalenceRelation.isSymmetric (isPerEquality Ωper) =
         (λ a a⊩β →
           let
             eq : pr₁ ⨾ (λ* realizer ⨾ r) ⨾ a ≡ pr₂ ⨾ r ⨾ a
-            eq = {!!}
+            eq =
+              pr₁ ⨾ (λ* realizer ⨾ r) ⨾ a
+                ≡⟨ cong (λ x → pr₁ ⨾ x ⨾ a) (λ*ComputationRule realizer r) ⟩
+              pr₁ ⨾ (pair ⨾ _ ⨾ _) ⨾ a
+                ≡⟨ cong (λ x → x ⨾ a) (pr₁pxy≡x _ _) ⟩
+              ⟦ (λ*abst ent₁) ⟧ (r ∷ []) ⨾ a
+                ≡⟨ βreduction ent₁ a (r ∷ []) ⟩
+              pr₂ ⨾ r ⨾ a
+                ∎
           in
           subst (λ r' → r' ⊩ ∣ toPredicate α ∣ tt*) (sym eq) (pr₂r⊩β≤α a a⊩β)) ,
-        (λ a a⊩α → subst (λ r' → r' ⊩ ∣ toPredicate β ∣ tt*) (sym {!!}) (pr₁r⊩α≤β a a⊩α)) })
+        (λ a a⊩α →
+          let
+            eq : pr₂ ⨾ (λ* realizer ⨾ r) ⨾ a ≡ pr₁ ⨾ r ⨾ a
+            eq =
+              pr₂ ⨾ (λ* realizer ⨾ r) ⨾ a
+                ≡⟨ cong (λ x → pr₂ ⨾ x ⨾ a) (λ*ComputationRule realizer r) ⟩
+              pr₂ ⨾ (pair ⨾ _ ⨾ _) ⨾ a
+                ≡⟨ cong (λ x → x ⨾ a) (pr₂pxy≡y _ _) ⟩
+              ⟦ λ*abst ent₂ ⟧ (r ∷ []) ⨾ a
+                ≡⟨ βreduction ent₂ a (r ∷ []) ⟩
+              pr₁ ⨾ r ⨾ a
+                ∎
+          in
+          subst (λ r' → r' ⊩ ∣ toPredicate β ∣ tt*) (sym eq) (pr₁r⊩α≤β a a⊩α)) })
 isPartialEquivalenceRelation.isTransitive (isPerEquality Ωper) =
   do
     return
@@ -193,7 +216,7 @@ module _
           let
             resultPredicate : Predicate Unit*
             resultPredicate =
-              consPredicate
+              makePredicate
                 isSetUnit*
                 (λ { tt* s → s ⊩ ∣ ϕ .predicate ∣ x })
                 (λ { tt* s → ϕ .predicate .isPropValued _ _ })
@@ -261,7 +284,7 @@ module _
                         (sym eq)
                         (⊩ϕx'≤p _ (relϕ⊩isRelationalϕ x x' _ _ ⊩ϕx ⊩x~x'))) }))
       in
-      eq/ _ _ (answer , {!!})
+      eq/ _ _ (answer , F≤G→G≤F subPer Ωper (composeFuncRel _ _ _ incFuncRel charFuncRel) (composeFuncRel _ _ _ (terminalFuncRel subPer) trueFuncRel) answer)
 
   classifies : isPullback RT subobjectCospan [ incFuncRel ] [ terminalFuncRel subPer ] subobjectSquareCommutes
   classifies {Y , perY} f g f⋆char≡g⋆true =
@@ -269,8 +292,41 @@ module _
         {P = λ f g → ∀ (commutes : f ⋆ [ charFuncRel ] ≡ g ⋆ [ trueFuncRel ]) → ∃![ hk ∈ RTMorphism perY subPer ] (f ≡ hk ⋆ [ incFuncRel ]) × (g ≡ hk ⋆ [ terminalFuncRel subPer ])}
         (λ f g → isPropΠ λ _ → isPropIsContr)
         (λ F G F⋆char≡G⋆true →
+          let
+            H : FunctionalRelation perY subPer
+            H =
+              makeFunctionalRelation
+                (makePredicate
+                  (isSet× (perY .isSetX) (perX .isSetX))
+                  (λ { (y , x) r → (pr₁ ⨾ r) ⊩ ∣ F .relation ∣ (y , x) × (pr₂ ⨾ r) ⊩ ∣ ϕ .predicate ∣ x })
+                  λ { (y , x) r → isProp× (F .relation .isPropValued _ _) (ϕ .predicate .isPropValued _ _) })
+                (makeIsFunctionalRelation
+                  (do
+                    (stF , stF⊩isStrictDomainF) ← F .isStrictDomain
+                    return
+                      ({!!} ,
+                      (λ { y x r (pr₁r⊩Fyx , pr₂r⊩ϕx) →
+                        subst (λ r' → r' ⊩ ∣ perY .equality ∣ (y , y)) (sym {!!}) (stF⊩isStrictDomainF y x (pr₁ ⨾ r) pr₁r⊩Fyx)})))
+                  (do
+                    (stFC , stFC⊩isStrictCodomainF) ← F .isStrictCodomain
+                    return
+                      ({!!} ,
+                      (λ { y x r (pr₁r⊩Fyx , pr₂r⊩ϕx) →
+                        {!stFC⊩isStrictCodomainF y x (pr₁ ⨾ r) pr₁r⊩Fyx!} ,
+                        {!pr₂r⊩ϕx!} })))
+                  (do
+                    return {!!})
+                  (do
+                    return {!!})
+                  (do
+                    return
+                      ({!!} ,
+                      (λ { y r r⊩y~y →
+                        return
+                          ({!!} , {!!} , {!!})}))))
+          in
           uniqueExists
-            {!!}
+            [ H ]
             ({!!} ,
              {!!})
             (λ hk' → isProp× (squash/ _ _) (squash/ _ _))

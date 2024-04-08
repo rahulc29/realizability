@@ -19,6 +19,7 @@ module Realizability.Topos.ResizedPredicate
   where
 
 open import Realizability.Tripos.Prealgebra.Predicate {ℓ' = ℓ} {ℓ'' = ℓ} ca
+open import Realizability.Topos.Object {ℓ' = ℓ} {ℓ'' = ℓ} ca isNonTrivial
 
 open CombinatoryAlgebra ca
 open Predicate renaming (isSetX to isSetPredicateBase)
@@ -65,10 +66,27 @@ compIsIdEquiv X = invEquiv-is-rinv (Predicate≃ResizedPredicate X)
 compIsIdFunc : ∀ {X} → (p : Predicate X) → toPredicate (fromPredicate p) ≡ p
 compIsIdFunc {X} p i = equivFun (compIsIdEquiv X i) p
 
-module _ {X} where
+module ResizedPredicateProps {X} (perX : PartialEquivalenceRelation X) where
+  open PartialEquivalenceRelation
+
   entailmentResizedPredicate : ∀ (ϕ ψ : ResizedPredicate X) → A → Type ℓ
   entailmentResizedPredicate ϕ ψ r = ∀ (x : X) (a : A) (⊩ϕx : a ⊩ ∣ toPredicate ϕ ∣ x) → (r ⨾ a) ⊩ ∣ toPredicate ψ ∣ x
 
   isPropEntailmentResizedPredicate : ∀ ϕ ψ a → isProp (entailmentResizedPredicate ϕ ψ a)
   isPropEntailmentResizedPredicate ϕ ψ a =
     isPropΠ λ x → isPropΠ λ b → isPropΠ λ _ → (toPredicate ψ) .isPropValued _ _
+
+  isStrictResizedPredicate : ∀ (ϕ : ResizedPredicate X) → A → Type ℓ
+  isStrictResizedPredicate ϕ r = ∀ (x : X) (a : A) (⊩ϕx : a ⊩ ∣ toPredicate ϕ ∣ x) → (r ⨾ a) ⊩ ∣ perX .equality ∣ (x , x)
+
+  isPropIsStrictResizedPredicate : ∀ ϕ r → isProp (isStrictResizedPredicate ϕ r)
+  isPropIsStrictResizedPredicate ϕ r =
+    isPropΠ λ x → isPropΠ λ a → isPropΠ λ _ → perX .equality .isPropValued _ _
+
+  isRelationalResizedPredicate : ∀ (ϕ : ResizedPredicate X) → A → Type ℓ
+  isRelationalResizedPredicate ϕ r =
+    ∀ (x x' : X) (a b : A) (⊩x~x' : a ⊩ ∣ perX .equality ∣ (x , x')) (⊩ϕx : b ⊩ ∣ toPredicate ϕ ∣ x) → (r ⨾ a ⨾ b) ⊩ ∣ toPredicate ϕ ∣ x'
+
+  isPropIsRelationalResizedPredicate : ∀ ϕ r → isProp (isRelationalResizedPredicate ϕ r)
+  isPropIsRelationalResizedPredicate ϕ r =
+    isPropΠ λ x → isPropΠ λ x' → isPropΠ λ a → isPropΠ λ b → isPropΠ λ _ → isPropΠ λ _ → toPredicate ϕ .isPropValued _ _
