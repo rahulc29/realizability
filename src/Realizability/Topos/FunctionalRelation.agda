@@ -567,6 +567,37 @@ opaque
              answer))
       f g h
 
+-- Very useful helper functions to prevent type-checking time from exploding
+opaque
+  [F]≡[G]→F≤G : ∀ {X Y : Type ℓ'} {perX : PartialEquivalenceRelation X} {perY : PartialEquivalenceRelation Y} → (F G : FunctionalRelation perX perY) → [_] {R = bientailment perX perY} F ≡ [_] {R = bientailment perX perY} G → pointwiseEntailment perX perY F G
+  [F]≡[G]→F≤G {X} {Y} {perX} {perY} F G iso = SQ.effective (isPropValuedBientailment perX perY) (isEquivRelBientailment perX perY) F G iso .fst
+
+  [F]≡[G]→G≤F : ∀ {X Y : Type ℓ'} {perX : PartialEquivalenceRelation X} {perY : PartialEquivalenceRelation Y} → (F G : FunctionalRelation perX perY) → [_] {R = bientailment perX perY} F ≡ [_] {R = bientailment perX perY} G → pointwiseEntailment perX perY G F
+  [F]≡[G]→G≤F {X} {Y} {perX} {perY} F G iso = SQ.effective (isPropValuedBientailment perX perY) (isEquivRelBientailment perX perY) F G iso .snd
+
+opaque
+  unfolding composeRTMorphism
+  [F]⋆[G]≡[H]⋆[I]→F⋆G≤H⋆I : ∀ {X Y Z W : Type ℓ'} {perX : PartialEquivalenceRelation X} {perY : PartialEquivalenceRelation Y} {perZ : PartialEquivalenceRelation Z} {perW : PartialEquivalenceRelation W} → (F : FunctionalRelation perX perY) (G : FunctionalRelation perY perZ) (H : FunctionalRelation perX perW) (I : FunctionalRelation perW perZ) → composeRTMorphism _ _ _ [ F ] [ G ] ≡ composeRTMorphism _ _ _ [ H ] [ I ] → pointwiseEntailment _ _ (composeFuncRel _ _ _ F G) (composeFuncRel _ _ _ H I)
+  [F]⋆[G]≡[H]⋆[I]→F⋆G≤H⋆I {X} {Y} {Z} {W} {perX} {perY} {perZ} {perW} F G H I iso =
+    SQ.effective (isPropValuedBientailment perX perZ) (isEquivRelBientailment perX perZ) (composeFuncRel _ _ _ F G) (composeFuncRel _ _ _ H I) iso .fst
+
+opaque
+  unfolding composeRTMorphism
+  [F]⋆[G]≡[H]⋆[I]→H⋆I≤F⋆G : ∀ {X Y Z W : Type ℓ'} {perX : PartialEquivalenceRelation X} {perY : PartialEquivalenceRelation Y} {perZ : PartialEquivalenceRelation Z} {perW : PartialEquivalenceRelation W} → (F : FunctionalRelation perX perY) (G : FunctionalRelation perY perZ) (H : FunctionalRelation perX perW) (I : FunctionalRelation perW perZ) → composeRTMorphism _ _ _ [ F ] [ G ] ≡ composeRTMorphism _ _ _ [ H ] [ I ] → pointwiseEntailment _ _ (composeFuncRel _ _ _ H I) (composeFuncRel _ _ _ F G)
+  [F]⋆[G]≡[H]⋆[I]→H⋆I≤F⋆G {X} {Y} {Z} {W} {perX} {perY} {perZ} {perW} F G H I iso =
+    SQ.effective (isPropValuedBientailment perX perZ) (isEquivRelBientailment perX perZ) (composeFuncRel _ _ _ F G) (composeFuncRel _ _ _ H I) iso .snd
+
+opaque
+  unfolding composeRTMorphism
+  [F]≡[G]⋆[H]→F≤G⋆H : ∀ {X Y Z : Type ℓ'} {perX : PartialEquivalenceRelation X} {perY : PartialEquivalenceRelation Y} {perZ : PartialEquivalenceRelation Z} → (F : FunctionalRelation perX perZ) (G : FunctionalRelation perX perY) (H : FunctionalRelation perY perZ) → [ F ] ≡ composeRTMorphism _ _ _ [ G ] [ H ] → pointwiseEntailment _ _ F (composeFuncRel _ _ _ G H)
+  [F]≡[G]⋆[H]→F≤G⋆H {X} {Y} {Z} {perX} {perY} {perZ} F G H iso =
+    SQ.effective (isPropValuedBientailment perX perZ) (isEquivRelBientailment perX perZ) F (composeFuncRel _ _ _ G H) iso .fst
+
+opaque
+  unfolding composeRTMorphism
+  [F]≡[G]⋆[H]→G⋆H≤F : ∀ {X Y Z : Type ℓ'} {perX : PartialEquivalenceRelation X} {perY : PartialEquivalenceRelation Y} {perZ : PartialEquivalenceRelation Z} → (F : FunctionalRelation perX perZ) (G : FunctionalRelation perX perY) (H : FunctionalRelation perY perZ) → [ F ] ≡ composeRTMorphism _ _ _ [ G ] [ H ] → pointwiseEntailment _ _ (composeFuncRel _ _ _ G H) F
+  [F]≡[G]⋆[H]→G⋆H≤F {X} {Y} {Z} {perX} {perY} {perZ} F G H iso = SQ.effective (isPropValuedBientailment perX perZ) (isEquivRelBientailment perX perZ) F (composeFuncRel _ _ _ G H) iso .snd
+
 RT : Category (ℓ-max (ℓ-suc ℓ) (ℓ-max (ℓ-suc ℓ') (ℓ-suc ℓ''))) (ℓ-max (ℓ-suc ℓ) (ℓ-max (ℓ-suc ℓ') (ℓ-suc ℓ'')))
 Category.ob RT = Σ[ X ∈ Type ℓ' ] PartialEquivalenceRelation X
 Category.Hom[_,_] RT (X , perX) (Y , perY) = RTMorphism perX perY

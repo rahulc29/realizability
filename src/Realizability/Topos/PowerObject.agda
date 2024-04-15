@@ -8,7 +8,9 @@ open import Cubical.Data.FinData
 open import Cubical.Data.Vec
 open import Cubical.HITs.PropositionalTruncation
 open import Cubical.HITs.PropositionalTruncation.Monad
+open import Cubical.HITs.SetQuotients as SQ
 open import Cubical.Categories.Category
+open import Cubical.Categories.Limits.Pullback
 open import Realizability.PropResizing
 open import Realizability.CombinatoryAlgebra
 
@@ -193,3 +195,45 @@ module _ (X : Type ℓ) (perX : PartialEquivalenceRelation X) where
       isFunctionalRelation.isRelational (isFuncRel topArrowFuncRel) = {!!}
       isFunctionalRelation.isSingleValued (isFuncRel topArrowFuncRel) = {!!}
       isFunctionalRelation.isTotal (isFuncRel topArrowFuncRel) = {!!}
+
+    powerObjectCospan : RTMorphism (binProdObRT perX perY) (binProdObRT perX 𝓟) → Cospan RT
+    Cospan.l (powerObjectCospan f) = X × Y , binProdObRT perX perY
+    Cospan.m (powerObjectCospan f) = X × ResizedPredicate X , binProdObRT perX 𝓟
+    Cospan.r (powerObjectCospan f) = X × ResizedPredicate X , ∈subPer
+    Cospan.s₁ (powerObjectCospan f) = f
+    Cospan.s₂ (powerObjectCospan f) = [ ∈incFuncRel ]
+
+    F : FunctionalRelation (binProdObRT perX perY) (binProdObRT perX 𝓟)
+    Predicate.isSetX (relation F) = isSet× (isSet× (perX .isSetX) (perY .isSetX)) (isSet× (perX .isSetX) isSetResizedPredicate)
+    Predicate.∣ relation F ∣ ((x , y) , (x' , p)) r = (pr₁ ⨾ (pr₁ ⨾ r)) ⊩ ∣ perY .equality ∣ (y , y) × (pr₂ ⨾ (pr₁ ⨾ r)) ⊩ ∣ 𝓟 .equality ∣ (p , p) × {!∀ !} × {!!}
+    Predicate.isPropValued (relation F) = {!!}
+    isFunctionalRelation.isStrictDomain (isFuncRel F) = {!!}
+    isFunctionalRelation.isStrictCodomain (isFuncRel F) = {!!}
+    isFunctionalRelation.isRelational (isFuncRel F) = {!!}
+    isFunctionalRelation.isSingleValued (isFuncRel F) = {!!}
+    isFunctionalRelation.isTotal (isFuncRel F) = {!!}
+
+    opaque
+      unfolding composeRTMorphism
+      unfolding composeFuncRel
+      pullbackSquareCommutes : [ ϕincFuncRel ] ⋆ [ F ] ≡ [ topArrowFuncRel ] ⋆ [ ∈incFuncRel ]
+      pullbackSquareCommutes =
+        eq/ _ _ {!!}
+
+    isPowerObjectUnivProp : Type _
+    isPowerObjectUnivProp =
+      ∃![ f ∈ RTMorphism (binProdObRT perX perY) (binProdObRT perX 𝓟) ]
+        Σ[ commutes ∈ [ ϕincFuncRel ] ⋆ f ≡ [ topArrowFuncRel ] ⋆ [ ∈incFuncRel ] ] 
+         (isPullback RT (powerObjectCospan f) {c = X × Y , ϕsubPer} [ ϕincFuncRel ] [ topArrowFuncRel ] commutes)
+
+    isPropIsPowerObjectUnivProp : isProp isPowerObjectUnivProp
+    isPropIsPowerObjectUnivProp = isPropIsContr
+
+    isPowerObject : isPowerObjectUnivProp
+    isPowerObject =
+      uniqueExists
+        [ F ]
+        (pullbackSquareCommutes , {!!})
+        (λ F' → isPropΣ (squash/ _ _) λ commutes → isPropIsPullback RT (powerObjectCospan F') [ ϕincFuncRel ] [ topArrowFuncRel ] commutes)
+        (λ { f' (commutes , isPullback) →
+           {!!} })

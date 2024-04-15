@@ -91,6 +91,9 @@ module _ {ℓ} {A : Type ℓ} (as : ApplicativeStructure A) where
     λ*3 : Term three → A
     λ*3 t = ⟦ λ*abst (λ*abst (λ*abst t)) ⟧ []
 
+    λ*4 : Term four → A
+    λ*4 t = ⟦ λ*abst (λ*abst (λ*abst (λ*abst t))) ⟧ []
+
     opaque
       unfolding λ*abst
       βreduction : ∀ {n} → (body : Term (suc n)) → (prim : A) → (subs : Vec A n) → ⟦ λ*abst body ̇ ` prim ⟧ subs ≡ ⟦ body ⟧ (prim ∷ subs)
@@ -152,4 +155,17 @@ module _ {ℓ} {A : Type ℓ} (as : ApplicativeStructure A) where
         ⟦ λ*abst t ⟧ (b ∷ a ∷ []) ⨾ ⟦ ` c ⟧ (b ∷ a ∷ [])
           ≡⟨ βreduction t c (b ∷ a ∷ []) ⟩
         ⟦ t ⟧ (c ∷ b ∷ a ∷ [])
+          ∎
+
+      λ*4ComputationRule : ∀ (t : Term 4) (a b c d : A) → λ*4 t ⨾ a ⨾ b ⨾ c ⨾ d ≡ ⟦ t ⟧ (d ∷ c ∷ b ∷ a ∷ [])
+      λ*4ComputationRule t a b c d =
+        ⟦ λ*abst (λ*abst (λ*abst (λ*abst t))) ⟧ [] ⨾ ⟦ ` a ⟧ [] ⨾ ⟦ ` b ⟧ [] ⨾ ⟦ ` c ⟧ [] ⨾ ⟦ ` d ⟧ []
+          ≡⟨ cong (λ x → x ⨾ b ⨾ c ⨾ d) (βreduction (λ*abst (λ*abst (λ*abst t))) a []) ⟩
+        ⟦ λ*abst (λ*abst (λ*abst t)) ⟧ (a ∷ []) ⨾ ⟦ ` b ⟧ (a ∷ []) ⨾ ⟦ ` c ⟧ (a ∷ []) ⨾ ⟦ ` d ⟧ (a ∷ [])
+          ≡⟨ cong (λ x → x ⨾ c ⨾ d) (βreduction (λ*abst (λ*abst t)) b (a ∷ [])) ⟩
+        ⟦ λ*abst (λ*abst t) ⟧ (b ∷ a ∷ []) ⨾ ⟦ ` c ⟧ (b ∷ a ∷ []) ⨾ ⟦ ` d ⟧ (b ∷ a ∷ [])
+          ≡⟨ cong (λ x → x ⨾ d) (βreduction (λ*abst t) c (b ∷ a ∷ [])) ⟩
+        ⟦ λ*abst t ⟧ (c ∷ b ∷ a ∷ []) ⨾ ⟦ ` d ⟧ (c ∷ b ∷ a ∷ [])
+          ≡⟨ βreduction t d (c ∷ b ∷ a ∷ []) ⟩
+        ⟦ t ⟧ (d ∷ c ∷ b ∷ a ∷ [])
           ∎
