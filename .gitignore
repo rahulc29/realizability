@@ -1,3 +1,4 @@
 *.agdai
 *.agda~
 *.DS_Store
+*.lagda.md~
