@@ -7,20 +7,21 @@ open import Cubical.HITs.PropositionalTruncation.Monad
 open import Cubical.Data.Fin
 open import Cubical.Data.Vec
 
-module Realizability.Tripos.Prealgebra.Implication {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
+module Realizability.Tripos.Prealgebra.Implication {ℓ ℓ' ℓ''} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
 
-open import Realizability.Tripos.Prealgebra.Predicate ca
+open import Realizability.Tripos.Prealgebra.Predicate {ℓ' = ℓ'} {ℓ'' = ℓ''} ca
 
 open CombinatoryAlgebra ca
 open Realizability.CombinatoryAlgebra.Combinators ca renaming (i to Id; ia≡a to Ida≡a)
 
-λ*ComputationRule = `λ*ComputationRule as fefermanStructure
-λ* = `λ* as fefermanStructure
+private
+  λ*ComputationRule = `λ*ComputationRule as fefermanStructure
+  λ* = `λ* as fefermanStructure
 
-module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) where
-  PredicateX = Predicate {ℓ'' = ℓ''} X
+module _ (X : Type ℓ') (isSetX' : isSet X) where
+  PredicateX = Predicate  X
   open Predicate
-  open PredicateProperties {ℓ'' = ℓ''} X
+  open PredicateProperties  X
   -- ⇒ is Heyting implication
   a⊓b≤c→a≤b⇒c : ∀ a b c → (a ⊓ b ≤ c) → a ≤ (b ⇒ c)
   a⊓b≤c→a≤b⇒c a b c a⊓b≤c =

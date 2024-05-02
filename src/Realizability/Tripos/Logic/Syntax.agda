@@ -17,6 +17,7 @@ data Sort : Type (ℓ-suc ℓ) where
 ⟦ ↑ a ⟧ˢ = a
 ⟦ a `× b ⟧ˢ = ⟦ a ⟧ˢ .fst × ⟦ b ⟧ˢ .fst , isSet× (⟦ a ⟧ˢ .snd) (⟦ b ⟧ˢ .snd)
 
+infixl 30 _′_
 data Context : Type (ℓ-suc ℓ) where
   [] : Context
   _′_ : Context → Sort → Context
@@ -92,11 +93,12 @@ module Relational {n} (relSym : Vec Sort n) where
    ⊥ᵗ : ∀ {Γ} → Formula Γ
    _`∨_ : ∀ {Γ} → Formula Γ → Formula Γ → Formula Γ 
    _`∧_ : ∀ {Γ} → Formula Γ → Formula Γ → Formula Γ 
-   _`→_ : ∀ {Γ} → Formula Γ → Formula Γ → Formula Γ 
-   `¬_ : ∀ {Γ} → Formula Γ → Formula Γ
+   _`→_ : ∀ {Γ} → Formula Γ → Formula Γ → Formula Γ
    `∃ : ∀ {Γ B} → Formula (Γ ′ B) → Formula Γ
    `∀ : ∀ {Γ B} → Formula (Γ ′ B) → Formula Γ
    rel : ∀ {Γ} (k : Fin n) → Term Γ (lookup k relSym) → Formula Γ
+
+ pattern `¬ f = f `→ ⊥ᵗ
 
  substitutionFormula : ∀ {Γ Δ} → Substitution Γ Δ → Formula Δ → Formula Γ
  substitutionFormula {Γ} {Δ} subs ⊤ᵗ = ⊤ᵗ
@@ -104,8 +106,9 @@ module Relational {n} (relSym : Vec Sort n) where
  substitutionFormula {Γ} {Δ} subs (form `∨ form₁) = substitutionFormula subs form `∨ substitutionFormula subs form₁
  substitutionFormula {Γ} {Δ} subs (form `∧ form₁) = substitutionFormula subs form `∧ substitutionFormula subs form₁
  substitutionFormula {Γ} {Δ} subs (form `→ form₁) = substitutionFormula subs form `→ substitutionFormula subs form₁
- substitutionFormula {Γ} {Δ} subs (`¬ form) = `¬ substitutionFormula subs form
  substitutionFormula {Γ} {Δ} subs (`∃ form) = `∃ (substitutionFormula (var here , drop subs) form )
  substitutionFormula {Γ} {Δ} subs (`∀ form) = `∀ (substitutionFormula (var here , drop subs) form)
  substitutionFormula {Γ} {Δ} subs (rel k x) = rel k (substitutionTerm subs x)
 
+ weakenFormula : ∀ {Γ} {S} → Formula Γ → Formula (Γ ′ S)
+ weakenFormula {Γ} {S} form = substitutionFormula (drop id) form

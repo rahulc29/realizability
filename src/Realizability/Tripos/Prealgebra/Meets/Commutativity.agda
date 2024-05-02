@@ -1,29 +1,26 @@
 open import Realizability.CombinatoryAlgebra
-open import Realizability.ApplicativeStructure renaming (λ*-naturality to `λ*ComputationRule; λ*-chain to `λ*) hiding (λ*)
+open import Realizability.ApplicativeStructure
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Equiv
-open import Cubical.Data.Fin
+open import Cubical.Data.FinData
 open import Cubical.Data.Vec
 open import Cubical.Data.Sum renaming (rec to sumRec)
 open import Cubical.Relation.Binary.Order.Preorder
 open import Cubical.HITs.PropositionalTruncation
 open import Cubical.HITs.PropositionalTruncation.Monad
 
-module Realizability.Tripos.Prealgebra.Meets.Commutativity {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
+module Realizability.Tripos.Prealgebra.Meets.Commutativity {ℓ ℓ' ℓ''} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
 
-open import Realizability.Tripos.Prealgebra.Predicate ca
+open import Realizability.Tripos.Prealgebra.Predicate {ℓ' = ℓ'} {ℓ'' = ℓ''} ca
 
 open CombinatoryAlgebra ca
 open Realizability.CombinatoryAlgebra.Combinators ca renaming (i to Id; ia≡a to Ida≡a)
 
-private λ*ComputationRule = `λ*ComputationRule as fefermanStructure
-private λ* = `λ* as fefermanStructure
-
-module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) where
+module _ (X : Type ℓ') (isSetX' : isSet X) where
   
-  private PredicateX = Predicate {ℓ'' = ℓ''} X
+  private PredicateX = Predicate  X
   open Predicate
-  open PredicateProperties {ℓ'' = ℓ''} X
+  open PredicateProperties  X
   open PreorderReasoning preorder≤
 
   x⊓y≤y⊓x : ∀ x y → x ⊓ y ≤ y ⊓ x
@@ -31,13 +28,13 @@ module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) where
     do
       let
         proof : Term as 1
-        proof = ` pair ̇ (` pr₂ ̇ # fzero) ̇ (` pr₁ ̇ # fzero)
+        proof = ` pair ̇ (` pr₂ ̇ # zero) ̇ (` pr₁ ̇ # zero)
       return
         (λ* proof ,
           (λ x' a a⊩x⊓y →
             subst
               (λ r → r ⊩ ∣ y ⊓ x ∣ x')
-              (sym (λ*ComputationRule proof (a ∷ []) ))
+              (sym (λ*ComputationRule proof a))
               ((subst (λ r → r ⊩ ∣ y ∣ x') (sym (pr₁pxy≡x _ _)) (a⊩x⊓y .snd)) ,
                (subst (λ r → r ⊩ ∣ x ∣ x') (sym (pr₂pxy≡y _ _)) (a⊩x⊓y .fst)))))
 
@@ -48,13 +45,13 @@ module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) where
       (g , g⊩y≤x) ← y≤x
       let
         proof : Term as 1
-        proof = ` pair ̇ (` f ̇ (` pr₁ ̇ # fzero)) ̇ (` pr₂ ̇ # fzero)
+        proof = ` pair ̇ (` f ̇ (` pr₁ ̇ # zero)) ̇ (` pr₂ ̇ # zero)
       return
         ((λ* proof) ,
           (λ x' a a⊩x⊓z →
             subst
               (λ r → r ⊩ ∣ y ⊓ z ∣ x')
-              (sym (λ*ComputationRule proof (a ∷ [])))
+              (sym (λ*ComputationRule proof a))
               ((subst (λ r → r ⊩ ∣ y ∣ x') (sym (pr₁pxy≡x _ _)) (f⊩x≤y x' (pr₁ ⨾ a) (a⊩x⊓z .fst))) ,
                (subst (λ r → r ⊩ ∣ z ∣ x') (sym (pr₂pxy≡y _ _)) (a⊩x⊓z .snd)))))
 
@@ -66,12 +63,12 @@ module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) where
       (g , g⊩z≤y) ← z≤y
       let
         proof : Term as 1
-        proof = ` pair ̇ (`  pr₁ ̇ # fzero) ̇ (` f ̇ (` pr₂ ̇ # fzero))
+        proof = ` pair ̇ (`  pr₁ ̇ # zero) ̇ (` f ̇ (` pr₂ ̇ # zero))
       return
         ((λ* proof) ,
           (λ { x' a (pr₁a⊩x , pr₂a⊩y) →
             subst
               (λ r → r ⊩ ∣ x ⊓ z ∣ x')
-              (sym (λ*ComputationRule proof (a ∷ [])))
+              (sym (λ*ComputationRule proof a))
               ((subst (λ r → r ⊩ ∣ x ∣ x') (sym (pr₁pxy≡x _ _)) pr₁a⊩x) ,
                (subst (λ r → r ⊩ ∣ z ∣ x') (sym (pr₂pxy≡y _ _)) (f⊩y≤z x' (pr₂ ⨾ a) pr₂a⊩y))) }))
