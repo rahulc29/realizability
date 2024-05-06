@@ -3,11 +3,15 @@ open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.Function
+open import Cubical.Foundations.Equiv
 open import Cubical.Data.Sigma
+open import Cubical.Data.FinData
 open import Cubical.HITs.PropositionalTruncation hiding (map)
+open import Cubical.HITs.PropositionalTruncation.Monad
 open import Cubical.Reflection.RecordEquiv
 open import Cubical.Categories.Category
 open import Realizability.CombinatoryAlgebra
+open import Realizability.ApplicativeStructure
 
 module Realizability.Assembly.Morphism {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
 
@@ -31,6 +35,8 @@ module _ {X Y : Type ℓ} {xs : Assembly X} {ys : Assembly Y} (t : A) (f : X →
                              ys .⊩isPropValued (t ⨾ aₓ) (f x)
     
 record AssemblyMorphism {X Y : Type ℓ} (as : Assembly X) (bs : Assembly Y) : Type ℓ where
+  no-eta-equality
+  constructor makeAssemblyMorphism
   open Assembly as renaming (_⊩_ to _⊩X_)
   open Assembly bs renaming (_⊩_ to _⊩Y_)
   field
@@ -55,6 +61,9 @@ module _ {X Y : Type ℓ} (xs : Assembly X) (ys : Assembly Y) where
   isSetAssemblyMorphism : isSet (AssemblyMorphism xs ys)
   isSetAssemblyMorphism = subst (λ t → isSet t) (sym AssemblyMorphism≡Σ) isSetAssemblyMorphismΣ
 
+AssemblyMorphism≡Equiv : ∀ {X Y : Type ℓ} {xs : Assembly X} {ys : Assembly Y} (f g : AssemblyMorphismΣ xs ys) → (f .fst ≡ g .fst) ≃ (f ≡ g)
+AssemblyMorphism≡Equiv {X} {Y} {xs} {ys} f g = Σ≡PropEquiv λ _ → isPropPropTrunc
+
 AssemblyMorphismΣ≡ : {X Y : Type ℓ}
                      {xs : Assembly X}
                      {ys : Assembly Y}
@@ -73,7 +82,11 @@ module _ {X Y : Type ℓ}
        thePath = AssemblyMorphismΣ≡ {X = X} {Y = Y} {xs = xs} {ys = ys}
        open Iso
        AssemblyMorphism≡ : (f .map ≡ g .map) → f ≡ g
-       AssemblyMorphism≡ fmap≡gmap i = theIso .inv (thePath (theIso .fun f) (theIso .fun g) (fmap≡gmap) i)
+       map (AssemblyMorphism≡ fmap≡gmap i) x = fmap≡gmap i x
+       tracker (AssemblyMorphism≡ fmap≡gmap i) =
+         isProp→PathP
+           (λ i → isPropPropTrunc {A = Σ[ t ∈ A ] (∀ x aₓ → aₓ ⊩[ xs ] x → (t ⨾ aₓ) ⊩[ ys ] (fmap≡gmap i x))})
+           (f .tracker) (g .tracker) i
 
 identityMorphism : {X : Type ℓ} (as : Assembly X) → AssemblyMorphism as as
 identityMorphism as .map x = x
@@ -84,34 +97,17 @@ compositeMorphism : {X Y Z : Type ℓ} {xs : Assembly X} {ys : Assembly Y} {zs :
                   → (g : AssemblyMorphism ys zs)
                   → AssemblyMorphism xs zs
 compositeMorphism f g .map x = g .map (f .map x)
-compositeMorphism {X} {Y} {Z} {xs} {ys} {zs} f g .tracker = map2 untruncated (f .tracker) (g .tracker) where
-                      open Assembly xs renaming (_⊩_ to _⊩X_)
-                      open Assembly ys renaming (_⊩_ to _⊩Y_)
-                      open Assembly zs renaming (_⊩_ to _⊩Z_)
-                      module _ (fTracker : Σ[ f~ ∈ A ] tracks {xs = xs} {ys = ys} f~ (f .map))
-                               (gTracker : Σ[ g~ ∈ A ] tracks {xs = ys} {ys = zs} g~ (g .map)) where
-                               
-                           f~ = fTracker .fst
-                           f~tracks = fTracker .snd
+compositeMorphism {X} {Y} {Z} {xs} {ys} {zs} f g .tracker =
+  do
+    (f~ , isTrackedF) ← f .tracker
+    (g~ , isTrackedG) ← g .tracker
+    let
+      realizer : Term as 1
+      realizer = ` g~ ̇ (` f~ ̇ # zero)
+    return
+      (λ* realizer ,
+      (λ x aₓ aₓ⊩x → subst (λ r' → r' ⊩[ zs ] (g .map (f .map x))) (sym (λ*ComputationRule realizer aₓ)) (isTrackedG (f .map x) (f~ ⨾ aₓ) (isTrackedF x aₓ aₓ⊩x))))
 
-                           g~ = gTracker .fst
-                           g~tracks = gTracker .snd
-
-                           easierVariant : ∀ x aₓ aₓ⊩x → (g~ ⨾ (f~ ⨾ aₓ)) ⊩Z g .map (f .map x)
-                           easierVariant x aₓ aₓ⊩x = g~tracks (f .map x) (f~ ⨾ aₓ) (f~tracks x aₓ aₓ⊩x)
-                             
-                           goal : ∀ (x : X) (aₓ : A) (aₓ⊩x : aₓ ⊩X x)
-                                  → (B g~ f~ ⨾ aₓ) ⊩Z (compositeMorphism f g .map x)
-                           goal x aₓ aₓ⊩x = subst (λ y → y ⊩Z g .map (f .map x))
-                                                  (sym (Ba≡gfa g~ f~ aₓ))
-                                                  (easierVariant x aₓ aₓ⊩x)
-
-                           untruncated : Σ[ t ∈ A ]
-                                         ((x : X) (aₓ : A)
-                                         → aₓ ⊩X x
-                                         → (t ⨾ aₓ) ⊩Z (compositeMorphism f g) .map x)
-                           untruncated = B g~ f~ , goal
-                             
 infixl 23 _⊚_
 _⊚_ : {X Y Z : Type ℓ} → {xs : Assembly X} {ys : Assembly Y} {zs : Assembly Z}
                        → AssemblyMorphism xs ys
