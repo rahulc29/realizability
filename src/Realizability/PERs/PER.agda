@@ -17,9 +17,13 @@ open import Cubical.HITs.PropositionalTruncation as PT hiding (map)
 open import Cubical.HITs.PropositionalTruncation.Monad
 open import Cubical.HITs.SetQuotients as SQ
 open import Cubical.Categories.Category
+open import Cubical.Categories.Functor hiding (Id)
 
 module Realizability.PERs.PER
   {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
+
+open import Realizability.Assembly.Base ca
+open import Realizability.Assembly.Morphism ca
 
 open CombinatoryAlgebra ca
 open Combinators ca renaming (i to Id; ia≡a to Ida≡a)
@@ -158,3 +162,16 @@ Category.⋆IdL PERCat f = idLPERMorphism f
 Category.⋆IdR PERCat f = idRPERMorphism f
 Category.⋆Assoc PERCat f g h = assocPERMorphism f g h
 Category.isSetHom PERCat = isSetPERMorphism
+
+open Assembly
+
+inclusion : Functor PERCat ASM
+fst (Functor.F-ob inclusion per) = Σ[ a ∈ A ] ∣ per ∣ a a
+(snd (Functor.F-ob inclusion per)) ._⊩_ r (a , aRa) = ∣ per ∣ r a
+isSetX (snd (Functor.F-ob inclusion per)) = isSetΣ isSetA (λ x → isProp→isSet (isPropValued per x x))
+⊩isPropValued (snd (Functor.F-ob inclusion per)) r (a , aRa) = isPropValued per r a
+⊩surjective (snd (Functor.F-ob inclusion per)) (a , aRa) = return (a , aRa)
+AssemblyMorphism.map (Functor.F-hom inclusion morphism) (a , aRa) = {!!}
+AssemblyMorphism.tracker (Functor.F-hom inclusion morphism) = {!!}
+Functor.F-id inclusion = {!!}
+Functor.F-seq inclusion = {!!}

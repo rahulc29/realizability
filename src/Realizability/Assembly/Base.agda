@@ -13,6 +13,7 @@ open import Realizability.CombinatoryAlgebra
 
 module Realizability.Assembly.Base {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
   record Assembly (X : Type ℓ) : Type (ℓ-suc ℓ) where
+    constructor makeAssembly
     infix 25 _⊩_
     field
       _⊩_ : A → X → Type ℓ
