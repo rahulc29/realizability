@@ -54,8 +54,12 @@ module _ (X : Type ℓ) (isCorrectHLevel : isSet X) where
 
   PartialSurjectionIsoΣ : Iso (PartialSurjection X) PartialSurjectionΣ
   Iso.fun PartialSurjectionIsoΣ surj =
-    (λ a → (surj .support a) , (surj .isPropSupport a)) , (λ { (a , suppA) → surj .enumeration (a , suppA) }) , surj .isSurjectionEnumeration , PartialSurjection.isSetX surj
-  Iso.inv PartialSurjectionIsoΣ (support , enumeration , isSurjectionEnumeration , isSetX) = makePartialSurjection (λ a → ⟨ support a ⟩) enumeration (λ a → str (support a)) isSurjectionEnumeration isSetX
+    (λ a → (surj .support a) , (surj .isPropSupport a)) ,
+    (λ { (a , suppA) → surj .enumeration (a , suppA) }) ,
+    surj .isSurjectionEnumeration ,
+    PartialSurjection.isSetX surj
+  Iso.inv PartialSurjectionIsoΣ (support , enumeration , isSurjectionEnumeration , isSetX) =
+    makePartialSurjection (λ a → ⟨ support a ⟩) enumeration (λ a → str (support a)) isSurjectionEnumeration isSetX
   Iso.rightInv PartialSurjectionIsoΣ (support , enumeration , isSurjectionEnumeration , isSetX) = refl
   support (Iso.leftInv PartialSurjectionIsoΣ surj i) a = surj .support a
   enumeration (Iso.leftInv PartialSurjectionIsoΣ surj i) (a , suppA) = surj .enumeration (a , suppA)
@@ -221,6 +225,22 @@ record PartialSurjectionMorphism {X Y : Type ℓ} (psX : PartialSurjection X) (p
       Yˢ -----------> Y
     -}
     isTracked : ∃[ t ∈ A ] (∀ (a : A) (sᵃ : psX .support a) → Σ[ sᵇ ∈ (psY .support (t ⨾ a)) ] map (psX .enumeration (a , sᵃ)) ≡ psY .enumeration ((t ⨾ a) , sᵇ))
+open PartialSurjectionMorphism
+
+unquoteDecl PartialSurjectionMorphismIsoΣ = declareRecordIsoΣ PartialSurjectionMorphismIsoΣ (quote PartialSurjectionMorphism)
+
+PartialSurjectionMorphismΣ : {X Y : Type ℓ} (psX : PartialSurjection X) (psY : PartialSurjection Y) → Type ℓ
+PartialSurjectionMorphismΣ {X} {Y} psX psY =
+  Σ[ f ∈ (X → Y) ] ∃[ t ∈ A ] ((∀ (a : A) (sᵃ : psX .support a) → Σ[ sᵇ ∈ (psY .support (t ⨾ a)) ] f (psX .enumeration (a , sᵃ)) ≡ psY .enumeration ((t ⨾ a) , sᵇ)))
+
+isSetPartialSurjectionMorphismΣ : {X Y : Type ℓ} (psX : PartialSurjection X) (psY : PartialSurjection Y) → isSet (PartialSurjectionMorphismΣ psX psY)
+isSetPartialSurjectionMorphismΣ {X} {Y} psX psY = isSetΣ (isSet→ (psY .isSetX)) (λ f → isProp→isSet isPropPropTrunc)
+
+PartialSurjectionMorphismΣ≡ : {X Y : Type ℓ} (psX : PartialSurjection X) (psY : PartialSurjection Y) → PartialSurjectionMorphism psX psY ≡ PartialSurjectionMorphismΣ psX psY
+PartialSurjectionMorphismΣ≡ {X} {Y} psX psY = isoToPath PartialSurjectionMorphismIsoΣ
+
+isSetPartialSurjectionMorphism : {X Y : Type ℓ} (psX : PartialSurjection X) (psY : PartialSurjection Y) → isSet (PartialSurjectionMorphism psX psY)
+isSetPartialSurjectionMorphism {X} {Y} psX psY = subst isSet (sym (PartialSurjectionMorphismΣ≡ psX psY)) (isSetPartialSurjectionMorphismΣ psX psY)
 
 -- SIP
 module MorphismSIP {X Y : Type ℓ} (psX : PartialSurjection X) (psY : PartialSurjection Y) where
@@ -241,4 +261,48 @@ module MorphismSIP {X Y : Type ℓ} (psX : PartialSurjection X) (psY : PartialSu
       (λ j → isPropPropTrunc)
       (f .isTracked) (g .isTracked) i
   Iso.rightInv (PartialSurjectionMorphism≡Iso f g) fMap≡gMap = refl
-  Iso.leftInv (PartialSurjectionMorphism≡Iso f g) f≡g = {!!}
+  Iso.leftInv (PartialSurjectionMorphism≡Iso f g) f≡g = isSetPartialSurjectionMorphism psX psY f g _ _
+
+  PartialSurjectionMorphism≡ : ∀ {f g : PartialSurjectionMorphism psX psY} → (f .map ≡ g .map) → f ≡ g
+  PartialSurjectionMorphism≡ {f} {g} fMap≡gMap = Iso.inv (PartialSurjectionMorphism≡Iso f g) fMap≡gMap
+
+-- morphisms between partial surjections are equivalent to assembly morphisms between corresponding modest assemblies
+module
+  _
+  {X Y : Type ℓ}
+  (psX : PartialSurjection X)
+  (psY : PartialSurjection Y) where
+  open ModestSetIso 
+  open MorphismSIP psX psY
+
+  asmX = PartialSurjection→ModestSet X (psX .isSetX) psX .fst
+  isModestAsmX = PartialSurjection→ModestSet X (psX .isSetX) psX .snd
+
+  asmY = PartialSurjection→ModestSet Y (psY .isSetX) psY .fst
+  isModestAsmY = PartialSurjection→ModestSet Y (psY .isSetX) psY .snd
+
+  partialSurjectionHomModestSetHomIso : Iso (AssemblyMorphism asmX asmY) (PartialSurjectionMorphism psX psY)
+  map (Iso.fun partialSurjectionHomModestSetHomIso asmHom) = asmHom .map
+  isTracked (Iso.fun partialSurjectionHomModestSetHomIso asmHom) =
+    do
+      (map~ , isTrackedMap) ← asmHom .tracker
+      return
+        (map~ ,
+         λ a aSuppX →
+           let
+             worker : (map~ ⨾ a) ⊩[ asmY ] (asmHom .map (psX .enumeration (a , aSuppX)))
+             worker = isTrackedMap (psX .enumeration (a , aSuppX)) a (aSuppX , refl)
+           in
+           (worker .fst) ,
+           (sym (worker .snd)))
+  AssemblyMorphism.map (Iso.inv partialSurjectionHomModestSetHomIso surjHom) = surjHom .map
+  AssemblyMorphism.tracker (Iso.inv partialSurjectionHomModestSetHomIso surjHom) =
+    do
+      (t , isTrackedMap) ← surjHom .isTracked
+      return
+        (t ,
+        (λ { x a (aSuppX , ≡x) →
+          (isTrackedMap a aSuppX .fst) ,
+          (sym (cong (surjHom .map) (sym ≡x) ∙ isTrackedMap a aSuppX .snd)) }))
+  Iso.rightInv partialSurjectionHomModestSetHomIso surjHom = PartialSurjectionMorphism≡ refl
+  Iso.leftInv partialSurjectionHomModestSetHomIso asmHom = AssemblyMorphism≡ _ _ refl
