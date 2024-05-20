@@ -32,8 +32,8 @@ module _ {X : Type ℓ} (asmX : Assembly X) where
   isPropIsModest : isProp isModest
   isPropIsModest = isPropΠ3 λ x y a → isProp→ (isProp→ (asmX .isSetX x y))
 
-  isUniqueRealised : isModest → ∀ (a : A) → isProp (Σ[ x ∈ X ] (a ⊩[ asmX ] x))
-  isUniqueRealised isMod a (x , a⊩x) (y , a⊩y) = Σ≡Prop (λ x' → asmX .⊩isPropValued a x') (isMod x y a a⊩x a⊩y)
+  isUniqueRealized : isModest → ∀ (a : A) → isProp (Σ[ x ∈ X ] (a ⊩[ asmX ] x))
+  isUniqueRealized isMod a (x , a⊩x) (y , a⊩y) = Σ≡Prop (λ x' → asmX .⊩isPropValued a x') (isMod x y a a⊩x a⊩y)
 
 ModestSet : Type ℓ → Type (ℓ-suc ℓ)
 ModestSet X = Σ[ xs ∈ Assembly X ] isModest xs
