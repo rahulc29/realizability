@@ -128,7 +128,7 @@ module _ {X Y : Type ℓ} (asmX : Assembly X) (asmY : Assembly Y) (f : AssemblyM
     pullbackFunctor : Functor (SliceCat ASM (Y , asmY)) (SliceCat ASM (X , asmX))
     Functor.F-ob pullbackFunctor sliceY = sliceob (pullback (cospan (X , asmX) (Y , asmY) (sliceY .S-ob) f (sliceY .S-arr)) .pbPr₁)
     Functor.F-hom pullbackFunctor {ySliceA} {ySliceB} sliceHomAB =
-      let
+      {-let
         sliceACospan : Cospan ASM
         sliceACospan = cospan (X , asmX) (Y , asmY) (ySliceA .S-ob) f (ySliceA .S-arr)
         p = pullbackPr₂ sliceACospan
@@ -153,7 +153,7 @@ module _ {X Y : Type ℓ} (asmX : Assembly X) (asmY : Assembly Y) (f : AssemblyM
                     ∎ }))
       in
       slicehom
-        arrow
+        arrow-}
         {!!}
     Functor.F-id pullbackFunctor = {!!}
     Functor.F-seq pullbackFunctor = {!!}

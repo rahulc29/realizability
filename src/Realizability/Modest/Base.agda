@@ -39,7 +39,14 @@ ModestSet : Type ℓ → Type (ℓ-suc ℓ)
 ModestSet X = Σ[ xs ∈ Assembly X ] isModest xs
 
 MOD : Category (ℓ-suc ℓ) ℓ
-MOD = ΣPropCat ASM λ { (X , asmX) → (Lift (isModest asmX)) , (isOfHLevelRespectEquiv 1 (LiftEquiv {A = isModest asmX}) (isPropIsModest asmX)) }
+Category.ob MOD = Σ[ X ∈ Type ℓ ] Σ[ asmX ∈ Assembly X ] isModest asmX
+Category.Hom[_,_] MOD (X , asmX , isModestAsmX) (Y , asmY , isModestAsmY) = AssemblyMorphism asmX asmY
+Category.id MOD {X , asmX , isModestAsmX} = identityMorphism asmX
+Category._⋆_ MOD {X , asmX , isModestAsmX} {Y , asmY , isModestAsmY} {Z , asmZ , isModestAsmZ} f g = compositeMorphism f g
+Category.⋆IdL MOD {X , asmX , isModestAsmX} {Y , asmY , isModestAsmY} f = ⊚idL asmX asmY f
+Category.⋆IdR MOD {X , asmX , isModestAsmX} {Y , asmY , isModestAsmY} f = ⊚idR asmY asmX f
+Category.⋆Assoc MOD {X , asmX , isModestAsmX} {Y , asmY , isModestAsmY} {Z , asmZ , isModestAsmZ} {W , asmW , isModestAsmW} f g h = ⊚assoc asmX asmY asmZ asmW f g h
+Category.isSetHom MOD {X , asmX , idModestAsmX} {Y , asmY , isModestAsmY} = isSetAssemblyMorphism asmX asmY
 
 -- Every modest set is isomorphic to a canonically modest set
 module Canonical (X : Type ℓ) (asmX : Assembly X) (isModestAsmX : isModest asmX) (resizing : hPropResizing ℓ) where

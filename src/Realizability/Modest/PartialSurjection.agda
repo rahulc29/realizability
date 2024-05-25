@@ -14,6 +14,7 @@ open import Cubical.HITs.PropositionalTruncation as PT hiding (map)
 open import Cubical.HITs.PropositionalTruncation.Monad
 open import Cubical.Reflection.RecordEquiv
 open import Cubical.Categories.Category
+open import Cubical.Categories.Functor.Base hiding (Id)
 open import Realizability.CombinatoryAlgebra
 open import Realizability.ApplicativeStructure
 open import Realizability.PropResizing
@@ -207,6 +208,9 @@ module ModestSetIso (X : Type ℓ) (isCorrectHLevel : isSet X) where
   Iso.rightInv IsoModestSetPartialSurjection = rightInv 
   Iso.leftInv IsoModestSetPartialSurjection = leftInv
 
+  ModestSet≡PartialSurjection : ModestSet X ≡ PartialSurjection X
+  ModestSet≡PartialSurjection = isoToPath IsoModestSetPartialSurjection
+
 record PartialSurjectionMorphism {X Y : Type ℓ} (psX : PartialSurjection X) (psY : PartialSurjection Y) : Type ℓ where
   no-eta-equality
   constructor makePartialSurjectionMorphism
@@ -281,9 +285,9 @@ module
   asmY = PartialSurjection→ModestSet Y (psY .isSetX) psY .fst
   isModestAsmY = PartialSurjection→ModestSet Y (psY .isSetX) psY .snd
 
-  partialSurjectionHomModestSetHomIso : Iso (AssemblyMorphism asmX asmY) (PartialSurjectionMorphism psX psY)
-  map (Iso.fun partialSurjectionHomModestSetHomIso asmHom) = asmHom .map
-  isTracked (Iso.fun partialSurjectionHomModestSetHomIso asmHom) =
+  PartialSurjectionHomModestSetHomIso : Iso (AssemblyMorphism asmX asmY) (PartialSurjectionMorphism psX psY)
+  map (Iso.fun PartialSurjectionHomModestSetHomIso asmHom) = asmHom .map
+  isTracked (Iso.fun PartialSurjectionHomModestSetHomIso asmHom) =
     do
       (map~ , isTrackedMap) ← asmHom .tracker
       return
@@ -295,8 +299,8 @@ module
            in
            (worker .fst) ,
            (sym (worker .snd)))
-  AssemblyMorphism.map (Iso.inv partialSurjectionHomModestSetHomIso surjHom) = surjHom .map
-  AssemblyMorphism.tracker (Iso.inv partialSurjectionHomModestSetHomIso surjHom) =
+  AssemblyMorphism.map (Iso.inv PartialSurjectionHomModestSetHomIso surjHom) = surjHom .map
+  AssemblyMorphism.tracker (Iso.inv PartialSurjectionHomModestSetHomIso surjHom) =
     do
       (t , isTrackedMap) ← surjHom .isTracked
       return
@@ -304,5 +308,90 @@ module
         (λ { x a (aSuppX , ≡x) →
           (isTrackedMap a aSuppX .fst) ,
           (sym (cong (surjHom .map) (sym ≡x) ∙ isTrackedMap a aSuppX .snd)) }))
-  Iso.rightInv partialSurjectionHomModestSetHomIso surjHom = PartialSurjectionMorphism≡ refl
-  Iso.leftInv partialSurjectionHomModestSetHomIso asmHom = AssemblyMorphism≡ _ _ refl
+  Iso.rightInv PartialSurjectionHomModestSetHomIso surjHom = PartialSurjectionMorphism≡ refl
+  Iso.leftInv PartialSurjectionHomModestSetHomIso asmHom = AssemblyMorphism≡ _ _ refl
+
+  PartialSurjectionHom≡ModestSetHom : AssemblyMorphism asmX asmY ≡ PartialSurjectionMorphism psX psY
+  PartialSurjectionHom≡ModestSetHom = isoToPath PartialSurjectionHomModestSetHomIso
+
+-- the category of partial surjections
+
+idPartSurjMorphism : ∀ {X : Type ℓ} → (psX : PartialSurjection X) → PartialSurjectionMorphism psX psX
+map (idPartSurjMorphism {X} psX) x = x
+isTracked (idPartSurjMorphism {X} psX) =
+  return (Id , (λ a aSuppX → (subst (λ r → psX .support r) (sym (Ida≡a a)) aSuppX) , (cong (psX .enumeration) (Σ≡Prop (λ b → psX .isPropSupport b) (sym (Ida≡a a))))))
+
+composePartSurjMorphism :
+  ∀ {X Y Z : Type ℓ} {psX : PartialSurjection X} {psY : PartialSurjection Y} {psZ : PartialSurjection Z}
+  → (f : PartialSurjectionMorphism psX psY)
+  → (g : PartialSurjectionMorphism psY psZ)
+  → PartialSurjectionMorphism psX psZ
+map (composePartSurjMorphism {X} {Y} {Z} {psX} {psY} {psZ} f g) x = g .map (f .map x)
+isTracked (composePartSurjMorphism {X} {Y} {Z} {psX} {psY} {psZ} f g) =
+  do
+    (f~ , isTrackedF) ← f .isTracked
+    (g~ , isTrackedG) ← g .isTracked
+    let
+      realizer : Term as 1
+      realizer = ` g~ ̇ (` f~ ̇ # zero)
+    return
+      (λ* realizer ,
+      (λ a aSuppX →
+        subst (λ r' → psZ .support r') (sym (λ*ComputationRule realizer a)) (isTrackedG (f~ ⨾ a) (isTrackedF a aSuppX .fst) .fst) ,
+       (g .map (f .map (psX .enumeration (a , aSuppX)))
+          ≡⟨ cong (g .map) (isTrackedF a aSuppX .snd) ⟩
+        g .map (psY .enumeration (f~ ⨾ a , fst (isTrackedF a aSuppX)))
+          ≡⟨ isTrackedG (f~ ⨾ a) (fst (isTrackedF a aSuppX)) .snd ⟩
+        psZ .enumeration (g~ ⨾ (f~ ⨾ a) , fst (isTrackedG (f~ ⨾ a) (fst (isTrackedF a aSuppX))))
+          ≡⟨ cong (psZ .enumeration) (Σ≡Prop (λ z → psZ .isPropSupport z) (sym (λ*ComputationRule realizer a))) ⟩
+        psZ .enumeration
+          (λ* realizer ⨾ a ,
+           subst (λ r' → psZ .support r') (sym (λ*ComputationRule realizer a)) (isTrackedG (f~ ⨾ a) (isTrackedF a aSuppX .fst) .fst))
+          ∎)))
+
+idLPartSurjMorphism :
+  ∀ {X Y : Type ℓ}
+  → {psX : PartialSurjection X}
+  → {psY : PartialSurjection Y}
+  → (f : PartialSurjectionMorphism psX psY)
+  → composePartSurjMorphism (idPartSurjMorphism psX) f ≡ f
+idLPartSurjMorphism {X} {Y} {psX} {psY} f = MorphismSIP.PartialSurjectionMorphism≡ psX psY refl
+
+idRPartSurjMorphism :
+  ∀ {X Y : Type ℓ}
+  → {psX : PartialSurjection X}
+  → {psY : PartialSurjection Y}
+  → (f : PartialSurjectionMorphism psX psY)
+  → composePartSurjMorphism f (idPartSurjMorphism psY) ≡ f
+idRPartSurjMorphism {X} {Y} {psX} {psY} f = MorphismSIP.PartialSurjectionMorphism≡ psX psY refl
+
+assocComposePartSurjMorphism :
+  ∀ {X Y Z W : Type ℓ}
+  → {psX : PartialSurjection X}
+  → {psY : PartialSurjection Y}
+  → {psZ : PartialSurjection Z}
+  → {psW : PartialSurjection W}
+  → (f : PartialSurjectionMorphism psX psY)
+  → (g : PartialSurjectionMorphism psY psZ)
+  → (h : PartialSurjectionMorphism psZ psW)
+  → composePartSurjMorphism (composePartSurjMorphism f g) h ≡ composePartSurjMorphism f (composePartSurjMorphism g h)
+assocComposePartSurjMorphism {X} {Y} {Z} {W} {psX} {psY} {psZ} {psW} f g h = MorphismSIP.PartialSurjectionMorphism≡ psX psW refl
+
+PARTSURJ : Category (ℓ-suc ℓ) ℓ
+Category.ob PARTSURJ = Σ[ X ∈ Type ℓ ] PartialSurjection X
+Category.Hom[_,_] PARTSURJ (X , surjX) (Y , surjY) = PartialSurjectionMorphism surjX surjY
+Category.id PARTSURJ {X , surjX} = idPartSurjMorphism surjX
+Category._⋆_ PARTSURJ {X , surjX} {Y , surjY} {Z , surjZ} f g = composePartSurjMorphism f g
+Category.⋆IdL PARTSURJ {X , surjX} {Y , surjY} f = idLPartSurjMorphism f
+Category.⋆IdR PARTSURJ {X , surjX} {Y , surjY} f = idRPartSurjMorphism f
+Category.⋆Assoc PARTSURJ {X , surjX} {Y , surjY} {Z , surjZ} {W , surjW} f g h = assocComposePartSurjMorphism f g h
+Category.isSetHom PARTSURJ {X , surjX} {Y , surjY} = isSetPartialSurjectionMorphism surjX surjY
+
+open Category
+open ModestSetIso
+
+L : Functor MOD PARTSURJ
+Functor.F-ob L (X , modX) = X , (ModestSet→PartialSurjection X (modX .fst .isSetX) modX)
+Functor.F-hom L {X , asmX , isModestAsmX} {Y , asmY , isModestAsmY} f = {!!}
+Functor.F-id L = {!!}
+Functor.F-seq L = {!!}
