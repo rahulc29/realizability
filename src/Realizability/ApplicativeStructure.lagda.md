@@ -60,7 +60,7 @@ module _ {ℓ} {A : Type ℓ} (as : ApplicativeStructure A) where
   infix 23 `_
   infixl 22 _̇_
   data Term (n : ℕ) : Type ℓ where
-    # : (Vec A n → A) → Term n
+    # : Fin n → Term n
     `_ : A → Term n
     _̇_ : Term n → Term n → Term n
 ```
@@ -69,8 +69,8 @@ These terms can be evaluated into $A$ if we can give the values of the free vari
 
 ```agda
   ⟦_⟧ : ∀ {n} → Term n → Vec A n → A
-  ⟦_⟧ (` a) subs = a
-  ⟦_⟧ {n} (# k) subs = k subs
+  ⟦_⟧ (` a) _ = a
+  ⟦_⟧ {n} (# k) subs = lookup k subs
   ⟦_⟧ (a ̇ b) subs = (⟦ a ⟧ subs) ⨾ (⟦ b ⟧ subs)
 
   applicationChain : ∀ {n m} → Vec (Term m) (suc n) → Term m
@@ -115,12 +115,13 @@ We will call this `λ*abst` and this will turn out to behave very similar to λ 
 ```agda
   module ComputationRules (feferman : Feferman) where
     open Feferman feferman
-    
+
     opaque
       λ*abst : ∀ {n} → (e : Term (suc n)) → Term n
-      λ*abst {n} (# x) = {!!}
-      λ*abst {n} (` x) = {!!}
-      λ*abst {n} (e ̇ e₁) = {!!}
+      λ*abst {n} (# zero) = ` s ̇ ` k ̇ ` k
+      λ*abst {n} (# (suc x)) = ` k ̇ # x
+      λ*abst {n} (` x) = ` k ̇ ` x
+      λ*abst {n} (e ̇ e₁) = ` s ̇ λ*abst e ̇ λ*abst e₁
 ```
 
 **Remark** : It is important to note that in general, realizability is developed using **partial combinatory algebras** and **partial applicative structures**. In this case, `λ*abst` is not particularly well-behaved. The β reduction-esque rule we derive also does not behave *completely* like β reduction. See Jonh Longley's PhD thesis "Realizability Toposes and Language Semantics" Theorem 1.1.9.
@@ -130,7 +131,7 @@ We will call this `λ*abst` and this will turn out to behave very similar to λ 
 We define meta-syntactic sugar for some of the more common cases :
 
 ```agda
-    {-λ* : Term one → A
+    λ* : Term one → A
     λ* t = ⟦ λ*abst t ⟧ []
 
     λ*2 : Term two → A
@@ -140,7 +141,7 @@ We define meta-syntactic sugar for some of the more common cases :
     λ*3 t = ⟦ λ*abst (λ*abst (λ*abst t)) ⟧ []
 
     λ*4 : Term four → A
-    λ*4 t = ⟦ λ*abst (λ*abst (λ*abst (λ*abst t))) ⟧ [] -}
+    λ*4 t = ⟦ λ*abst (λ*abst (λ*abst (λ*abst t))) ⟧ []
 ```
 
 We now show that we have a β-reduction-esque operation. We proceed by induction on the structure of the term and the number of free variables.
@@ -149,7 +150,7 @@ For the particular combinatory algebra Λ/β (terms of the untyped λ calculus q
 TODO : Prove this.
 
 ```agda
-    {- opaque
+    opaque
       unfolding λ*abst
       βreduction : ∀ {n} → (body : Term (suc n)) → (prim : A) → (subs : Vec A n) → ⟦ λ*abst body ̇ ` prim ⟧ subs ≡ ⟦ body ⟧ (prim ∷ subs)
       βreduction {n} (# zero) prim subs =
@@ -167,24 +168,24 @@ TODO : Prove this.
         ⟦ λ*abst rator ⟧ subs ⨾ prim ⨾ (⟦ λ*abst rand ⟧ subs ⨾ prim)
           ≡⟨ cong₂ (λ x y → x ⨾ y) (βreduction rator prim subs) (βreduction rand prim subs) ⟩
         ⟦ rator ⟧ (prim ∷ subs) ⨾ ⟦ rand ⟧ (prim ∷ subs)
-          ∎ -}
+          ∎
 ```
 
 <details>
 ```agda
-    {-λ*chainTerm : ∀ n → Term n → Term zero
+    λ*chainTerm : ∀ n → Term n → Term zero
     λ*chainTerm zero t = t
     λ*chainTerm (suc n) t = λ*chainTerm n (λ*abst t)
 
     λ*chain : ∀ {n} → Term n → A
-    λ*chain {n} t = ⟦ λ*chainTerm n t ⟧ [] -}
+    λ*chain {n} t = ⟦ λ*chainTerm n t ⟧ []
 ```
 </details>
 
 We provide useful reasoning combinators that are useful and frequent.
 
 ```agda
-    {- opaque
+    opaque
       unfolding reverse
       unfolding foldl
       unfolding chain
@@ -231,5 +232,5 @@ We provide useful reasoning combinators that are useful and frequent.
         ⟦ λ*abst t ⟧ (c ∷ b ∷ a ∷ []) ⨾ ⟦ ` d ⟧ (c ∷ b ∷ a ∷ [])
           ≡⟨ βreduction t d (c ∷ b ∷ a ∷ []) ⟩
         ⟦ t ⟧ (d ∷ c ∷ b ∷ a ∷ [])
-          ∎ -}
+          ∎
 ```
