@@ -26,7 +26,6 @@ module Realizability.PERs.TerminalObject
 open import Realizability.PERs.PER ca
 open CombinatoryAlgebra ca
 open Combinators ca renaming (i to Id; ia≡a to Ida≡a)
-open PERMorphism
 
 terminalPER : PER
 PER.relation terminalPER = (λ x y → Unit*) , λ x y → isPropUnit*
@@ -36,8 +35,13 @@ snd (PER.isPER terminalPER) = λ a b c x x₁ → tt*
 isTerminalTerminalPER : isTerminal PERCat terminalPER
 isTerminalTerminalPER X =
   inhProp→isContr
-    (makePERMorphism (λ x → [ k ]) (return (Id , (λ a aXa → (eq/ k (Id ⨾ a) tt*) , tt*))))
-    λ x y → PERMorphism≡ x y (funExt λ q → {!!})
+    [ k , (λ r r' r~r' → tt*) ]
+    λ ! !' →
+      SQ.elimProp2
+        (λ ! !' → squash/ ! !')
+        (λ { (a , a⊩!) (b , b⊩!) →
+          eq/ _ _ λ r r~r → tt* })
+        ! !'
 
 terminal : Terminal PERCat
-terminal = terminalPER , {!!}
+terminal = terminalPER , isTerminalTerminalPER

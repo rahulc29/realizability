@@ -65,5 +65,7 @@ Categoryᴰ.⋆Assocᴰ UNIMOD
   ΣPathPProp (λ comp → isSetAssemblyMorphism asmXᴰ asmW _ _) (Category.⋆Assoc ASM fᵈ gᵈ hᵈ )
 Categoryᴰ.isSetHomᴰ UNIMOD = isSetΣ (isSetAssemblyMorphism _ _) (λ f → isProp→isSet (isSetAssemblyMorphism _ _ _ _))
 
+open Categoryᴰ UNIMOD
+
 UniformFamily : {X : Type ℓ} → (asmX : Assembly X) → Type (ℓ-suc ℓ)
 UniformFamily {X} asmX = UNIMOD .Categoryᴰ.ob[_] (X , asmX)

@@ -270,63 +270,27 @@ module _ {X Y : Type ℓ} {asmX : Assembly X} {asmY : Assembly Y} (f : AssemblyM
                  (sym (λ*ComputationRule realizer a))
                  (isTrackedH v (pr₂ ⨾ a) pr₂a⊩v .snd (x , sym (isFiberOfY x v fx≡gv)) (pr₁ ⨾ a) pr₁a⊩x) }))
 
+       opaque
+         unfolding pullback
+         unfolding answer
+         unfolding answerMap
+         answerEq : answer ⊚ m ≡ (reindexFunctor ASM PullbacksASM f ⟅ sliceob g ⟆) .S-arr
+         answerEq =
+           AssemblyMorphism≡ _ _
+             (funExt
+               λ { q@(x , v , fx≡gv) →
+                 m .map (answerMap q)
+                   ≡⟨ refl ⟩
+                 m .map (h .map v .fst .snd .fst (x , sym (isFiberOfY x v fx≡gv)))
+                   ≡⟨ h .map v .fst .snd .snd (x , sym (isFiberOfY x v fx≡gv)) ⟩
+                 x
+                   ∎ })
+
   opaque
     unfolding pullback
     reindex⊣Π[_] : reindexFunctor ASM PullbacksASM f ⊣ Π[_]
     Iso.fun (_⊣_.adjIso reindex⊣Π[_] {sliceob {V , asmV} g} {sliceob {P , asmP} m}) (slicehom h hComm) = slicehom (ForwardIso.answer g m h hComm) (ForwardIso.answerEq g m h hComm) 
-    Iso.inv (_⊣_.adjIso reindex⊣Π[_] {sliceob {V , asmV} g} {sliceob {P , asmP} m}) (slicehom h hComm) =
-      slicehom answer (AssemblyMorphism≡ _ _ (funExt λ { (x , v , fx≡gv) → answerEq x v fx≡gv })) where
-      Π[f]m : AssemblyMorphism (S-ob (Π[_] ⟅ sliceob m ⟆) .snd) asmY
-      Π[f]m = (Π[_] ⟅ sliceob m ⟆) .S-arr
-
-      Q : ASM .Category.ob
-      Q = (reindexFunctor ASM PullbacksASM f ⟅ sliceob g ⟆) .S-ob
-
-      typeQ : Type ℓ
-      typeQ = Q .fst
-
-      asmQ : Assembly typeQ
-      asmQ = Q .snd
-
-      isFiberOfY : (x : X) → (v : V) → f .map x ≡ g .map v → h .map v .fst .fst ≡ f .map x
-      isFiberOfY x v fx≡gv =
-            h .map v .fst .fst
-              ≡[ i ]⟨ hComm i .map v ⟩
-            g .map v
-              ≡⟨ sym fx≡gv ⟩
-            f .map x
-              ∎
-
-      answerMap : typeQ → P
-      answerMap (x , v , fx≡gv) =
-        h .map v .fst .snd .fst 
-          (x ,
-          sym (isFiberOfY x v fx≡gv))
-
-      answerEq : (x : X) (v : V) (fx≡gv : f .map x ≡ g .map v) → m .map (answerMap (x , v , fx≡gv)) ≡ x
-      answerEq x v fx≡gv =
-        m .map (answerMap (x , v , fx≡gv))
-          ≡⟨ refl ⟩
-        m .map (h .map v .fst .snd .fst (x , sym (isFiberOfY x v fx≡gv)))
-          ≡⟨ h .map v .fst .snd .snd (x , sym (isFiberOfY x v fx≡gv)) ⟩
-        x
-          ∎
-
-      answer : AssemblyMorphism asmQ asmP
-      AssemblyMorphism.map answer = answerMap
-      AssemblyMorphism.tracker answer =
-        do
-          (h~ , isTrackedH) ← h .tracker
-          let
-            realizer : Term as 1
-            realizer = ` pr₂ ̇ (` h~ ̇ (` pr₂ ̇ # zero)) ̇ (` pr₁ ̇ # zero)
-          return
-            (λ* realizer ,
-            (λ { q@(x , v , fx≡gv) a (pr₁a⊩x , pr₂a⊩v) →
-              subst
-                (λ r' → r' ⊩[ asmP ] (answerMap (x , v , fx≡gv)))
-                (sym (λ*ComputationRule realizer a))
-                (isTrackedH v (pr₂ ⨾ a) pr₂a⊩v .snd (x , sym (isFiberOfY x v fx≡gv)) (pr₁ ⨾ a) pr₁a⊩x) }))
+    Iso.inv (_⊣_.adjIso reindex⊣Π[_] {sliceob {V , asmV} g} {sliceob {P , asmP} m}) (slicehom h hComm) = slicehom (BackwardIso.answer g m h hComm) (BackwardIso.answerEq g m h hComm) 
     Iso.rightInv (_⊣_.adjIso reindex⊣Π[_] {sliceob {V , asmV} g} {sliceob {P , asmP} m}) (slicehom h hComm) =
       SliceHom-≡-intro'
         ASM
