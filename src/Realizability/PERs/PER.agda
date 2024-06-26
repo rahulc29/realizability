@@ -1,6 +1,5 @@
 open import Realizability.ApplicativeStructure
 open import Realizability.CombinatoryAlgebra
-open import Realizability.PropResizing
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Structure using (⟨_⟩; str)
@@ -70,8 +69,10 @@ isEquivTracker R S (a , _) (b , _) = (∀ r → r ~[ R ] r → (a ⨾ r) ~[ S ] 
 
 isEquivRelIsEquivTracker : (R S : PER) → BR.isEquivRel (isEquivTracker R S)
 BinaryRelation.isEquivRel.reflexive (isEquivRelIsEquivTracker R S) (a , isTrackerA) r r~r = isTrackerA r r r~r
-BinaryRelation.isEquivRel.symmetric (isEquivRelIsEquivTracker R S) (a , isTrackerA) (b , isTrackerB) a~b r r~r = isSymmetric S (a ⨾ r) (b ⨾ r) (a~b r r~r)
-BinaryRelation.isEquivRel.transitive (isEquivRelIsEquivTracker R S) (a , isTrackerA) (b , isTrackerB) (c , isTrackerC) a~b b~c r r~r = isTransitive S (a ⨾ r) (b ⨾ r) (c ⨾ r) (a~b r r~r) (b~c r r~r)
+BinaryRelation.isEquivRel.symmetric (isEquivRelIsEquivTracker R S) (a , isTrackerA) (b , isTrackerB) a~b r r~r =
+  isSymmetric S (a ⨾ r) (b ⨾ r) (a~b r r~r)
+BinaryRelation.isEquivRel.transitive (isEquivRelIsEquivTracker R S) (a , isTrackerA) (b , isTrackerB) (c , isTrackerC) a~b b~c r r~r =
+  isTransitive S (a ⨾ r) (b ⨾ r) (c ⨾ r) (a~b r r~r) (b~c r r~r)
 
 isPropIsEquivTracker : ∀ R S a b → isProp (isEquivTracker R S a b)
 isPropIsEquivTracker R S (a , isTrackerA) (b , isTrackerB) = isPropΠ2 λ r r~r → isPropValued S (a ⨾ r) (b ⨾ r)

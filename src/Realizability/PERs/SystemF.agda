@@ -33,6 +33,12 @@ module Syntax where
   Ren* : TypeCtxt → TypeCtxt → Type
   Ren* Γ Δ = ∀ {K} → K ∈* Γ → K ∈* Δ
 
+  lift* : ∀ {Γ Δ k} → Ren* Γ Δ → Ren* (Γ , k) (Δ , k)
+  lift* {Γ} {Δ} {k} ρ {.k} here = here
+  lift* {Γ} {Δ} {k} ρ {K} (there inm) = there (ρ inm)
+
+  ren* : ∀ {Γ Δ} → 
+
   data _∈_ : ∀ {Γ} → Tp Γ tp → TermCtxt Γ → Type where
     here : ∀ {Γ} {A : Tp Γ tp} {Θ : TermCtxt Γ} → A ∈ (Θ , A)
     thereType : ∀ {Γ} {A B : Tp Γ tp} {Θ : TermCtxt Γ} → A ∈ Θ → A ∈ (Θ , B)
