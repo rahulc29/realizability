@@ -936,3 +936,33 @@ module ClassifiesStrictRelations
         char
         commutes
         classifies
+
+module ClassifiesSubobjects where
+
+  subobjectClassifierUnivProp : Type _
+  subobjectClassifierUnivProp =
+    ∀ {X Y : Type ℓ}
+      {perX : PartialEquivalenceRelation X}
+      {perY : PartialEquivalenceRelation Y}
+    → (f : RTMorphism perX perY)
+    → isMonic RT f
+    → ∃![ char ∈ RTMorphism perY Ωper ]
+      Σ[ commutes ∈ f ⋆ char ≡ [ terminalFuncRel perX ] ⋆ [ trueFuncRel ] ]
+      isPullback RT (cospan (Y , perY) ((ResizedPredicate Unit*) , Ωper) (Unit* , terminalPer) char [ trueFuncRel ]) f [ terminalFuncRel perX ] commutes
+
+  isSubobjectClassifier : subobjectClassifierUnivProp
+  isSubobjectClassifier {X} {Y} {perX} {perY} f isMonicF =
+    SQ.elimProp
+      {P = λ f → ∀ (isMonic : isMonic RT f) → ∃![ char ∈ RTMorphism perY Ωper ] (Σ[ commutes ∈ f ⋆ char ≡ [ terminalFuncRel perX ] ⋆ [ trueFuncRel ] ] isPullback RT (cospan (Y , perY) ((ResizedPredicate Unit*) , Ωper) (Unit* , terminalPer) char [ trueFuncRel ]) f [ terminalFuncRel perX ] commutes) }
+      (λ f → isPropΠ λ isMonicF → isPropIsContr)
+      (λ F isMonicF →
+        let
+          ϕ = SubobjectIsoMonicFuncRel.ψ perY perX F isMonicF
+        in
+        uniqueExists
+          [ ClassifiesStrictRelations.charFuncRel Y perY ϕ ]
+          ({!ClassifiesStrictRelations.subobjectSquareCommutes Y perY ϕ!} , {!!})
+          {!!}
+          {!!})
+      f
+      isMonicF

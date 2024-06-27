@@ -1,3 +1,15 @@
+---
+title: Applicative Structure
+author: Rahul Chhabra
+---
+# Applicative Structure
+
+In this module we define the notion of an _applicative structure_.
+
+A type $A$ has applicative structure if it has an "application operation" (here represented by `_⨾_`) and is a set.
+
+<details>
+```agda
 open import Cubical.Core.Everything
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.HLevels
@@ -28,13 +40,21 @@ private module _ {ℓ} {A : Type ℓ} where
   opaque
     chain : ∀ {n} → Vec A (suc n) → (A → A → A) → A
     chain {n} (x ∷vec vec) op = foldl (λ _ → A) (λ acc curr → op acc curr) x vec
+```
+</details>
 
+```agda
 record ApplicativeStructure {ℓ} (A : Type ℓ) : Type ℓ where
   infixl 20 _⨾_
   field
     isSetA : isSet A
     _⨾_ : A → A → A
+```
 
+Since being a set is a property - we will generally not have to think about it too much. Also, since `A` is a set - we can drop the relevance of paths and simply talk about "equality".
+
+We can define the notion of a term over an applicative structure.
+```agda
 module _ {ℓ} {A : Type ℓ} (as : ApplicativeStructure A) where
   open ApplicativeStructure as
   infix 23 `_
@@ -43,7 +63,11 @@ module _ {ℓ} {A : Type ℓ} (as : ApplicativeStructure A) where
     # : Fin n → Term n
     `_ : A → Term n
     _̇_ : Term n → Term n → Term n
+```
 
+These terms can be evaluated into $A$ if we can give the values of the free variables.
+
+```agda
   ⟦_⟧ : ∀ {n} → Term n → Vec A n → A
   ⟦_⟧ (` a) _ = a
   ⟦_⟧ {n} (# k) subs = lookup k subs
@@ -54,7 +78,10 @@ module _ {ℓ} {A : Type ℓ} (as : ApplicativeStructure A) where
 
   apply : ∀ {n} → A → Vec A n → A
   apply {n} a vec = chain (a ∷ vec) (λ x y → x ⨾ y)
-  
+```
+
+<details>
+```agda
   private
     opaque
       unfolding reverse
@@ -62,14 +89,30 @@ module _ {ℓ} {A : Type ℓ} (as : ApplicativeStructure A) where
       unfolding chain
       applyWorks : ∀ K a b → apply K (a ∷ b ∷ []) ≡ K ⨾ a ⨾ b
       applyWorks K a b = refl
+```
+</details>
 
+On an applicative structure we can define Feferman structure (or SK structure). We call an applicative structure endowed with Feferman structure a **combinatory algebra**.
+
+```agda
   record Feferman : Type ℓ where
     field
       s : A
       k : A
       kab≡a : ∀ a b → k ⨾ a ⨾ b ≡ a
       sabc≡ac_bc : ∀ a b c → s ⨾ a ⨾ b ⨾ c ≡ (a ⨾ c) ⨾ (b ⨾ c)
-      
+```
+
+Feferman structure allows us to construct **combinatorial completeness** structure.
+
+Imagine we have a term `t : Term n` (for some `n : ℕ`). We can ask if `A` has a "copy" of `t` so that application would correspond to subsitution. That is, we may ask if we can find an `a : A` such that
+`a ⨾ < a¹ ⨾ a² ⨾ .... ⨾ aⁿ >` (here the `< ... >` notation represents a chain of applications) would be equal to `t [a¹ / # 0 , a² / # 1 , .... , aⁿ / # (pred n) ]`. If the applicative structure additionally can be endowed with Feferman structure - then the answer is yes. 
+
+To get to such a term, we first need to define a function that takes `Term (suc n)` to `Term n` by "abstracting" the free variable represented by the index `# 0`.
+
+We will call this `λ*abst` and this will turn out to behave very similar to λ abstraction - and we will also show that it validates a kind of β reduction rule.
+
+```agda
   module ComputationRules (feferman : Feferman) where
     open Feferman feferman
 
@@ -79,9 +122,15 @@ module _ {ℓ} {A : Type ℓ} (as : ApplicativeStructure A) where
       λ*abst {n} (# (suc x)) = ` k ̇ # x
       λ*abst {n} (` x) = ` k ̇ ` x
       λ*abst {n} (e ̇ e₁) = ` s ̇ λ*abst e ̇ λ*abst e₁
+```
 
-    -- Some shortcuts
+**Remark** : It is important to note that in general, realizability is developed using **partial combinatory algebras** and **partial applicative structures**. In this case, `λ*abst` is not particularly well-behaved. The β reduction-esque rule we derive also does not behave *completely* like β reduction. See Jonh Longley's PhD thesis "Realizability Toposes and Language Semantics" Theorem 1.1.9.
 
+**Remark** : We declare the definition as `opaque` - this is important. If we let Agda unfold this definition all the way we ocassionally end up with unreadable goals containing a mess of `s` and `k`. 
+
+We define meta-syntactic sugar for some of the more common cases :
+
+```agda
     λ* : Term one → A
     λ* t = ⟦ λ*abst t ⟧ []
 
@@ -93,7 +142,14 @@ module _ {ℓ} {A : Type ℓ} (as : ApplicativeStructure A) where
 
     λ*4 : Term four → A
     λ*4 t = ⟦ λ*abst (λ*abst (λ*abst (λ*abst t))) ⟧ []
+```
 
+We now show that we have a β-reduction-esque operation. We proceed by induction on the structure of the term and the number of free variables.
+
+For the particular combinatory algebra Λ/β (terms of the untyped λ calculus quotiented by β equality) - this β reduction actually coincides with the "actual" β reduction.
+TODO : Prove this.
+
+```agda
     opaque
       unfolding λ*abst
       βreduction : ∀ {n} → (body : Term (suc n)) → (prim : A) → (subs : Vec A n) → ⟦ λ*abst body ̇ ` prim ⟧ subs ≡ ⟦ body ⟧ (prim ∷ subs)
@@ -113,14 +169,22 @@ module _ {ℓ} {A : Type ℓ} (as : ApplicativeStructure A) where
           ≡⟨ cong₂ (λ x y → x ⨾ y) (βreduction rator prim subs) (βreduction rand prim subs) ⟩
         ⟦ rator ⟧ (prim ∷ subs) ⨾ ⟦ rand ⟧ (prim ∷ subs)
           ∎
+```
 
+<details>
+```agda
     λ*chainTerm : ∀ n → Term n → Term zero
     λ*chainTerm zero t = t
     λ*chainTerm (suc n) t = λ*chainTerm n (λ*abst t)
 
     λ*chain : ∀ {n} → Term n → A
     λ*chain {n} t = ⟦ λ*chainTerm n t ⟧ []
+```
+</details>
 
+We provide useful reasoning combinators that are useful and frequent.
+
+```agda
     opaque
       unfolding reverse
       unfolding foldl
@@ -169,3 +233,4 @@ module _ {ℓ} {A : Type ℓ} (as : ApplicativeStructure A) where
           ≡⟨ βreduction t d (c ∷ b ∷ a ∷ []) ⟩
         ⟦ t ⟧ (d ∷ c ∷ b ∷ a ∷ [])
           ∎
+```
