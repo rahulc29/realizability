@@ -30,11 +30,11 @@ open Combinators ca renaming (i to Id; ia≡a to Ida≡a)
 
 module BR = BinaryRelation
 
-isPartialEquivalenceRelation : PropRel A A ℓ → Type _
-isPartialEquivalenceRelation (rel , isPropValuedRel) = BR.isSym rel × BR.isTrans rel
+isPartialEquivalenceRelation : (A → A → Type ℓ) → Type _
+isPartialEquivalenceRelation rel = BR.isSym rel × BR.isTrans rel
 
-isPropIsPartialEquivalenceRelation : ∀ r → isProp (isPartialEquivalenceRelation r)
-isPropIsPartialEquivalenceRelation (rel , isPropValuedRel) =
+isPropIsPartialEquivalenceRelation : ∀ r → (∀ a b → isProp (r a b)) → isProp (isPartialEquivalenceRelation r)
+isPropIsPartialEquivalenceRelation rel isPropValuedRel =
   isProp×
     (isPropΠ (λ x → isPropΠ λ y → isProp→ (isPropValuedRel y x)))
     (isPropΠ λ x → isPropΠ λ y → isPropΠ λ z → isProp→ (isProp→ (isPropValuedRel x z)))
@@ -43,20 +43,66 @@ record PER : Type (ℓ-suc ℓ) where
   no-eta-equality
   constructor makePER
   field
-    relation : PropRel A A ℓ
+    relation : A → A → Type ℓ
+    isPropValued : ∀ a b → isProp (relation a b)
     isPER : isPartialEquivalenceRelation relation
-  ∣_∣ = relation .fst
   isSymmetric = isPER .fst
   isTransitive = isPER .snd
-  isPropValued = relation .snd
 
 open PER
 
+PERΣ : Type (ℓ-suc ℓ)
+PERΣ = Σ[ relation ∈ (A → A → hProp ℓ) ] isPartialEquivalenceRelation λ a b → ⟨ relation a b ⟩
+
+isSetPERΣ : isSet PERΣ
+isSetPERΣ =
+  isSetΣ
+    (isSet→ (isSet→ isSetHProp))
+    (λ relation →
+      isProp→isSet
+        (isPropIsPartialEquivalenceRelation
+          (λ a b → ⟨ relation a b ⟩)
+          (λ a b → str (relation a b))))
+
+PER≡ : ∀ (R S : PER) → (R .relation ≡ S .relation) → R ≡ S
+relation (PER≡ R S rel≡ i) = rel≡ i
+isPropValued (PER≡ R S rel≡ i) a b =
+  isProp→PathP
+    {B = λ j → isProp (rel≡ j a b)}
+    (λ j → isPropIsProp)
+    (R .isPropValued a b)
+    (S .isPropValued a b) i
+isPER (PER≡ R S rel≡ i) =
+  isProp→PathP
+    {B = λ j → isPartialEquivalenceRelation (rel≡ j)}
+    (λ j → isPropIsPartialEquivalenceRelation (rel≡ j) λ a b → isPropRelJ a b j)
+    (R .isPER)
+    (S .isPER) i where
+      isPropRelJ : ∀ a b j → isProp (rel≡ j a b)
+      isPropRelJ a b j = isProp→PathP {B = λ k → isProp (rel≡ k a b)} (λ k → isPropIsProp) (R .isPropValued a b) (S .isPropValued a b) j
+
+PERIsoΣ : Iso PER PERΣ
+Iso.fun PERIsoΣ per = (λ a b → per .relation a b , per .isPropValued a b) , per .isPER
+relation (Iso.inv PERIsoΣ perΣ) a b = ⟨ perΣ .fst a b ⟩
+isPropValued (Iso.inv PERIsoΣ perΣ) a b = str (perΣ .fst a b)
+isPER (Iso.inv PERIsoΣ perΣ) = perΣ .snd
+Iso.rightInv PERIsoΣ perΣ = refl
+Iso.leftInv PERIsoΣ per = PER≡ _ _ refl
+
+isSetPER : isSet PER
+isSetPER = isOfHLevelRetractFromIso 2 PERIsoΣ isSetPERΣ
+
+PER≡Iso : ∀ (R S : PER) → Iso (R ≡ S) (R .relation ≡ S .relation)
+Iso.fun (PER≡Iso R S) R≡S i = R≡S i .relation
+Iso.inv (PER≡Iso R S) rel≡ = PER≡ R S rel≡
+Iso.rightInv (PER≡Iso R S) rel≡ = refl
+Iso.leftInv (PER≡Iso R S) R≡S = isSetPER R S _ _
+
 _~[_]_ : A → PER → A → Type ℓ
-a ~[ R ] b = R .relation .fst a b
+a ~[ R ] b = R .relation a b
 
 isProp~ : ∀ a R b → isProp (a ~[ R ] b)
-isProp~ a R b = R .relation .snd a b
+isProp~ a R b = R .isPropValued a b
 
 isTracker : (R S : PER) → A → Type ℓ
 isTracker R S a = ∀ r r' → r ~[ R ] r' → (a ⨾ r) ~[ S ] (a ⨾ r')
