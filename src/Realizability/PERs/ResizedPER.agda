@@ -27,6 +27,7 @@ module Realizability.PERs.ResizedPER
 open import Realizability.Assembly.Base ca
 open import Realizability.Assembly.Morphism ca
 open import Realizability.PERs.PER ca
+open import Realizability.Modest.Base ca
 
 open CombinatoryAlgebra ca
 open Combinators ca renaming (i to Id; ia≡a to Ida≡a)
@@ -162,5 +163,33 @@ Iso.leftInv ResizedPERIsoPER resizedPer =
   ResizedPER≡ _ _
     λ a b → shrinkFromExtracted (resizedPer .relation a b)
 
+opaque
+  shrinkPER : PER → ResizedPER
+  shrinkPER = ResizedPERIsoPER .Iso.inv
+
+opaque
+  enlargePER : ResizedPER → PER
+  enlargePER = ResizedPERIsoPER .Iso.fun
+
+opaque
+  unfolding shrinkPER
+  unfolding enlargePER
+  shrinkPER⋆enlargePER≡id : ∀ resized → shrinkPER (enlargePER resized) ≡ resized
+  shrinkPER⋆enlargePER≡id resized = ResizedPERIsoPER .Iso.leftInv resized
+
+opaque
+  unfolding shrinkPER
+  unfolding enlargePER
+  enlargePER⋆shrinkPER≡id : ∀ per → enlargePER (shrinkPER per) ≡ per
+  enlargePER⋆shrinkPER≡id per = ResizedPERIsoPER .Iso.rightInv per
+
 ResizedPER≃PER : ResizedPER ≃ PER
 ResizedPER≃PER = isoToEquiv ResizedPERIsoPER
+
+opaque
+  transportFromSmall : ∀ {ℓ'} {P : ResizedPER → Type ℓ'} → (∀ per → P (shrinkPER per)) → ∀ resized → P resized
+  transportFromSmall {ℓ'} {P} small resized = subst P (shrinkPER⋆enlargePER≡id resized) (small (enlargePER resized))
+
+opaque
+  transportFromLarge : ∀ {ℓ'} {P : PER → Type ℓ'} → (∀ resized → P (enlargePER resized)) → ∀ per → P per
+  transportFromLarge {ℓ'} {P} large per = subst P (enlargePER⋆shrinkPER≡id per) (large (shrinkPER per))
