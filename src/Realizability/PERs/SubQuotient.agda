@@ -35,48 +35,51 @@ open Combinators ca renaming (i to Id; ia≡a to Ida≡a)
 module _
   (per : PER) where
 
+  domain : Type ℓ
+  domain = Σ[ a ∈ A ] (per .PER.relation a a)
+
   subQuotient : Type ℓ
-  subQuotient = A / per .PER.relation
+  subQuotient = domain / λ { (a , _) (b , _) → per .PER.relation a b }
 
   subQuotientRealizability : A → subQuotient → hProp ℓ
   subQuotientRealizability r [a] =
     SQ.rec
       isSetHProp
-      (λ a → ([ a ] ≡ [ r ]) , squash/ [ a ] [ r ])
-      (λ a b a~b →
+      (λ { (a , a~a) → r ~[ per ] a , isProp~ r per a })
+      (λ { (a , a~a) (b , b~b) a~b →
         Σ≡Prop
-          (λ _ → isPropIsProp)
-          (hPropExt (squash/ [ a ] [ r ]) (squash/ [ b ] [ r ]) (λ [a]≡[r] → sym (eq/ a b a~b) ∙ [a]≡[r]) λ [b]≡[r] → sym (eq/ b a (per .PER.isPER .fst a b a~b)) ∙ [b]≡[r]))
+          (λ x → isPropIsProp)
+          (hPropExt
+            (isProp~ r per a)
+            (isProp~ r per b)
+            (λ r~a → PER.isTransitive per r a b r~a a~b)
+            (λ r~b → PER.isTransitive per r b a r~b (PER.isSymmetric per a b a~b))) })
       [a]
-
+      
+  
   subQuotientAssembly : Assembly subQuotient
   Assembly._⊩_ subQuotientAssembly r [a] = ⟨ subQuotientRealizability r [a] ⟩
   Assembly.isSetX subQuotientAssembly = squash/
   Assembly.⊩isPropValued subQuotientAssembly r [a] = str (subQuotientRealizability r [a])
   Assembly.⊩surjective subQuotientAssembly [a] =
-    do
-      (a , [a]≡[a]) ← []surjective [a]
-      return
-        (a , (subst (λ [a] → ⟨ subQuotientRealizability a [a] ⟩) [a]≡[a] refl))
+    SQ.elimProp
+      {P = λ [a] → ∃[ r ∈ A ] ⟨ subQuotientRealizability r [a] ⟩}
+      (λ [a] → isPropPropTrunc)
+      (λ { (a , a~a) → return (a , a~a) })
+      [a]
 
+  
   isModestSubQuotientAssembly : isModest subQuotientAssembly
   isModestSubQuotientAssembly x y a a⊩x a⊩y =
     SQ.elimProp2
-      {P = motive}
+      {P = λ x y → motive x y}
       isPropMotive
-      coreMap
-      x y a a⊩x a⊩y where
-        motive : subQuotient → subQuotient → Type ℓ
-        motive x y = (a : A) → a ⊩[ subQuotientAssembly ] x → a ⊩[ subQuotientAssembly ] y → x ≡ y
+      (λ { (x , x~x) (y , y~y) a a~x a~y →
+        eq/ (x , x~x) (y , y~y) (PER.isTransitive per x a y (PER.isSymmetric per a x a~x) a~y) })
+      x y
+      a a⊩x a⊩y where
+        motive : ∀ (x y : subQuotient) → Type ℓ
+        motive x y = ∀ (a : A) (a⊩x : a ⊩[ subQuotientAssembly ] x) (a⊩y : a ⊩[ subQuotientAssembly ] y) → x ≡ y
 
         isPropMotive : ∀ x y → isProp (motive x y)
         isPropMotive x y = isPropΠ3 λ _ _ _ → squash/ x y
-
-        coreMap : (r s : A) → motive [ r ] [ s ]
-        coreMap r s a a⊩[r] a⊩[s] =
-          [ r ]
-            ≡⟨ a⊩[r] ⟩
-          [ a ]
-            ≡⟨ sym a⊩[s] ⟩
-          [ s ]
-            ∎
