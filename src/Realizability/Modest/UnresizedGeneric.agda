@@ -53,36 +53,40 @@ module Unresized
   theCanonicalPER : ∀ x → PER
   theCanonicalPER x = canonicalPER (M . assemblies x) (M .isModestFamily x)
 
-  elimRealizerForMx : ∀ {x : X} {Mx : M .carriers x} → Σ[ a ∈ A ] (a ⊩[ M .assemblies x ] Mx) → subQuotient (canonicalPER (M .assemblies x) (M .isModestFamily x))
-  elimRealizerForMx {x} {Mx} (a , a⊩Mx) = [ a , (return (Mx , a⊩Mx , a⊩Mx)) ]
-  
-  elimRealizerForMx2Constant : ∀ {x Mx} → 2-Constant (elimRealizerForMx {x} {Mx})
-  elimRealizerForMx2Constant {x} {Mx} (a , a⊩Mx) (b , b⊩Mx) =
-    eq/
-      (a , (return (Mx , a⊩Mx , a⊩Mx)))
-      (b , return (Mx , b⊩Mx , b⊩Mx))
-      (return (Mx , a⊩Mx , b⊩Mx))
+  elimRealizerForMx : ∀ (x : X) (Mx : M .carriers x) → Σ[ a ∈ A ] (a ⊩[ M .assemblies x ] Mx) → subQuotient (canonicalPER (M .assemblies x) (M .isModestFamily x))
+  elimRealizerForMx x Mx (a , a⊩Mx) = [ a , (return (Mx , a⊩Mx , a⊩Mx)) ]
 
-  mainMap : (x : X) (Mx : M .carriers x) → subQuotient (canonicalPER (M .assemblies x) (M .isModestFamily x))
-  mainMap x Mx =
-    PT.rec→Set
-      squash/
-      (elimRealizerForMx {x = x} {Mx = Mx})
-      (elimRealizerForMx2Constant {x = x} {Mx = Mx})
-      (M .assemblies x .⊩surjective Mx)
-      
   opaque
-    isTrackedMainMap : ∃[ r ∈ A ] (∀ (x : X) (a : A) → a ⊩[ asmX ] x → (Mx : M .carriers x) → (b : A) → b ⊩[ M .assemblies x ] Mx → (r ⨾ a ⨾ b) ⊩[ subQuotientAssembly (theCanonicalPER x) ] (mainMap x Mx))
-    isTrackedMainMap =
-      return
-        ((λ*2 (# zero)) ,
-        (λ x a a⊩x Mx b b⊩Mx →
-           PT.elim
-             {P = λ MxRealizer → (λ*2 (# zero) ⨾ a ⨾ b) ⊩[ subQuotientAssembly (theCanonicalPER x) ] (PT.rec→Set squash/ (elimRealizerForMx {x = x} {Mx = Mx}) (elimRealizerForMx2Constant {x = x} {Mx = Mx}) MxRealizer)}
-             (λ ⊩Mx → subQuotientAssembly (theCanonicalPER x) .⊩isPropValued (λ*2 (# zero) ⨾ a ⨾ b) (rec→Set squash/ elimRealizerForMx elimRealizerForMx2Constant ⊩Mx))
-             (λ { (c , c⊩Mx) →
-               subst
-                 (_⊩[ subQuotientAssembly (theCanonicalPER x) ] (elimRealizerForMx (c , c⊩Mx)))
-                 (sym (λ*2ComputationRule (# zero) a b))
-                 (return (Mx , b⊩Mx , c⊩Mx))})
-             (M .assemblies x .⊩surjective Mx)))
+    elimRealizerForMx2Constant : ∀ x Mx → 2-Constant (elimRealizerForMx x Mx)
+    elimRealizerForMx2Constant x Mx (a , a⊩Mx) (b , b⊩Mx) =
+      eq/
+        (a , (return (Mx , a⊩Mx , a⊩Mx)))
+        (b , return (Mx , b⊩Mx , b⊩Mx))
+        (return (Mx , a⊩Mx , b⊩Mx))
+
+  mainMapType : Type _
+  mainMapType =
+    ∀ (x : X) (Mx : M .carriers x) →
+    Σ[ out ∈ (subQuotient (canonicalPER (M .assemblies x) (M .isModestFamily x))) ]
+    (∀ (a : A) → a ⊩[ asmX ] x → (b : A) → b ⊩[ M .assemblies x ] Mx → (λ*2 (# zero) ⨾ a ⨾ b) ⊩[ subQuotientAssembly (theCanonicalPER x) ] out)
+
+  opaque
+    mainMap : mainMapType
+    mainMap x Mx =
+      PT.rec→Set
+        (isSetΣ
+            squash/
+            (λ out →
+              isSetΠ3
+                λ a a⊩x b →
+                  isSet→
+                    (isProp→isSet
+                      (str
+                        (subQuotientRealizability (theCanonicalPER x) (λ*2 (# zero) ⨾ a ⨾ b) out)))))
+        ((λ { (c , c⊩Mx) →
+          (elimRealizerForMx x Mx (c , c⊩Mx)) ,
+          (λ a a⊩x b b⊩Mx →
+            subst (_⊩[ subQuotientAssembly (theCanonicalPER x) ] (elimRealizerForMx x Mx (c , c⊩Mx))) (sym (λ*2ComputationRule (# zero) a b)) (return (Mx , b⊩Mx , c⊩Mx))) }))
+        (λ { (a , a⊩Mx) (b , b⊩Mx) →
+          Σ≡Prop (λ out → isPropΠ4 λ a a⊩x b b⊩Mx → str (subQuotientRealizability (theCanonicalPER x) (λ*2 (# zero) ⨾ a ⨾ b) out)) (elimRealizerForMx2Constant x Mx (a , a⊩Mx) (b , b⊩Mx)) })
+        (M .assemblies x .⊩surjective Mx)
