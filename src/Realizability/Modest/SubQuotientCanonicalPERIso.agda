@@ -25,7 +25,7 @@ open import Realizability.CombinatoryAlgebra
 open import Realizability.ApplicativeStructure
 open import Realizability.PropResizing
 
-module Realizability.Modest.SubQuotientCanonicalPERToOriginal {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
+module Realizability.Modest.SubQuotientCanonicalPERIso {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
 
 open import Realizability.Assembly.Base ca
 open import Realizability.Assembly.Morphism ca
@@ -90,3 +90,58 @@ module
     goal : (sq : subQuotient theCanonicalPER) → (a : A) → a ⊩[ theSubQuotient ] sq → (Id ⨾ a) ⊩[ asmX ] (invert .map sq)
     goal sq a a⊩sq = subst (_⊩[ asmX ] _) (sym (Ida≡a a)) (realizability sq a a⊩sq)
 
+  forward : AssemblyMorphism asmX theSubQuotient
+  AssemblyMorphism.map forward x = subquot module Forward where
+    mainMap : Σ[ a ∈ A ] (a ⊩[ asmX ] x) → subQuotient theCanonicalPER
+    mainMap (a , a⊩x) = [ a , x , a⊩x , a⊩x ]
+ 
+    mainMap2Constant : 2-Constant mainMap
+    mainMap2Constant (a , a⊩x) (b , b⊩x) = eq/ _ _ (x , a⊩x , b⊩x)
+
+    subquot : subQuotient theCanonicalPER
+    subquot = PT.rec→Set squash/ mainMap mainMap2Constant (asmX .⊩surjective x)
+  AssemblyMorphism.tracker forward =
+    return
+      (Id ,
+      (λ x a a⊩x →
+        PT.elim
+          {P = λ surj → (Id ⨾ a) ⊩[ theSubQuotient ] (PT.rec→Set squash/ (Forward.mainMap x) (Forward.mainMap2Constant x) surj)}
+          (λ surj → theSubQuotient .⊩isPropValued (Id ⨾ a) (PT.rec→Set squash/ (Forward.mainMap x) (Forward.mainMap2Constant x) surj))
+          (λ { (b , b⊩x) → x , subst (_⊩[ asmX ] x) (sym (Ida≡a a)) a⊩x , b⊩x })
+          (asmX .⊩surjective x)))
+
+  subQuotientCanonicalIso : CatIso MOD (X , asmX , isModestAsmX) (subQuotient theCanonicalPER , theSubQuotient , isModestSubQuotientAssembly theCanonicalPER)
+  fst subQuotientCanonicalIso = forward
+  isIso.inv (snd subQuotientCanonicalIso) = invert
+  isIso.sec (snd subQuotientCanonicalIso) = goal where
+    opaque
+      pointwise : ∀ sq → (invert ⊚ forward) .map sq ≡ sq
+      pointwise sq =
+        SQ.elimProp
+          (λ sq → squash/ (forward .map (invert .map sq)) sq)
+          (λ { d@(a , x , a⊩x , a⊩'x) →
+            PT.elim
+              {P = λ surj → PT.rec→Set squash/ (Forward.mainMap (Invert.reprAction [ d ] d)) (Forward.mainMap2Constant (Invert.reprAction [ d ] d)) surj ≡ [ d ]}
+              (λ surj → squash/ _ _)
+              (λ { (b , b⊩x) → eq/ _ _ (x , b⊩x , a⊩x) })
+              (asmX .⊩surjective x) })
+          sq
+
+    goal : invert ⊚ forward ≡ identityMorphism theSubQuotient
+    goal = AssemblyMorphism≡ _ _ (funExt pointwise)
+  isIso.ret (snd subQuotientCanonicalIso) = goal where
+    opaque
+      pointwise : ∀ x → (forward ⊚ invert) .map x ≡ x
+      pointwise x =
+        PT.elim
+          {P =
+            λ surj →
+              invert .map
+                (PT.rec→Set squash/ (Forward.mainMap x) (Forward.mainMap2Constant x) surj)
+              ≡ x}
+          (λ surj → asmX .isSetX _ _)
+          (λ { (a , a⊩x) → refl })
+          (asmX .⊩surjective x)
+
+    goal : forward ⊚ invert ≡ identityMorphism asmX
+    goal = AssemblyMorphism≡ _ _ (funExt pointwise)

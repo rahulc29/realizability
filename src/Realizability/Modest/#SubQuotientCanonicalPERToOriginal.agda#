@@ -49,44 +49,5 @@ module
   (asmX : Assembly X)
   (isModestAsmX : isModest asmX) where
 
-  theCanonicalPER : PER
-  theCanonicalPER = canonicalPER asmX isModestAsmX
-
-  theSubQuotient : Assembly (subQuotient theCanonicalPER)
-  theSubQuotient = subQuotientAssembly theCanonicalPER
-
-  invert : AssemblyMorphism theSubQuotient asmX
-  AssemblyMorphism.map invert sq = SQ.rec (asmX .isSetX) reprAction reprActionCoh sq module Invert where
-
-    reprAction : Σ[ a ∈ A ] (a ~[ theCanonicalPER ] a) → X
-    reprAction (a , x , a⊩x , _) = x
-
-    reprActionCoh : ∀ a b a~b → reprAction a ≡ reprAction b
-    reprActionCoh (a , x , a⊩x , _) (b , x' , b⊩x' , _) (x'' , a⊩x'' , b⊩x'') =
-      x
-        ≡⟨ isModestAsmX x x'' a a⊩x a⊩x'' ⟩
-      x''
-        ≡⟨ isModestAsmX x'' x' b b⊩x'' b⊩x' ⟩
-      x'
-        ∎
-  AssemblyMorphism.tracker invert = return (Id , (λ sq a a⊩sq → goal sq a a⊩sq)) where
-    realizability : (sq : subQuotient theCanonicalPER) → (a : A) → a ⊩[ theSubQuotient ] sq → a ⊩[ asmX ] (invert .map sq)
-    realizability sq a a⊩sq =
-      SQ.elimProp
-        {P = motive}
-        isPropMotive
-        elemMotive
-        sq a a⊩sq where
-
-      motive : (sq : subQuotient theCanonicalPER) → Type _
-      motive sq = ∀ (a : A) → a ⊩[ theSubQuotient ] sq → a ⊩[ asmX ] (invert .map sq)
-
-      isPropMotive : ∀ sq → isProp (motive sq)
-      isPropMotive sq = isPropΠ2 λ a a⊩sq → asmX .⊩isPropValued _ _
-
-      elemMotive : (x : domain theCanonicalPER) → motive [ x ]
-      elemMotive (r , x , r⊩x , _) a (x' , a⊩x' , r⊩x') = subst (a ⊩[ asmX ]_) (isModestAsmX x' x r r⊩x' r⊩x) a⊩x'
-
-    goal : (sq : subQuotient theCanonicalPER) → (a : A) → a ⊩[ theSubQuotient ] sq → (Id ⨾ a) ⊩[ asmX ] (invert .map sq)
-    goal sq a a⊩sq = subst (_⊩[ asmX ] _) (sym (Ida≡a a)) (realizability sq a a⊩sq)
+  
 

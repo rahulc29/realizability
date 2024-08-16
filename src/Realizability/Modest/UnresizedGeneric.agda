@@ -54,15 +54,15 @@ module Unresized
   theCanonicalPER x = canonicalPER (M . assemblies x) (M .isModestFamily x)
 
   elimRealizerForMx : ∀ (x : X) (Mx : M .carriers x) → Σ[ a ∈ A ] (a ⊩[ M .assemblies x ] Mx) → subQuotient (canonicalPER (M .assemblies x) (M .isModestFamily x))
-  elimRealizerForMx x Mx (a , a⊩Mx) = [ a , (return (Mx , a⊩Mx , a⊩Mx)) ]
+  elimRealizerForMx x Mx (a , a⊩Mx) = [ a , Mx , a⊩Mx , a⊩Mx ]
 
   opaque
     elimRealizerForMx2Constant : ∀ x Mx → 2-Constant (elimRealizerForMx x Mx)
     elimRealizerForMx2Constant x Mx (a , a⊩Mx) (b , b⊩Mx) =
       eq/
-        (a , (return (Mx , a⊩Mx , a⊩Mx)))
-        (b , return (Mx , b⊩Mx , b⊩Mx))
-        (return (Mx , a⊩Mx , b⊩Mx))
+        (a , Mx , a⊩Mx , a⊩Mx)
+        (b , Mx , b⊩Mx , b⊩Mx)
+        (Mx , a⊩Mx , b⊩Mx)
 
   mainMapType : Type _
   mainMapType =
@@ -86,7 +86,7 @@ module Unresized
         ((λ { (c , c⊩Mx) →
           (elimRealizerForMx x Mx (c , c⊩Mx)) ,
           (λ a a⊩x b b⊩Mx →
-            subst (_⊩[ subQuotientAssembly (theCanonicalPER x) ] (elimRealizerForMx x Mx (c , c⊩Mx))) (sym (λ*2ComputationRule (# zero) a b)) (return (Mx , b⊩Mx , c⊩Mx))) }))
+            subst (_⊩[ subQuotientAssembly (theCanonicalPER x) ] (elimRealizerForMx x Mx (c , c⊩Mx))) (sym (λ*2ComputationRule (# zero) a b)) (Mx , b⊩Mx , c⊩Mx)) }))
         (λ { (a , a⊩Mx) (b , b⊩Mx) →
           Σ≡Prop (λ out → isPropΠ4 λ a a⊩x b b⊩Mx → str (subQuotientRealizability (theCanonicalPER x) (λ*2 (# zero) ⨾ a ⨾ b) out)) (elimRealizerForMx2Constant x Mx (a , a⊩Mx) (b , b⊩Mx)) })
         (M .assemblies x .⊩surjective Mx)

@@ -48,19 +48,13 @@ module _
   (isModestAsmX : isModest asmX) where
 
   canonicalPER : PER
-  PER.relation canonicalPER a b = ∃[ x ∈ X ] a ⊩[ asmX ] x × b ⊩[ asmX ] x
-  PER.isPropValued canonicalPER a b = isPropPropTrunc
-  fst (PER.isPER canonicalPER) a b ∃x = PT.map (λ { (x , a⊩x , b⊩x) → x , b⊩x , a⊩x }) ∃x
-  snd (PER.isPER canonicalPER) a b c ∃x ∃x' =
-    do
-      (x , a⊩x , b⊩x) ← ∃x
-      (x' , b⊩x' , c⊩x') ← ∃x'
-      let
-        x≡x' : x ≡ x'
-        x≡x' = isModestAsmX x x' b b⊩x b⊩x'
-
-        c⊩x : c ⊩[ asmX ] x
-        c⊩x = subst (c ⊩[ asmX ]_) (sym x≡x') c⊩x'
-      return (x , a⊩x , c⊩x)
+  PER.relation canonicalPER a b = Σ[ x ∈ X ] a ⊩[ asmX ] x × b ⊩[ asmX ] x
+  PER.isPropValued canonicalPER a b (x , a⊩x , b⊩x) (x' , a⊩x' , b⊩x') =
+    Σ≡Prop
+      (λ x → isProp× (asmX .⊩isPropValued a x) (asmX .⊩isPropValued b x))
+      (isModestAsmX x x' a a⊩x a⊩x')
+  fst (PER.isPER canonicalPER) a b (x , a⊩x , b⊩x) = x , b⊩x , a⊩x
+  snd (PER.isPER canonicalPER) a b c (x , a⊩x , b⊩x) (x' , b⊩x' , c⊩x') =
+    x' , subst (a ⊩[ asmX ]_) (isModestAsmX x x' b b⊩x b⊩x') a⊩x , c⊩x'
     
   

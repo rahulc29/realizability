@@ -70,7 +70,22 @@ GenericObject.isGeneric genericUniformFamily {X , asmX} M =
       cart' : isCartesian' f fᴰ
       cart' {Y , asmY} {N} g hᴰ =
         (! , {!!}) , {!!} where
+        
           ! : DisplayedUFamMap asmY asmX g N M
-          DisplayedUFamMap.fibrewiseMap ! y Ny = {!hᴰ .fibrewiseMap y Ny!}
+          DisplayedUFamMap.fibrewiseMap ! y Ny = lhsIsoRhs .fst .map {!hᴰ .fibrewiseMap y Ny!} module !Definition where
+            gy : X
+            gy = g .map y
+
+            canonicalPERMgy : PER
+            canonicalPERMgy = canonicalPER (M .assemblies gy) (M .isModestFamily gy)
+
+            lhsModestSet : MOD .Category.ob
+            lhsModestSet = subQuotient canonicalPERMgy , subQuotientAssembly canonicalPERMgy , isModestSubQuotientAssembly canonicalPERMgy
+
+            rhsModestSet : MOD .Category.ob
+            rhsModestSet = M .carriers gy , M .assemblies gy , M .isModestFamily gy
+
+            lhsIsoRhs : CatIso MOD lhsModestSet rhsModestSet
+            lhsIsoRhs = {!!}
           DisplayedUFamMap.isTracked ! = {!!}
     
