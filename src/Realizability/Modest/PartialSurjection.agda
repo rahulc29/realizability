@@ -386,12 +386,3 @@ Category.⋆IdL PARTSURJ {X , surjX} {Y , surjY} f = idLPartSurjMorphism f
 Category.⋆IdR PARTSURJ {X , surjX} {Y , surjY} f = idRPartSurjMorphism f
 Category.⋆Assoc PARTSURJ {X , surjX} {Y , surjY} {Z , surjZ} {W , surjW} f g h = assocComposePartSurjMorphism f g h
 Category.isSetHom PARTSURJ {X , surjX} {Y , surjY} = isSetPartialSurjectionMorphism surjX surjY
-
-open Category
-open ModestSetIso
-
-L : Functor MOD PARTSURJ
-Functor.F-ob L (X , modX) = X , (ModestSet→PartialSurjection X (modX .fst .isSetX) modX)
-Functor.F-hom L {X , asmX , isModestAsmX} {Y , asmY , isModestAsmY} f = {!!}
-Functor.F-id L = {!!}
-Functor.F-seq L = {!!}
