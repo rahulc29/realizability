@@ -1,9 +1,11 @@
 {-# OPTIONS --cubical --allow-unsolved-metas #-}
 open import Cubical.Foundations.Prelude
 open import Cubical.Data.Sigma
+open import Cubical.Data.FinData hiding (eq)
 open import Cubical.HITs.PropositionalTruncation hiding (map)
 open import Cubical.HITs.PropositionalTruncation.Monad
 open import Realizability.CombinatoryAlgebra
+open import Realizability.ApplicativeStructure
 
 module Realizability.Assembly.Exponentials {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
 
@@ -81,7 +83,20 @@ module _ {X Y Z : Type ℓ}
                                            .tracker → do
                                                        (f~ , f~tracker) ← f .tracker
                                                        -- λ* x. λ* y. f~ ⨾ (pair ⨾ x ⨾ y)
-                                                       return ({!!} , (λ z zᵣ zᵣ⊩z x xᵣ xᵣ⊩x → {!!})))
+                                                       let
+                                                         realizer : Term as 2
+                                                         realizer = ` f~ ̇ (` pair ̇ # one ̇ # zero)
+                                                       return
+                                                         (λ*2 realizer ,
+                                                         (λ z a a⊩z x b b⊩x →
+                                                           subst
+                                                             (λ r' → r' ⊩[ ys ] (f .map (z , x)))
+                                                             (sym (λ*2ComputationRule realizer a b))
+                                                             (f~tracker
+                                                               (z , x)
+                                                               (pair ⨾ a ⨾ b)
+                                                               ((subst (λ r' → r' ⊩[ zs ] z) (sym (pr₁pxy≡x _ _)) a⊩z) ,
+                                                                (subst (λ r' → r' ⊩[ xs ] x) (sym (pr₂pxy≡y _ _)) b⊩x))))))
                                         (AssemblyMorphism≡ _ _ (funExt (λ (z , x) → refl)))
                                         (λ g → isSetAssemblyMorphism _ _ (⟪ g , identityMorphism xs ⟫ ⊚ theEval) f)
                                         λ g g×id⊚eval≡f → AssemblyMorphism≡ _ _
