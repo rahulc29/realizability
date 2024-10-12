@@ -1,3 +1,5 @@
+-- This module defines a **partial surjection** and shows that it is equivalent to a modest set.
+-- A partial surjection on a set X is a surjection from the combinatory algebra 𝔸 ↠ X that is only defined for a certain subset of 𝔸
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism

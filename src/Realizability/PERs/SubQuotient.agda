@@ -1,3 +1,6 @@
+--  The subquotient construction embeds the category PER into the category MOD of modest sets.
+--  It turns out to be an equivalence of categories! In this module, we merely define it and show
+--  that it is an embedding of categories --- is full and faithful.
 open import Realizability.ApplicativeStructure
 open import Realizability.CombinatoryAlgebra
 open import Realizability.PropResizing
@@ -151,7 +154,7 @@ module _ (R S : PER) (f : AssemblyMorphism (subQuotientAssembly R) (subQuotientA
     PT.rec→Set squash/ mainMap mainMap2Constant (f .tracker) module InverseDefinition where
       isSQTracker : A → Type ℓ
       isSQTracker t = ∀ (q : subQuotient R) (a : A) → a ⊩[ subQuotientAssembly R ] q → ⟨ subQuotientRealizability S (t ⨾ a) (f .AssemblyMorphism.map q) ⟩
-      -- 🤢🤮
+
       mainMap : Σ[ t ∈ A ] (isSQTracker t) → perMorphism R S
       mainMap (t , t⊩f) =
         [ t ,

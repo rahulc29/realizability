@@ -1,4 +1,4 @@
-{-# OPTIONS --allow-unsolved-metas #-}
+-- Modules on the realizability topos over 𝔸
 module Realizability.Topos.Everything where
 
 open import Realizability.Topos.Object

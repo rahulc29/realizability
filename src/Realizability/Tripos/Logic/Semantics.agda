@@ -1,6 +1,5 @@
-{-# OPTIONS --allow-unsolved-metas #-}
 open import Realizability.CombinatoryAlgebra
-open import Realizability.ApplicativeStructure renaming (Term to ApplStrTerm; λ*-naturality to `λ*ComputationRule; λ*-chain to `λ*) hiding (λ*)
+open import Realizability.ApplicativeStructure renaming (Term to ApplStrTerm)
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Equiv
@@ -15,7 +14,7 @@ open import Cubical.Data.Unit
 open import Cubical.Data.Sum
 open import Cubical.Data.Vec
 open import Cubical.Data.Nat
-open import Cubical.Data.Fin
+open import Cubical.Data.FinData
 open import Cubical.HITs.PropositionalTruncation
 open import Cubical.HITs.PropositionalTruncation.Monad
 open import Cubical.Relation.Binary.Order.Preorder
@@ -24,8 +23,6 @@ module
   Realizability.Tripos.Logic.Semantics
   {ℓ ℓ' ℓ''} {A : Type ℓ} (ca : CombinatoryAlgebra A)  where
 open CombinatoryAlgebra ca
-private λ*ComputationRule = `λ*ComputationRule as fefermanStructure
-private λ* = `λ* as fefermanStructure
 
 open import Realizability.Tripos.Prealgebra.Predicate.Base {ℓ' = ℓ'} {ℓ'' = ℓ''} ca
 open import Realizability.Tripos.Prealgebra.Predicate.Properties {ℓ' = ℓ'} {ℓ'' = ℓ''} ca
@@ -101,18 +98,17 @@ substitutionVarSound : ∀ {Γ Δ s} → (subs : Substitution Γ Δ) → (v : s 
 substitutionVarSound {Γ} {.Γ} {s} id t = refl
 substitutionVarSound {Γ} {.(_ ′ s)} {s} (t' , subs) here = funExt λ ⟦Γ⟧ → refl
 substitutionVarSound {Γ} {.(_ ′ _)} {s} (t' , subs) (there t) = funExt λ ⟦Γ⟧ i → substitutionVarSound subs t i ⟦Γ⟧
-substitutionVarSound {.(_ ′ _)} {Δ} {s} r@(drop subs) t =
- -- TODO : Fix unsolved constraints
- funExt
-   λ { x@(⟦Γ⟧ , ⟦s⟧) →
-     ⟦ substitutionVar (drop subs) t ⟧ᵗ x
-       ≡[ i ]⟨  renamingTermSound (drop id) (substitutionVar subs t) i x  ⟩
-     ⟦ substitutionVar subs t ⟧ᵗ (⟦ drop id ⟧ᴿ x)
-       ≡⟨ refl ⟩
-     ⟦ substitutionVar subs t ⟧ᵗ ⟦Γ⟧
-       ≡[ i ]⟨ substitutionVarSound subs t i ⟦Γ⟧ ⟩
-     ⟦ t ⟧ⁿ (⟦ subs ⟧ᴮ ⟦Γ⟧)
-       ∎}
+substitutionVarSound {Γ' ′ s'} {Δ} {s} r@(drop subs) t = funExt pointwise where
+  pointwise : (x : ⟦ Γ' ⟧ᶜ .fst × ⟦ s' ⟧ˢ .fst) → ⟦ substitutionVar r t ⟧ᵗ x ≡ (⟦ t ⟧ⁿ ∘ ⟦ r ⟧ᴮ) x
+  pointwise x@(⟦Γ'⟧ , ⟦s'⟧) =
+    ⟦ substitutionVar r t ⟧ᵗ x
+      ≡[ i ]⟨ renamingTermSound (drop {s = s'} id) (substitutionVar subs t) i x ⟩
+    ⟦ substitutionVar subs t ⟧ᵗ (⟦ drop {Δ = Γ'} {s = s'} id ⟧ᴿ x)
+      ≡⟨ refl ⟩
+    ⟦ substitutionVar subs t ⟧ᵗ ⟦Γ'⟧
+      ≡[ i ]⟨ substitutionVarSound subs t i ⟦Γ'⟧ ⟩
+    ⟦ t ⟧ⁿ (⟦ subs ⟧ᴮ ⟦Γ'⟧)
+      ∎
 
 substitutionTermSound : ∀ {Γ Δ s} → (subs : Substitution Γ Δ) → (t : Term Δ s) → ⟦ substitutionTerm subs t ⟧ᵗ ≡ ⟦ t ⟧ᵗ ∘ ⟦ subs ⟧ᴮ
 substitutionTermSound {Γ} {Δ} {s} subs (var x) = substitutionVarSound subs x
@@ -323,13 +319,13 @@ module Soundness
       (b , b⊩ϕ⊨θ) ← ϕ⊨θ
       let
         prover : ApplStrTerm as 1
-        prover = ` pair ̇ (` a ̇ # fzero) ̇ (` b ̇ # fzero)
+        prover = ` pair ̇ (` a ̇ # zero) ̇ (` b ̇ # zero)
       return
         (λ* prover ,
           λ γ r r⊩ϕγ →
             let
               proofEq : λ* prover ⨾ r ≡ pair ⨾ (a ⨾ r) ⨾ (b ⨾ r)
-              proofEq = λ*ComputationRule prover (r ∷ [])
+              proofEq = λ*ComputationRule prover r
 
               pr₁proofEq : pr₁ ⨾ (λ* prover ⨾ r) ≡ a ⨾ r
               pr₁proofEq =
@@ -358,10 +354,10 @@ module Soundness
       (a , a⊩ϕ⊨ψ∧θ) ← ϕ⊨ψ∧θ
       let
         prover : ApplStrTerm as 1
-        prover = ` pr₁ ̇ (` a ̇ # fzero)
+        prover = ` pr₁ ̇ (` a ̇ # zero)
       return
         (λ* prover ,
-          λ γ b b⊩ϕγ → subst (λ r → r ⊩ ∣ ⟦ ψ ⟧ᶠ ∣ γ) (sym (λ*ComputationRule prover (b ∷ []))) (a⊩ϕ⊨ψ∧θ γ b b⊩ϕγ .fst))
+          λ γ b b⊩ϕγ → subst (λ r → r ⊩ ∣ ⟦ ψ ⟧ᶠ ∣ γ) (sym (λ*ComputationRule prover b)) (a⊩ϕ⊨ψ∧θ γ b b⊩ϕγ .fst))
           
   `∧elim2 : ∀ {Γ} {ϕ ψ θ : Formula Γ} → ϕ ⊨ (ψ `∧ θ) → ϕ ⊨ θ
   `∧elim2 {Γ} {ϕ} {ψ} {θ} ϕ⊨ψ∧θ =
@@ -369,10 +365,10 @@ module Soundness
       (a , a⊩ϕ⊨ψ∧θ) ← ϕ⊨ψ∧θ
       let
         prover : ApplStrTerm as 1
-        prover = ` pr₂ ̇ (` a ̇ # fzero)
+        prover = ` pr₂ ̇ (` a ̇ # zero)
       return
         (λ* prover ,
-          λ γ b b⊩ϕγ → subst (λ r → r ⊩ ∣ ⟦ θ ⟧ᶠ ∣ γ) (sym (λ*ComputationRule prover (b ∷ []))) (a⊩ϕ⊨ψ∧θ γ b b⊩ϕγ .snd))
+          λ γ b b⊩ϕγ → subst (λ r → r ⊩ ∣ ⟦ θ ⟧ᶠ ∣ γ) (sym (λ*ComputationRule prover b)) (a⊩ϕ⊨ψ∧θ γ b b⊩ϕγ .snd))
 
   `∃intro : ∀ {Γ} {ϕ : Formula Γ} {B} {ψ : Formula (Γ ′ B)} {t : Term Γ B} → ϕ ⊨ substitutionFormula (t , id) ψ → ϕ ⊨ `∃ ψ
   `∃intro {Γ} {ϕ} {B} {ψ} {t} ϕ⊨ψ[t/x] =
@@ -389,13 +385,13 @@ module Soundness
       (b , b⊩ϕ∧ψ⊨θ) ← ϕ∧ψ⊨θ
       let
         prover : ApplStrTerm as 1
-        prover = ` b ̇ (` pair ̇ # fzero ̇ (` a ̇ # fzero))
+        prover = ` b ̇ (` pair ̇ # zero ̇ (` a ̇ # zero))
       return
         (λ* prover ,
         (λ γ c c⊩ϕγ →
           subst
             (λ r → r ⊩ ∣ ⟦ θ ⟧ᶠ ∣ γ)
-            (sym (λ*ComputationRule prover (c ∷ [])))
+            (sym (λ*ComputationRule prover c))
             (transport
               (propTruncIdempotent (⟦ θ ⟧ᶠ .isPropValued γ (b ⨾ (pair ⨾ c ⨾ (a ⨾ c)))))
               (a⊩ϕ⊨∃ψ γ c c⊩ϕγ >>=
@@ -419,13 +415,13 @@ module Soundness
       (a , a⊩ϕ⊨ψ) ← ϕ⊨ψ
       let
         prover : ApplStrTerm as 2
-        prover = ` a ̇ # fzero
+        prover = ` a ̇ # one
       return
-        (λ* prover ,
+        (λ*2 prover ,
         (λ γ b b⊩ϕ → λ { c x@(γ' , b') γ'≡γ →
           subst
             (λ r → r ⊩ ∣ ⟦ ψ ⟧ᶠ ∣ (γ' , b'))
-            (sym (λ*ComputationRule prover (b ∷ c ∷ [])))
+            (sym (λ*2ComputationRule prover b c))
             (a⊩ϕ⊨ψ
               (γ' , b')
               b
@@ -437,7 +433,7 @@ module Soundness
       (a , a⊩ϕ⊨∀ψ) ← ϕ⊨∀ψ
       let
         prover : ApplStrTerm as 1
-        prover = ` a ̇ # fzero ̇ ` k
+        prover = ` a ̇ # zero ̇ ` k
       return
         (λ* prover ,
         (λ γ b b⊩ϕγ →
@@ -446,7 +442,7 @@ module Soundness
           (sym (substitutionFormulaSound (t , id) ψ))
           (subst
             (λ r → r ⊩ ∣ ⟦ ψ ⟧ᶠ ∣ (γ , ⟦ t ⟧ᵗ γ))
-            (sym (λ*ComputationRule prover (b ∷ [])))
+            (sym (λ*ComputationRule prover b))
             (a⊩ϕ⊨∀ψ γ b b⊩ϕγ k (γ , ⟦ t ⟧ᵗ γ) refl))))
 
   `→intro : ∀ {Γ} {ϕ ψ θ : Formula Γ} → (ϕ `∧ ψ) ⊨ θ → ϕ ⊨ (ψ `→ θ)
@@ -459,13 +455,13 @@ module Soundness
       (b , b⊩ϕ⊨ψ) ← ϕ⊨ψ
       let
         prover : ApplStrTerm as 1
-        prover = ` a ̇ (# fzero) ̇ (` b ̇ # fzero)
+        prover = ` a ̇ (# zero) ̇ (` b ̇ # zero)
       return
         (λ* prover ,
         (λ γ c c⊩ϕγ →
           subst
             (λ r → r ⊩ ∣ ⟦ θ ⟧ᶠ ∣ γ)
-            (sym (λ*ComputationRule prover (c ∷ [])))
+            (sym (λ*ComputationRule prover c))
             (a⊩ϕ⊨ψ→θ γ c c⊩ϕγ (b ⨾ c) (b⊩ϕ⊨ψ γ c c⊩ϕγ))))
 
   `∨introR : ∀ {Γ} {ϕ ψ θ : Formula Γ} → ϕ ⊨ ψ → ϕ ⊨ (ψ `∨ θ)
@@ -474,7 +470,7 @@ module Soundness
       (a , a⊩ϕ⊨ψ) ← ϕ⊨ψ
       let
         prover : ApplStrTerm as 1
-        prover = ` pair ̇ ` true ̇ (` a ̇ # fzero)
+        prover = ` pair ̇ ` true ̇ (` a ̇ # zero)
       return
         ((λ* prover) ,
         (λ γ b b⊩ϕγ →
@@ -482,7 +478,7 @@ module Soundness
             pr₁proofEq : pr₁ ⨾ (λ* prover ⨾ b) ≡ true
             pr₁proofEq =
               pr₁ ⨾ (λ* prover ⨾ b)
-                ≡⟨ cong (λ x → pr₁ ⨾ x) (λ*ComputationRule prover (b ∷ [])) ⟩
+                ≡⟨ cong (λ x → pr₁ ⨾ x) (λ*ComputationRule prover b) ⟩
               pr₁ ⨾ (pair ⨾ true ⨾ (a ⨾ b))
                 ≡⟨ pr₁pxy≡x _ _ ⟩
               true
@@ -491,7 +487,7 @@ module Soundness
             pr₂proofEq : pr₂ ⨾ (λ* prover ⨾ b) ≡ a ⨾ b
             pr₂proofEq =
               pr₂ ⨾ (λ* prover ⨾ b)
-                ≡⟨ cong (λ x → pr₂ ⨾ x) (λ*ComputationRule prover (b ∷ [])) ⟩
+                ≡⟨ cong (λ x → pr₂ ⨾ x) (λ*ComputationRule prover b) ⟩
               pr₂ ⨾ (pair ⨾ true ⨾ (a ⨾ b))
                 ≡⟨ pr₂pxy≡y _ _ ⟩
               a ⨾ b
@@ -504,7 +500,7 @@ module Soundness
       (a , a⊩ϕ⊨ψ) ← ϕ⊨ψ
       let
         prover : ApplStrTerm as 1
-        prover = ` pair ̇ ` false ̇ (` a ̇ # fzero)
+        prover = ` pair ̇ ` false ̇ (` a ̇ # zero)
       return
         ((λ* prover) ,
         (λ γ b b⊩ϕγ →
@@ -512,7 +508,7 @@ module Soundness
             pr₁proofEq : pr₁ ⨾ (λ* prover ⨾ b) ≡ false
             pr₁proofEq =
               pr₁ ⨾ (λ* prover ⨾ b)
-                ≡⟨ cong (λ x → pr₁ ⨾ x) (λ*ComputationRule prover (b ∷ [])) ⟩
+                ≡⟨ cong (λ x → pr₁ ⨾ x) (λ*ComputationRule prover b) ⟩
               pr₁ ⨾ (pair ⨾ false ⨾ (a ⨾ b))
                 ≡⟨ pr₁pxy≡x _ _ ⟩
               false
@@ -521,7 +517,7 @@ module Soundness
             pr₂proofEq : pr₂ ⨾ (λ* prover ⨾ b) ≡ a ⨾ b
             pr₂proofEq =
               pr₂ ⨾ (λ* prover ⨾ b)
-                ≡⟨ cong (λ x → pr₂ ⨾ x) (λ*ComputationRule prover (b ∷ [])) ⟩
+                ≡⟨ cong (λ x → pr₂ ⨾ x) (λ*ComputationRule prover b) ⟩
               pr₂ ⨾ (pair ⨾ false ⨾ (a ⨾ b))
                 ≡⟨ pr₂pxy≡y _ _ ⟩
               a ⨾ b
@@ -540,7 +536,7 @@ module Soundness
       let
         prover : ApplStrTerm as 1
         prover =
-          (`if ` pr₁ ̇ (` pr₂ ̇ # fzero) then ` a else (` b)) ̇ (` pair ̇ (` pr₁ ̇ # fzero) ̇ (` pr₂ ̇ (` pr₂ ̇ # fzero)))
+          (`if ` pr₁ ̇ (` pr₂ ̇ # zero) then ` a else (` b)) ̇ (` pair ̇ (` pr₁ ̇ # zero) ̇ (` pr₂ ̇ (` pr₂ ̇ # zero)))
       return
         (λ* prover ,
         (λ
@@ -553,7 +549,7 @@ module Soundness
                     proofEq : λ* prover ⨾ c ≡ a ⨾ (pair ⨾ (pr₁ ⨾ c) ⨾ (pr₂ ⨾ (pr₂ ⨾ c)))
                     proofEq =
                       λ* prover ⨾ c
-                        ≡⟨ λ*ComputationRule prover (c ∷ []) ⟩
+                        ≡⟨ λ*ComputationRule prover c ⟩
                       (if (pr₁ ⨾ (pr₂ ⨾ c)) then a else b) ⨾ (pair ⨾ (pr₁ ⨾ c) ⨾ (pr₂ ⨾ (pr₂ ⨾ c)))
                         ≡⟨ cong (λ x → (if x then a else b) ⨾ (pair ⨾ (pr₁ ⨾ c) ⨾ (pr₂ ⨾ (pr₂ ⨾ c)))) pr₁⨾pr₂⨾c≡true ⟩
                       (if true then a else b) ⨾ (pair ⨾ (pr₁ ⨾ c) ⨾ (pr₂ ⨾ (pr₂ ⨾ c)))
@@ -581,7 +577,7 @@ module Soundness
                     proofEq : λ* prover ⨾ c ≡ b ⨾ (pair ⨾ (pr₁ ⨾ c) ⨾ (pr₂ ⨾ (pr₂ ⨾ c)))
                     proofEq =
                       λ* prover ⨾ c
-                        ≡⟨ λ*ComputationRule prover (c ∷ []) ⟩
+                        ≡⟨ λ*ComputationRule prover c ⟩
                       (if (pr₁ ⨾ (pr₂ ⨾ c)) then a else b) ⨾ (pair ⨾ (pr₁ ⨾ c) ⨾ (pr₂ ⨾ (pr₂ ⨾ c)))
                         ≡⟨ cong (λ x → (if x then a else b) ⨾ (pair ⨾ (pr₁ ⨾ c) ⨾ (pr₂ ⨾ (pr₂ ⨾ c)))) pr₁pr₂⨾c≡false ⟩
                       (if false then a else b) ⨾ (pair ⨾ (pr₁ ⨾ c) ⨾ (pr₂ ⨾ (pr₂ ⨾ c)))

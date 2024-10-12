@@ -1,10 +1,10 @@
 open import Realizability.CombinatoryAlgebra
-open import Realizability.ApplicativeStructure renaming (λ*-naturality to `λ*ComputationRule; λ*-chain to `λ*) hiding (λ*)
+open import Realizability.ApplicativeStructure
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Univalence
 open import Cubical.HITs.PropositionalTruncation
 open import Cubical.HITs.PropositionalTruncation.Monad
-open import Cubical.Data.Fin
+open import Cubical.Data.FinData
 open import Cubical.Data.Vec
 
 module Realizability.Tripos.Prealgebra.Implication {ℓ ℓ' ℓ''} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
@@ -13,10 +13,6 @@ open import Realizability.Tripos.Prealgebra.Predicate {ℓ' = ℓ'} {ℓ'' = ℓ
 
 open CombinatoryAlgebra ca
 open Realizability.CombinatoryAlgebra.Combinators ca renaming (i to Id; ia≡a to Ida≡a)
-
-private
-  λ*ComputationRule = `λ*ComputationRule as fefermanStructure
-  λ* = `λ* as fefermanStructure
 
 module _ (X : Type ℓ') (isSetX' : isSet X) where
   PredicateX = Predicate  X
@@ -27,13 +23,15 @@ module _ (X : Type ℓ') (isSetX' : isSet X) where
   a⊓b≤c→a≤b⇒c a b c a⊓b≤c =
     do
       (a~ , a~proves) ← a⊓b≤c
-      let prover = (` a~ ̇ (` pair ̇ (# fzero)  ̇ (# fone)))
+      let
+        prover : Term as 2
+        prover = (` a~ ̇ (` pair ̇ (# one)  ̇ (# zero)))
       return
-        (λ* prover ,
+        (λ*2 prover ,
           λ x aₓ aₓ⊩ax bₓ bₓ⊩bx →
             subst
               (λ r → r ⊩ ∣ c ∣ x)
-              (sym (λ*ComputationRule prover (aₓ ∷ bₓ ∷ [])))
+              (sym (λ*2ComputationRule prover aₓ bₓ))
               (a~proves
                 x
                 (pair ⨾ aₓ ⨾ bₓ)
@@ -44,13 +42,13 @@ module _ (X : Type ℓ') (isSetX' : isSet X) where
   a≤b⇒c→a⊓b≤c a b c a≤b⇒c =
     do
       (a~ , a~proves) ← a≤b⇒c
-      let prover = ` a~ ̇ (` pr₁ ̇ (# fzero)) ̇ (` pr₂ ̇ (# fzero))
+      let prover = ` a~ ̇ (` pr₁ ̇ (# zero)) ̇ (` pr₂ ̇ (# zero))
       return
         (λ* prover ,
           λ { x abₓ (pr₁abₓ⊩ax , pr₂abₓ⊩bx) →
             subst
               (λ r → r ⊩ ∣ c ∣ x)
-              (sym (λ*ComputationRule prover (abₓ ∷ [])))
+              (sym (λ*ComputationRule prover abₓ))
               (a~proves x (pr₁ ⨾ abₓ) pr₁abₓ⊩ax (pr₂ ⨾ abₓ) pr₂abₓ⊩bx) })
 
   ⇒isRightAdjointOf⊓ : ∀ a b c → (a ⊓ b ≤ c) ≡ (a ≤ b ⇒ c)
@@ -63,13 +61,13 @@ module _ (X : Type ℓ') (isSetX' : isSet X) where
       (β , βProves) ← b≤a
       let
         prover : Term as 2
-        prover = (# fzero) ̇ (` β ̇ # fone)
+        prover = (# one) ̇ (` β ̇ # zero)
       return
-        (λ* prover ,
+        (λ*2 prover ,
           (λ x r r⊩a⇒c r' r'⊩b →
             subst
               (λ witness → witness ⊩ ∣ c ∣ x)
-              (sym (λ*ComputationRule prover (r ∷ r' ∷ [])))
+              (sym (λ*2ComputationRule prover r r'))
               (r⊩a⇒c (β ⨾ r') (βProves x r' r'⊩b))))
 
   antiSym→a⇒b≤a⇒c : ∀ a b c → b ≤ c → c ≤ b → (a ⇒ b) ≤ (a ⇒ c)
@@ -79,11 +77,11 @@ module _ (X : Type ℓ') (isSetX' : isSet X) where
       (γ , γProves) ← c≤b
       let
         prover : Term as 2
-        prover = ` β ̇ ((# fzero) ̇ (# fone))
+        prover = ` β ̇ ((# one) ̇ (# zero))
       return
-        (λ* prover ,
+        (λ*2 prover ,
           (λ x α α⊩a⇒b a' a'⊩a →
             subst
               (λ r → r ⊩ ∣ c ∣ x)
-              (sym (λ*ComputationRule prover (α ∷ a' ∷ [])))
+              (sym (λ*2ComputationRule prover α a'))
               (βProves x (α ⨾ a') (α⊩a⇒b a' a'⊩a))))

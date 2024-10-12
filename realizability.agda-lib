@@ -1,4 +1,4 @@
 name: realizability
 depend: cubical
 include: src
-flags: --cubical  -WnoUnsupportedIndexedMatch
+flags: --cubical  -WnoUnsupportedIndexedMatch --inversion-max-depth=5000

@@ -1,3 +1,4 @@
+{-# OPTIONS --allow-unsolved-metas #-}
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
@@ -56,5 +57,9 @@ module _
   fst (PER.isPER canonicalPER) a b (x , a⊩x , b⊩x) = x , b⊩x , a⊩x
   snd (PER.isPER canonicalPER) a b c (x , a⊩x , b⊩x) (x' , b⊩x' , c⊩x') =
     x' , subst (a ⊩[ asmX ]_) (isModestAsmX x x' b b⊩x b⊩x') a⊩x , c⊩x'
-    
-  
+
+CanonicalPERFunctor : Functor MOD PERCat
+Functor.F-ob CanonicalPERFunctor (X , asmX , isModestAsmX) = canonicalPER asmX isModestAsmX
+Functor.F-hom CanonicalPERFunctor {X , asmX , isModestAsmX} {Y , asmY , isModestAsmY} f = {!!}
+Functor.F-id CanonicalPERFunctor = {!!}
+Functor.F-seq CanonicalPERFunctor = {!!}

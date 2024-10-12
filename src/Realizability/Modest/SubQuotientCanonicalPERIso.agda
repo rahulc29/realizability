@@ -1,3 +1,6 @@
+--  This module shows that any modest set M is isomorphic to the subquotient of the canonical PER of M.
+--  Effectively, this shows that the subquotient functor is **split essentially surjective** on objects.
+--  Since the subquotient functor is fully faithful, this implies that it is an equivalence of categories.
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
@@ -19,6 +22,8 @@ open import Cubical.Categories.Displayed.Reasoning
 open import Cubical.Categories.Limits.Pullback
 open import Cubical.Categories.Functor hiding (Id)
 open import Cubical.Categories.Constructions.Slice
+open import Cubical.Categories.Equivalence
+open import Cubical.Categories.NaturalTransformation
 open import Categories.CartesianMorphism
 open import Categories.GenericObject
 open import Realizability.CombinatoryAlgebra

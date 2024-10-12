@@ -1,38 +1,34 @@
 {-# OPTIONS --allow-unsolved-metas #-}
 open import Cubical.Foundations.Prelude
 open import Cubical.Data.Empty renaming (rec to ⊥rec)
-open import Cubical.Data.Fin
+open import Cubical.Data.FinData
 open import Cubical.Data.Vec
 open import Cubical.Data.Sum
 open import Cubical.HITs.PropositionalTruncation
 open import Cubical.HITs.PropositionalTruncation.Monad
 open import Realizability.CombinatoryAlgebra
-open import Realizability.ApplicativeStructure renaming (λ*-naturality to `λ*ComputationRule; λ*-chain to `λ*) hiding (λ*)
+open import Realizability.ApplicativeStructure
 
-module Realizability.Tripos.Prealgebra.Joins.Associativity {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
-open import Realizability.Tripos.Prealgebra.Predicate ca
+module Realizability.Tripos.Prealgebra.Joins.Associativity {ℓ ℓ' ℓ''} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
+open import Realizability.Tripos.Prealgebra.Predicate {ℓ' = ℓ'} {ℓ'' = ℓ''} ca
 open CombinatoryAlgebra ca
 open Realizability.CombinatoryAlgebra.Combinators ca renaming (i to Id; ia≡a to Ida≡a)
 
-private
-  λ*ComputationRule = `λ*ComputationRule as fefermanStructure
-  λ* = `λ* as fefermanStructure
-
-module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) (isNonTrivial : s ≡ k → ⊥) where
-  private PredicateX = Predicate {ℓ'' = ℓ''} X
+module _ (X : Type ℓ') (isSetX' : isSet X) (isNonTrivial : s ≡ k → ⊥) where
+  private PredicateX = Predicate X
   open Predicate
-  open PredicateProperties {ℓ'' = ℓ''} X
+  open PredicateProperties X
 
-  module →⊔Assoc (x y z : Predicate {ℓ'' = ℓ''} X) where
+  module →⊔Assoc (x y z : PredicateX) where
     →proverTerm : Term as 1
     →proverTerm =
             ` Id ̇
-            (` pr₁ ̇ (# fzero)) ̇
-            (` pair ̇ ` true ̇ (` pair ̇ ` true ̇ (` pr₂ ̇ (# fzero)))) ̇
+            (` pr₁ ̇ (# zero)) ̇
+            (` pair ̇ ` true ̇ (` pair ̇ ` true ̇ (` pr₂ ̇ (# zero)))) ̇
             (` Id ̇
-              (` pr₁ ̇ (` pr₂ ̇ (# fzero))) ̇
-              (` pair ̇ ` true ̇ (` pair ̇ ` false ̇ (` pr₂ ̇ (` pr₂ ̇ # fzero)))) ̇
-              (` pair ̇ ` false ̇ (` pr₂ ̇ (` pr₂ ̇ # fzero))))
+              (` pr₁ ̇ (` pr₂ ̇ (# zero))) ̇
+              (` pair ̇ ` true ̇ (` pair ̇ ` false ̇ (` pr₂ ̇ (` pr₂ ̇ # zero)))) ̇
+              (` pair ̇ ` false ̇ (` pr₂ ̇ (` pr₂ ̇ # zero))))
 
     →prover = λ* →proverTerm
 
@@ -45,7 +41,7 @@ module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) (isNonTrivial : s ≡ 
       proof≡pair⨾true⨾pair⨾true⨾pr₂a : proof ≡ pair ⨾ true ⨾ (pair ⨾ true ⨾ (pr₂ ⨾ a))
       proof≡pair⨾true⨾pair⨾true⨾pr₂a =
         proof
-          ≡⟨ λ*ComputationRule →proverTerm (a ∷ []) ⟩
+          ≡⟨ λ*ComputationRule →proverTerm a ⟩
         (Id ⨾
          (pr₁ ⨾ a) ⨾
          (pair ⨾ true ⨾ (pair ⨾ true ⨾ (pr₂ ⨾ a))) ⨾
@@ -114,7 +110,7 @@ module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) (isNonTrivial : s ≡ 
                     (pair ⨾ false ⨾ (pr₂ ⨾ (pr₂ ⨾ a))))
       proof≡y⊔z =
         proof
-          ≡⟨ λ*ComputationRule →proverTerm (a ∷ []) ⟩
+          ≡⟨ λ*ComputationRule →proverTerm a ⟩
         (Id ⨾
          (pr₁ ⨾ a) ⨾
          (pair ⨾ true ⨾ (pair ⨾ true ⨾ (pr₂ ⨾ a))) ⨾
@@ -252,12 +248,12 @@ module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) (isNonTrivial : s ≡ 
         prover : Term as 1
         prover =
           ` Id ̇
-            (` pr₁ ̇ (# fzero)) ̇
-            (` pair ̇ ` true ̇ (` pair ̇ ` true ̇ (` pr₂ ̇ (# fzero)))) ̇
+            (` pr₁ ̇ (# zero)) ̇
+            (` pair ̇ ` true ̇ (` pair ̇ ` true ̇ (` pr₂ ̇ (# zero)))) ̇
             (` Id ̇
-              (` pr₁ ̇ (` pr₂ ̇ (# fzero))) ̇
-              (` pair ̇ ` true ̇ (` pair ̇ ` false ̇ (` pr₂ ̇ (` pr₂ ̇ # fzero)))) ̇
-              (` pair ̇ ` false ̇ (` pr₂ ̇ (` pr₂ ̇ # fzero))))
+              (` pr₁ ̇ (` pr₂ ̇ (# zero))) ̇
+              (` pair ̇ ` true ̇ (` pair ̇ ` false ̇ (` pr₂ ̇ (` pr₂ ̇ # zero)))) ̇
+              (` pair ̇ ` false ̇ (` pr₂ ̇ (` pr₂ ̇ # zero))))
       return
         (λ* prover ,
           λ x' a a⊩x⊔_y⊔z →
@@ -306,13 +302,13 @@ module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) (isNonTrivial : s ≡ 
       let
         proof : Term as 1
         proof =
-          `if ` pr₁ ̇ # fzero then
-            `if ` pr₁ ̇ (` pr₂ ̇ (# fzero)) then
-              ` pair ̇ ` true  ̇ (` pr₂ ̇ (` pr₂ ̇ # fzero))
+          `if ` pr₁ ̇ # zero then
+            `if ` pr₁ ̇ (` pr₂ ̇ (# zero)) then
+              ` pair ̇ ` true  ̇ (` pr₂ ̇ (` pr₂ ̇ # zero))
             else
-              (` pair ̇ ` false ̇ (` pair ̇ ` true ̇ (` pr₂ ̇ (` pr₂ ̇ # fzero))))
+              (` pair ̇ ` false ̇ (` pair ̇ ` true ̇ (` pr₂ ̇ (` pr₂ ̇ # zero))))
           else
-            (` pair ̇ ` false ̇ (` pair ̇ ` false ̇ (` pr₂ ̇ # fzero)))
+            (` pair ̇ ` false ̇ (` pair ̇ ` false ̇ (` pr₂ ̇ # zero)))
       return
         (λ* proof ,
           (λ x' a a⊩x⊔y_⊔z →
@@ -334,7 +330,7 @@ module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) (isNonTrivial : s ≡ 
                                (λ* proof ⨾ a) ≡ if (pr₁ ⨾ (pr₂ ⨾ a)) then (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a))) else (pair ⨾ false ⨾ (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a))))
                              proofEq =
                                λ* proof ⨾ a
-                                 ≡⟨ λ*ComputationRule proof (a ∷ []) ⟩
+                                 ≡⟨ λ*ComputationRule proof a ⟩
                                if (pr₁ ⨾ a) then
                                  if (pr₁ ⨾ (pr₂ ⨾ a)) then
                                    (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a)))
@@ -434,7 +430,7 @@ module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) (isNonTrivial : s ≡ 
                              proof≡pair : λ* proof ⨾ a ≡ pair ⨾ false ⨾ (pair ⨾ false ⨾ (pr₂ ⨾ a))
                              proof≡pair =
                                λ* proof ⨾ a
-                                 ≡⟨ λ*ComputationRule proof (a ∷ []) ⟩
+                                 ≡⟨ λ*ComputationRule proof a ⟩
                                if (pr₁ ⨾ a) then
                                  if (pr₁ ⨾ (pr₂ ⨾ a)) then
                                    (pair ⨾ true ⨾ (pr₂ ⨾ (pr₂ ⨾ a)))
