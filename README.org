@@ -1,0 +1,60 @@
+#+title: Experiments with Realizability in Univalent Type Theory
+#+author: Rahul Chhabra
+
+This repository contains code for a formalisation of categorical realisability in cubical type theory.
+
+This project is very much a work-in-progress and undergoing active hackery. As of right now, Agda will not type-check things with `--safe` enabled.
+
+Here you can find both a timeline and an agenda of the formalisation. Some things are only formalised to the extent necessary.
+
+* Combinatory Algebras
+  + [X] Applicative Structures
+  + [X] Feferman structure on an AS
+  + [X] Combinatorial completeness
+  + [X] Computation rule for $\lambda*$
+  + Combinators
+     + [X] Identity, booleans, if-then-else, pairs, projections, B combinator, some Curry numerals
+     + [X] Computation rule for pairs 
+     + [ ] Fixpoint combinators and primitive recursion combinator
+* Category of Assemblies
+** Definition, limits and colimits
+  - [X] Define assemblies
+  - [X] Define the category $\mathsf{Asm}$
+  - [X] Cartesian closure and similar structure
+    - [X] Binary products
+    - [X] Binary coproducts
+    - [X] Equalisers
+    - [X] Exponentials
+    - [X] Initial and terminal objects
+    - [X] Coequalisers
+      
+** Regular and exact
+- [ ] $\mathsf{Asm}$ is regular (requires Axiom of Choice)
+    - [x] Kernel pairs of morphisms exist
+    - [x] Kernel pairs have coequalisers
+    - [ ] Regular epics stable under pullback
+- [ ] Exact completion
+    - [x] Internal equivalence relations of a category
+    - [ ] Functional relations
+
+* Tripos to Topos Construction
+See PR #6
+** A valued Predicates
+	- [X] Heyting-valued Predicates
+	- [X] $\forall$ and $\exists$ are adjoints
+	- [X] Beck-Chevalley condition
+	- [X] Heyting prealgebra structure
+	- [X] Interpret intuitionistic logic
+** Realisability Topos
++ [X] Partial Equivalence Relations
++ [X] Functional Relations
++ [X] Morphisms and RT is a category
++ [X] Finite limits
+  + [X] Terminal object
+  + [X] Binary products
+  + [X] Equalisers (can be shown to merely exist)
++ [X] Power objects
+  + [-] Monomorphisms
+  + [ ] Subobjects and pullbacks lemmas
+  + [ ] Power objects exist
+   
