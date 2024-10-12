@@ -5,11 +5,12 @@ open import Cubical.HITs.SetCoequalizer renaming (rec to setCoequalizerRec; elim
 open import Cubical.HITs.PropositionalTruncation hiding (map)
 open import Cubical.HITs.PropositionalTruncation.Monad
 open import Cubical.Data.Sigma
-open import Cubical.Categories.Limits.Coequalizers
 open import Realizability.CombinatoryAlgebra
+open import Realizability.ApplicativeStructure
 
 module Realizability.Assembly.Coequalizers {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
 
+open CombinatoryAlgebra ca
 open import Realizability.Assembly.Base ca
 open import Realizability.Assembly.Morphism ca
 open Realizability.CombinatoryAlgebra.Combinators ca renaming (i to Id; ia≡a to Ida≡a)
@@ -62,24 +63,28 @@ module _
                          → (f ⊚ ι' ≡ g ⊚ ι')
                          → ∃![ ! ∈ AssemblyMorphism coequalizer zs ] (ιcoequalizer ⊚ ! ≡ ι')
       coequalizerFactors (Z , zs) ι' f⊚ι'≡g⊚ι' =
+        uniqueExists
+          (let
+              map = (λ x → setCoequalizerRec (zs .isSetX) (ι' .map) (λ x i → f⊚ι'≡g⊚ι' i .map x) x)
+            in
+            makeAssemblyMorphism
+            map
+            (do
+              (ι'~ , ι'~⊩isTrackedι') ← ι' .tracker
+              return
+                (ι'~ ,
+                (λ x r r⊩x →  setCoequalizerElimProp {C = λ x → ∀ (r : A) → r ⊩[ coequalizer ] x → (ι'~ ⨾ r) ⊩[ zs ] (map x)} {!!} (λ y r r⊩y → {!!}) x r r⊩x))))
+          {!!}
+          {!!}
+          {!!}
+        {-
         uniqueExists (λ where
                         .map → setCoequalizerRec (zs .isSetX) (ι' .map) λ x → λ i → f⊚ι'≡g⊚ι' i .map x
-                        .tracker → {!!})
+                        .tracker → return ({!!} , (λ x r r⊩x → {!setCoequalizerElimProp {C = λ x → !})))
                         (AssemblyMorphism≡ _ _ (funExt λ x → refl))
                         (λ ! → isSetAssemblyMorphism ys zs (ιcoequalizer ⊚ !) ι')
                         λ ! ιcoequalizer⊚!≡ι' → AssemblyMorphism≡ _ _
                             (funExt λ x →
                               setCoequalizerElimProp
                               {C = λ x → setCoequalizerRec (zs .isSetX) (ι' .map) (λ x₁ i → f⊚ι'≡g⊚ι' i .map x₁) x ≡ ! .map x}
-                              (λ x → zs .isSetX _ _) (λ y → λ i → ιcoequalizer⊚!≡ι' (~ i) .map y) x)
-      open Coequalizer
-      open IsCoequalizer
-
-      ιIsCoequalizer : IsCoequalizer {C = ASM} f g ιcoequalizer
-      ιIsCoequalizer .glues = AssemblyMorphism≡ _ _ (funExt λ x → SetCoequalizer.coeq x)
-      ιIsCoequalizer .univProp q qGlues = coequalizerFactors _ q qGlues
-      
-      ASMCoequalizer : Coequalizer {C = ASM} f g
-      ASMCoequalizer .coapex = (SetCoequalizer (f .map) (g .map)) , coequalizer
-      Coequalizer.coeq ASMCoequalizer = ιcoequalizer
-      ASMCoequalizer .isCoequalizer = ιIsCoequalizer
+                              (λ x → zs .isSetX _ _) (λ y → λ i → ιcoequalizer⊚!≡ι' (~ i) .map y) x) -}

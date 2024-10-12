@@ -1,7 +1,6 @@
-{-# OPTIONS --allow-unsolved-metas #-}
 open import Cubical.Foundations.Prelude
 open import Cubical.Data.Unit
-open import Cubical.Data.Fin
+open import Cubical.Data.FinData
 open import Cubical.Data.Vec
 open import Cubical.Data.Sum
 open import Cubical.Data.Empty renaming (rec* to ⊥*rec)
@@ -10,23 +9,19 @@ open import Cubical.HITs.PropositionalTruncation
 open import Cubical.HITs.PropositionalTruncation.Monad
 open import Cubical.Relation.Binary.Order.Preorder
 open import Realizability.CombinatoryAlgebra
-open import Realizability.ApplicativeStructure renaming (λ*-naturality to `λ*ComputationRule; λ*-chain to `λ*) hiding (λ*)
+open import Realizability.ApplicativeStructure
 
-module Realizability.Tripos.Prealgebra.Joins.Identity {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
-open import Realizability.Tripos.Prealgebra.Predicate ca
+module Realizability.Tripos.Prealgebra.Joins.Identity {ℓ ℓ' ℓ''} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
+open import Realizability.Tripos.Prealgebra.Predicate {ℓ' = ℓ'} {ℓ'' = ℓ''} ca
 open import Realizability.Tripos.Prealgebra.Joins.Commutativity ca
 open CombinatoryAlgebra ca
 open Realizability.CombinatoryAlgebra.Combinators ca renaming (i to Id; ia≡a to Ida≡a)
 
-private λ*ComputationRule = `λ*ComputationRule as fefermanStructure
-private λ* = `λ* as fefermanStructure
-
-module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) (isNonTrivial : s ≡ k → ⊥) where
-  private PredicateX = Predicate {ℓ'' = ℓ''} X
+module _ (X : Type ℓ') (isSetX' : isSet X) (isNonTrivial : s ≡ k → ⊥) where
+  private PredicateX = Predicate  X
   open Predicate
-  open PredicateProperties {ℓ'' = ℓ''} X
+  open PredicateProperties  X
   open PreorderReasoning preorder≤
-
 
   pre0 : PredicateX
   Predicate.isSetX pre0 = isSetX'
@@ -52,7 +47,7 @@ module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) (isNonTrivial : s ≡ 
   x≤0⊔x x =
     let
       proof : Term as 1
-      proof = ` pair ̇ ` false ̇ # fzero
+      proof = ` pair ̇ ` false ̇ # zero
     in
       return
         ((λ* proof) ,
@@ -61,7 +56,7 @@ module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) (isNonTrivial : s ≡ 
               pr₁proofEq : pr₁ ⨾ (λ* proof ⨾ a) ≡ false
               pr₁proofEq =
                 pr₁ ⨾ (λ* proof ⨾ a)
-                  ≡⟨ cong (λ x → pr₁ ⨾ x) (λ*ComputationRule proof (a ∷ [])) ⟩
+                  ≡⟨ cong (λ x → pr₁ ⨾ x) (λ*ComputationRule proof a) ⟩
                 pr₁ ⨾ (pair ⨾ false ⨾ a)
                   ≡⟨ pr₁pxy≡x _ _ ⟩
                 false
@@ -70,7 +65,7 @@ module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) (isNonTrivial : s ≡ 
               pr₂proofEq : pr₂ ⨾ (λ* proof ⨾ a) ≡ a
               pr₂proofEq =
                 pr₂ ⨾ (λ* proof ⨾ a)
-                  ≡⟨ cong (λ x → pr₂ ⨾ x) (λ*ComputationRule proof (a ∷ [])) ⟩
+                  ≡⟨ cong (λ x → pr₂ ⨾ x) (λ*ComputationRule proof a) ⟩
                 pr₂ ⨾ (pair ⨾ false ⨾ a)
                   ≡⟨ pr₂pxy≡y _ _ ⟩
                 a
@@ -82,7 +77,7 @@ module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) (isNonTrivial : s ≡ 
   x≤x⊔0 x =
     let
       proof : Term as 1
-      proof = ` pair ̇ ` true ̇ # fzero
+      proof = ` pair ̇ ` true ̇ # zero
     in return
       ((λ* proof) ,
         (λ x' a a⊩x →
@@ -90,7 +85,7 @@ module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) (isNonTrivial : s ≡ 
             pr₁proofEq : pr₁ ⨾ (λ* proof ⨾ a) ≡ true
             pr₁proofEq =
               pr₁ ⨾ (λ* proof ⨾ a)
-                ≡⟨ cong (λ x → pr₁ ⨾ x) (λ*ComputationRule proof (a ∷ [])) ⟩
+                ≡⟨ cong (λ x → pr₁ ⨾ x) (λ*ComputationRule proof a) ⟩
               pr₁ ⨾ (pair ⨾ true ⨾ a)
                 ≡⟨ pr₁pxy≡x _ _ ⟩
               true
@@ -99,21 +94,13 @@ module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) (isNonTrivial : s ≡ 
             pr₂proofEq : pr₂ ⨾ (λ* proof ⨾ a) ≡ a
             pr₂proofEq =
               pr₂ ⨾ (λ* proof ⨾ a)
-                ≡⟨ cong (λ x → pr₂ ⨾ x) (λ*ComputationRule proof (a ∷ [])) ⟩
+                ≡⟨ cong (λ x → pr₂ ⨾ x) (λ*ComputationRule proof a) ⟩
               pr₂ ⨾ (pair ⨾ true ⨾ a)
                 ≡⟨ pr₂pxy≡y _ _ ⟩
               a
                 ∎
           in
           ∣ inl (pr₁proofEq , subst (λ r → r ⊩ ∣ x ∣ x') (sym pr₂proofEq) a⊩x) ∣₁))
-  0⊔x≤x : ∀ x → pre0 ⊔ x ≤ x
-  0⊔x≤x x =
-    pre0 ⊔ x
-      ≲⟨ a⊔b→b⊔a X isSetX' pre0 x ⟩
-    x ⊔ pre0
-      ≲⟨ x⊔0≤x x ⟩
-    x
-      ◾
 
   
   

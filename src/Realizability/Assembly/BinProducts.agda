@@ -1,11 +1,13 @@
-{-# OPTIONS --cubical --allow-unsolved-metas #-}
+{-# OPTIONS --cubical #-}
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.HLevels
 open import Cubical.Data.Sigma
+open import Cubical.Data.FinData
 open import Cubical.HITs.PropositionalTruncation hiding (map)
 open import Cubical.HITs.PropositionalTruncation.Monad
 open import Cubical.Categories.Limits.BinProduct
 open import Realizability.CombinatoryAlgebra
+open import Realizability.ApplicativeStructure
 
 module Realizability.Assembly.BinProducts {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
 
@@ -40,52 +42,19 @@ _⊗_ : {A B : Type ℓ} → Assembly A → Assembly B → Assembly (A × B)
         (g : AssemblyMorphism zs ws)
         → AssemblyMorphism (xs ⊗ zs) (ys ⊗ ws)
 ⟪ f , g ⟫ .map (x , z) = f .map x , g .map z
-⟪_,_⟫ {ys = ys} {ws = ws} f g .tracker = (do
-                      (f~ , f~tracks) ← f .tracker
-                      (g~ , g~tracks) ← g .tracker
-                      return (s ⨾ (s ⨾ (k ⨾ pair) ⨾ (s ⨾ (k ⨾ f~) ⨾ (s ⨾ (k ⨾ pr₁) ⨾ Id))) ⨾ (s ⨾ (k ⨾ g~) ⨾ (s ⨾ (k ⨾ pr₂) ⨾ Id))
-                             , λ xz r r⊩xz →
-                               ( subst (λ y → ys ._⊩_ y (f .map (xz .fst)))
-                                 (sym (subst _
-                                             (sym (t⨾r≡pair_fg f~ g~ r))
-                                             (pr₁pxy≡x (f~ ⨾ (pr₁ ⨾ r)) (g~ ⨾ (pr₂ ⨾ r)))))
-                                 (f~tracks (xz .fst) (pr₁ ⨾ r) (r⊩xz .fst)))
-                               , subst (λ y → ws ._⊩_ y (g .map (xz .snd)))
-                                 (sym (subst _
-                                             (sym (t⨾r≡pair_fg f~ g~ r))
-                                             (pr₂pxy≡y (f~ ⨾ (pr₁ ⨾ r)) (g~ ⨾ (pr₂ ⨾ r)))))
-                                 (g~tracks (xz .snd) (pr₂ ⨾ r) (r⊩xz .snd))))
-                               where
-                      module _ (f~ g~ r : A) where
-                        subf≡fprr : ∀ f pr → (s ⨾ (k ⨾ f) ⨾ (s ⨾ (k ⨾ pr) ⨾ Id) ⨾ r) ≡ (f ⨾ (pr ⨾ r))
-                        subf≡fprr f pr =
-                                    s ⨾ (k ⨾ f) ⨾ (s ⨾ (k ⨾ pr) ⨾ Id) ⨾ r
-                                      ≡⟨ sabc≡ac_bc _ _ _ ⟩
-                                    (k ⨾ f ⨾ r) ⨾ (s ⨾ (k ⨾ pr) ⨾ Id ⨾ r)
-                                      ≡⟨ cong (λ x → x ⨾ _) (kab≡a f r) ⟩
-                                    f ⨾ (s ⨾ (k ⨾ pr) ⨾ Id ⨾ r)
-                                      ≡⟨ cong (λ x → f ⨾ x) (sabc≡ac_bc _ _ _) ⟩
-                                    f ⨾ (k ⨾ pr ⨾ r ⨾ (Id ⨾ r))
-                                      ≡⟨ cong (λ x → f ⨾ (x ⨾ (Id ⨾ r))) (kab≡a _ _ ) ⟩
-                                    f ⨾ (pr ⨾ (Id ⨾ r))
-                                      ≡⟨ cong (λ x → f ⨾ (pr ⨾ x)) (Ida≡a r) ⟩
-                                    f ⨾ (pr ⨾ r)
-                                      ∎
-                        t⨾r≡pair_fg :
-                          s ⨾ (s ⨾ (k ⨾ pair) ⨾ (s ⨾ (k ⨾ f~) ⨾ (s ⨾ (k ⨾ pr₁) ⨾ Id))) ⨾ (s ⨾ (k ⨾ g~) ⨾ (s ⨾ (k ⨾ pr₂) ⨾ Id)) ⨾ r
-                          ≡ pair ⨾ (f~ ⨾ (pr₁ ⨾ r)) ⨾ (g~ ⨾ (pr₂ ⨾ r))
-                        t⨾r≡pair_fg =
-                          s ⨾ (s ⨾ (k ⨾ pair) ⨾ (s ⨾ (k ⨾ f~) ⨾ (s ⨾ (k ⨾ pr₁) ⨾ Id))) ⨾ (s ⨾ (k ⨾ g~) ⨾ (s ⨾ (k ⨾ pr₂) ⨾ Id)) ⨾ r
-                            ≡⟨ sabc≡ac_bc _ _ _ ⟩
-                          s ⨾ (k ⨾ pair) ⨾ (s ⨾ (k ⨾ f~) ⨾ (s ⨾ (k ⨾ pr₁) ⨾ Id)) ⨾ r ⨾ (s ⨾ (k ⨾ g~) ⨾ (s ⨾ (k ⨾ pr₂) ⨾ Id) ⨾ r)
-                            ≡⟨ cong (λ x → x ⨾ (s ⨾ (k ⨾ g~) ⨾ (s ⨾ (k ⨾ pr₂) ⨾ Id) ⨾ r)) (sabc≡ac_bc _ _ _) ⟩
-                          k ⨾ pair ⨾ r ⨾ (s ⨾ (k ⨾ f~) ⨾ (s ⨾ (k ⨾ pr₁) ⨾ Id) ⨾ r) ⨾ (s ⨾ (k ⨾ g~) ⨾ (s ⨾ (k ⨾ pr₂) ⨾ Id) ⨾ r)
-                            ≡⟨ cong (λ x → x ⨾ (s ⨾ (k ⨾ f~) ⨾ (s ⨾ (k ⨾ pr₁) ⨾ Id) ⨾ r) ⨾ (s ⨾ (k ⨾ g~) ⨾ (s ⨾ (k ⨾ pr₂) ⨾ Id) ⨾ r))
-                              (kab≡a pair r) ⟩
-                          pair ⨾ (s ⨾ (k ⨾ f~) ⨾ (s ⨾ (k ⨾ pr₁) ⨾ Id) ⨾ r) ⨾ (s ⨾ (k ⨾ g~) ⨾ (s ⨾ (k ⨾ pr₂) ⨾ Id) ⨾ r)
-                            ≡⟨ cong₂ (λ x y → pair ⨾ x ⨾ y) (subf≡fprr f~ pr₁) (subf≡fprr g~ pr₂) ⟩
-                          pair ⨾ (f~ ⨾ (pr₁ ⨾ r)) ⨾ (g~ ⨾ (pr₂ ⨾ r))
-                            ∎
+⟪_,_⟫ {ys = ys} {ws = ws} f g .tracker =
+  do
+    (f~ , f~⊩isTrackedF) ← f .tracker
+    (g~ , g~⊩isTrackedG) ← g .tracker
+    let
+      realizer : Term as 1
+      realizer = ` pair ̇ (` f~ ̇ (` pr₁ ̇ # zero)) ̇ (` g~ ̇ (` pr₂ ̇ # zero))
+    return
+      (λ* realizer ,
+      (λ { (x , z) r (pr₁r⊩x , pr₂r⊩z) →
+        subst (λ r' → r' ⊩[ ys ] (f .map x)) (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule realizer r) ∙ pr₁pxy≡x _ _)) (f~⊩isTrackedF x (pr₁ ⨾ r) pr₁r⊩x) ,
+        subst (λ r' → r' ⊩[ ws ] (g .map z)) (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule realizer r) ∙ pr₂pxy≡y _ _)) (g~⊩isTrackedG z (pr₂ ⨾ r) pr₂r⊩z) }))
+        
 π₁ : {A B : Type ℓ} {as : Assembly A} {bs : Assembly B} → AssemblyMorphism (as ⊗ bs) as
 π₁ .map (a , b) = a
 π₁ .tracker = ∣ pr₁ , (λ (a , b) p (goal , _) → goal) ∣₁
@@ -100,63 +69,19 @@ _⊗_ : {A B : Type ℓ} → Assembly A → Assembly B → Assembly (A × B)
       → AssemblyMorphism zs ys
       → AssemblyMorphism zs (xs ⊗ ys)
 ⟨ f , g ⟩ .map z = f .map z , g .map z
-⟨_,_⟩ {X} {Y} {Z} {xs} {ys} {zs} f g .tracker = map2 untruncated (f .tracker) (g .tracker) where
-  module _ 
-         ((f~ , f~tracks) : Σ[ f~ ∈ A ] tracks {xs = zs} {ys = xs}  f~ (f .map))
-         ((g~ , g~tracks) : Σ[ g~ ∈ A ] tracks {xs = zs} {ys = ys} g~ (g .map)) where
-           
-         _⊩X_ = xs ._⊩_
-         _⊩Y_ = ys ._⊩_
-         _⊩Z_ = zs ._⊩_
-             
-         t = s ⨾ (s ⨾ (k ⨾ pair) ⨾ (s ⨾ (k ⨾ f~) ⨾ Id)) ⨾ (s ⨾ (k ⨾ g~) ⨾ Id)
-         untruncated : Σ[ t ∈ A ] (∀ z zᵣ zᵣ⊩z → ((pr₁ ⨾ (t ⨾ zᵣ)) ⊩X (f .map z)) × ((pr₂ ⨾ (t ⨾ zᵣ)) ⊩Y (g .map z)))
-         untruncated = t , λ z zᵣ zᵣ⊩z → goal₁ z zᵣ zᵣ⊩z , goal₂ z zᵣ zᵣ⊩z where
-           module _ (z : Z) (zᵣ : A) (zᵣ⊩z : zᵣ ⊩Z z) where
-
-             pr₁⨾tracker⨾zᵣ≡f~⨾zᵣ : pr₁ ⨾ (t ⨾ zᵣ) ≡ f~ ⨾ zᵣ
-             pr₁⨾tracker⨾zᵣ≡f~⨾zᵣ =
-               pr₁ ⨾ (s ⨾ (s ⨾ (k ⨾ pair) ⨾ (s ⨾ (k ⨾ f~) ⨾ Id)) ⨾ (s ⨾ (k ⨾ g~) ⨾ Id) ⨾ zᵣ)
-                          ≡⟨ cong (λ x → pr₁ ⨾ x) (sabc≡ac_bc _ _ _) ⟩
-               pr₁ ⨾ (s ⨾ (k ⨾ pair) ⨾ (s ⨾ (k ⨾ f~) ⨾ Id) ⨾ zᵣ ⨾ (s ⨾ (k ⨾ g~) ⨾ Id ⨾ zᵣ))
-                          ≡⟨ cong (λ x → pr₁ ⨾ (x ⨾ (s ⨾ (k ⨾ g~) ⨾ Id ⨾ zᵣ))) (sabc≡ac_bc _ _ _) ⟩
-               pr₁ ⨾ (k ⨾ pair ⨾ zᵣ ⨾ (s ⨾ (k ⨾ f~) ⨾ Id ⨾ zᵣ) ⨾ (s ⨾ (k ⨾ g~) ⨾ Id ⨾ zᵣ))
-                          ≡⟨ cong (λ x → pr₁ ⨾ (x ⨾ (s ⨾ (k ⨾ f~) ⨾ Id ⨾ zᵣ) ⨾ (s ⨾ (k ⨾ g~) ⨾ Id ⨾ zᵣ))) (kab≡a _ _) ⟩
-               pr₁ ⨾ (pair ⨾ (s ⨾ (k ⨾ f~) ⨾ Id ⨾ zᵣ) ⨾ (s ⨾ (k ⨾ g~) ⨾ Id ⨾ zᵣ))
-                           ≡⟨ pr₁pxy≡x _ _ ⟩
-               s ⨾ (k ⨾ f~) ⨾ Id ⨾ zᵣ
-                            ≡⟨ sabc≡ac_bc _ _ _ ⟩
-               k ⨾ f~ ⨾ zᵣ ⨾ (Id ⨾ zᵣ)
-                           ≡⟨ cong (λ x → x ⨾ (Id ⨾ zᵣ)) (kab≡a _ _) ⟩
-               f~ ⨾ (Id ⨾ zᵣ)
-                          ≡⟨ cong (λ x → f~ ⨾ x) (Ida≡a _) ⟩
-               f~ ⨾ zᵣ
-                    ∎
-
-             pr₂⨾tracker⨾zᵣ≡g~⨾zᵣ : pr₂ ⨾ (t ⨾ zᵣ) ≡ g~ ⨾ zᵣ
-             pr₂⨾tracker⨾zᵣ≡g~⨾zᵣ =
-               pr₂ ⨾ (s ⨾ (s ⨾ (k ⨾ pair) ⨾ (s ⨾ (k ⨾ f~) ⨾ Id)) ⨾ (s ⨾ (k ⨾ g~) ⨾ Id) ⨾ zᵣ)
-                   ≡⟨ cong (λ x → pr₂ ⨾ x) (sabc≡ac_bc _ _ _) ⟩
-               pr₂ ⨾ (s ⨾ (k ⨾ pair) ⨾ (s ⨾ (k ⨾ f~) ⨾ Id) ⨾ zᵣ ⨾ (s ⨾ (k ⨾ g~) ⨾ Id ⨾ zᵣ))
-                   ≡⟨ cong (λ x → pr₂ ⨾ (x ⨾ (s ⨾ (k ⨾ g~) ⨾ Id ⨾ zᵣ))) (sabc≡ac_bc _ _ _) ⟩
-               pr₂ ⨾ (k ⨾ pair ⨾ zᵣ ⨾ (s ⨾ (k ⨾ f~) ⨾ Id ⨾ zᵣ) ⨾ (s ⨾ (k ⨾ g~) ⨾ Id ⨾ zᵣ))
-                   ≡⟨ cong (λ x → pr₂ ⨾ (x ⨾ (s ⨾ (k ⨾ f~) ⨾ Id ⨾ zᵣ) ⨾ (s ⨾ (k ⨾ g~) ⨾ Id ⨾ zᵣ))) (kab≡a _ _) ⟩
-               pr₂ ⨾ (pair ⨾ (s ⨾ (k ⨾ f~) ⨾ Id ⨾ zᵣ) ⨾ (s ⨾ (k ⨾ g~) ⨾ Id ⨾ zᵣ))
-                   ≡⟨ pr₂pxy≡y _ _ ⟩
-               s ⨾ (k ⨾ g~) ⨾ Id ⨾ zᵣ
-                   ≡⟨ sabc≡ac_bc _ _ _ ⟩
-               k ⨾ g~ ⨾ zᵣ ⨾ (Id ⨾ zᵣ)
-                   ≡⟨ cong (λ x → x ⨾ (Id ⨾ zᵣ)) (kab≡a _ _) ⟩
-               g~ ⨾ (Id ⨾ zᵣ)
-                  ≡⟨ cong (λ x → g~ ⨾ x) (Ida≡a _) ⟩
-               g~ ⨾ zᵣ
-                    ∎
-                  
-             goal₁ : (pr₁ ⨾ (t ⨾ zᵣ)) ⊩X (f .map z)
-             goal₁ = subst (λ y → y ⊩X (f .map z)) (sym pr₁⨾tracker⨾zᵣ≡f~⨾zᵣ) (f~tracks z zᵣ zᵣ⊩z)
+⟨_,_⟩ {X} {Y} {Z} {xs} {ys} {zs} f g .tracker =
+  do
+    (f~ , f~⊩isTrackedF) ← f .tracker
+    (g~ , g~⊩isTrackedG) ← g .tracker
+    let
+      realizer : Term as 1
+      realizer = ` pair ̇ (` f~ ̇ # zero) ̇ (` g~ ̇ # zero)
+    return
+      (λ* realizer ,
+      (λ z r r⊩z →
+        subst (λ r' → r' ⊩[ xs ] (f .map z)) (sym (cong (λ x → pr₁ ⨾ x) (λ*ComputationRule realizer r) ∙ pr₁pxy≡x _ _)) (f~⊩isTrackedF z r r⊩z) ,
+        subst (λ r' → r' ⊩[ ys ] (g .map z)) (sym (cong (λ x → pr₂ ⨾ x) (λ*ComputationRule realizer r) ∙ pr₂pxy≡y _ _)) (g~⊩isTrackedG z r r⊩z)))
   
-             goal₂ : (pr₂ ⨾ (t ⨾ zᵣ)) ⊩Y (g .map z)
-             goal₂ = subst (λ y → y ⊩Y (g .map z)) (sym pr₂⨾tracker⨾zᵣ≡g~⨾zᵣ) (g~tracks z zᵣ zᵣ⊩z)
 module _ {X Y : Type ℓ} (xs : Assembly X) (ys : Assembly Y) where
     theπ₁ = π₁ {A = X} {B = Y} {as = xs} {bs = ys}
     theπ₂ = π₂ {A = X} {B = Y} {as = xs} {bs = ys}

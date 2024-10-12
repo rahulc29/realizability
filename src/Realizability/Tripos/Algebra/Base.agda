@@ -8,6 +8,7 @@ open import Cubical.Foundations.Univalence
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.Structure
+open import Cubical.Foundations.HLevels
 open import Cubical.Functions.FunExtEquiv
 open import Cubical.Data.Fin
 open import Cubical.Data.Sum renaming (rec to sumRec)
@@ -17,7 +18,7 @@ open import Cubical.Data.Empty renaming (elim to ⊥elim)
 open import Cubical.Data.Unit
 open import Cubical.HITs.PropositionalTruncation
 open import Cubical.HITs.PropositionalTruncation.Monad
-open import Cubical.HITs.SetQuotients renaming (rec to quotRec; rec2 to quotRec2)
+open import Cubical.HITs.SetQuotients as SQ renaming (rec to quotRec; rec2 to quotRec2)
 open import Cubical.Relation.Binary.Order.Preorder
 open import Cubical.Relation.Binary.Order.Poset
 open import Cubical.Algebra.Lattice
@@ -26,8 +27,8 @@ open import Cubical.Algebra.CommMonoid
 open import Cubical.Algebra.Monoid
 open import Cubical.Algebra.Semigroup
 
-module Realizability.Tripos.Algebra.Base {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
-open import Realizability.Tripos.Prealgebra.Predicate ca
+module Realizability.Tripos.Algebra.Base {ℓ ℓ' ℓ''} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
+import Realizability.Tripos.Prealgebra.Predicate ca as Pred
 open import Realizability.Tripos.Prealgebra.Joins.Commutativity ca
 open import Realizability.Tripos.Prealgebra.Joins.Identity ca
 open import Realizability.Tripos.Prealgebra.Joins.Idempotency ca
@@ -41,10 +42,60 @@ open import Realizability.Tripos.Prealgebra.Absorbtion ca
 open CombinatoryAlgebra ca
 open Realizability.CombinatoryAlgebra.Combinators ca renaming (i to Id; ia≡a to Ida≡a)
 
-λ*ComputationRule = `λ*ComputationRule as fefermanStructure
-λ* = `λ* as fefermanStructure
+private
+  λ*ComputationRule = `λ*ComputationRule as fefermanStructure
+  λ* = `λ* as fefermanStructure
 
-module AlgebraicProperties {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) (isNonTrivial : s ≡ k → ⊥) where
+AlgebraicPredicate : Type ℓ' → Type _
+AlgebraicPredicate X = PosetReflection (Pred.PredicateProperties._≤_ {ℓ'' = ℓ''} X)
+
+infixl 50 _⊩[_]_
+opaque
+  realizes : ∀ {X : Type ℓ'} → A → AlgebraicPredicate X → X → hProp (ℓ-max ℓ (ℓ-max ℓ' ℓ''))
+  realizes {X} r ϕ x =
+    SQ.rec
+        isSetHProp
+        (λ Ψ → (∃[ s ∈ A ] Pred.Predicate.∣ Ψ ∣ x (s ⨾ r)) , isPropPropTrunc)
+        (λ { Ψ Ξ (Ψ≤Ξ , Ξ≤Ψ) →
+          Σ≡Prop
+            (λ _ → isPropIsProp)
+            (hPropExt isPropPropTrunc isPropPropTrunc
+              (λ Ψholds →
+                do
+                  (s , s⊩Ψ≤Ξ) ← Ψ≤Ξ
+                  (p , p⊩Ψ) ← Ψholds
+                  let
+                    prover : Term as 1
+                    prover = ` s ̇ (` p ̇ # fzero)
+                  return (λ* prover , subst (λ r' → Pred.Predicate.∣ Ξ ∣ x r') (sym (λ*ComputationRule prover (r ∷ []))) (s⊩Ψ≤Ξ x (p ⨾ r) p⊩Ψ)))
+              (λ Ξholds →
+                do
+                  (s , s⊩Ξ≤Ψ) ← Ξ≤Ψ
+                  (p , p⊩Ξ) ← Ξholds
+                  let
+                    prover : Term as 1
+                    prover = ` s ̇ (` p ̇ # fzero)
+                  return (λ* prover , subst (λ r' → Pred.Predicate.∣ Ψ ∣ x r') (sym (λ*ComputationRule prover (r ∷ []))) (s⊩Ξ≤Ψ x (p ⨾ r) p⊩Ξ)))) })
+        ϕ
+
+  _⊩[_]_ : ∀ {X : Type ℓ'} → A → AlgebraicPredicate X → X → Type (ℓ-max ℓ (ℓ-max ℓ' ℓ''))
+  r ⊩[ ϕ ] x = ⟨ realizes r ϕ x ⟩
+
+  isProp⊩ : ∀ {X : Type ℓ'} → (a : A) → (ϕ : AlgebraicPredicate X) → (x : X) → isProp (a ⊩[ ϕ ] x)
+  isProp⊩ {X} a ϕ x = realizes a ϕ x .snd
+
+  transformRealizes : ∀ {X : Type ℓ'} → (r : A) → (ϕ : Pred.Predicate X) → (x : X) → (∃[ s ∈ A ] (s ⨾ r) ⊩[ [ ϕ ] ] x) → r ⊩[ [ ϕ ] ] x
+  transformRealizes {X} r ϕ x ∃ =
+    do
+      (s , s⊩ϕx) ← ∃
+      (p , ps⊩ϕx) ← s⊩ϕx
+      let
+        prover : Term as 1
+        prover = ` p ̇ (` s ̇ # fzero)
+      return (λ* prover , subst (λ r' → Pred.Predicate.∣ ϕ ∣ x r') (sym (λ*ComputationRule prover (r ∷ []))) ps⊩ϕx)
+
+module AlgebraicProperties (X : Type ℓ') (isSetX' : isSet X) (isNonTrivial : s ≡ k → ⊥) where
+  open Pred
   private PredicateX = Predicate {ℓ'' = ℓ''} X
   open Predicate
   open PredicateProperties {ℓ'' = ℓ''} X

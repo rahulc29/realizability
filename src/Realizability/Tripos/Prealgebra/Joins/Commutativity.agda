@@ -1,8 +1,8 @@
 open import Realizability.CombinatoryAlgebra
-open import Realizability.ApplicativeStructure renaming (λ*-naturality to `λ*ComputationRule; λ*-chain to `λ*) hiding (λ*)
+open import Realizability.ApplicativeStructure
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Equiv
-open import Cubical.Data.Fin
+open import Cubical.Data.FinData
 open import Cubical.Data.Vec
 open import Cubical.Data.Sum renaming (rec to sumRec)
 open import Cubical.Relation.Binary.Order.Preorder
@@ -11,27 +11,22 @@ open import Cubical.HITs.PropositionalTruncation.Monad
 
 module Realizability.Tripos.Prealgebra.Joins.Commutativity {ℓ} {A : Type ℓ} (ca : CombinatoryAlgebra A) where
 
-open import Realizability.Tripos.Prealgebra.Predicate ca
-
 open CombinatoryAlgebra ca
 open Realizability.CombinatoryAlgebra.Combinators ca renaming (i to Id; ia≡a to Ida≡a)
 
-private λ*ComputationRule = `λ*ComputationRule as fefermanStructure
-private λ* = `λ* as fefermanStructure
-
 module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) where
-  
-  private PredicateX = Predicate {ℓ'' = ℓ''} X
+  open import Realizability.Tripos.Prealgebra.Predicate {ℓ' = ℓ'} {ℓ'' = ℓ''} ca
+  private PredicateX = Predicate X
   open Predicate
-  open PredicateProperties {ℓ'' = ℓ''} X
+  open PredicateProperties  X
   open PreorderReasoning preorder≤
 
   -- ⊔ is commutative upto anti-symmetry
   a⊔b→b⊔a : ∀ a b → a ⊔ b ≤ b ⊔ a
   a⊔b→b⊔a a b =
     do
-      let prover = ` Id ̇ (` pr₁ ̇ (# fzero)) ̇ (` pair ̇ ` k' ̇ (` pr₂ ̇ (# fzero))) ̇ (` pair ̇ ` k ̇ (` pr₂ ̇ (# fzero)))
-      let λ*eq = λ (r : A) → λ*ComputationRule prover (r ∷ [])
+      let prover = ` Id ̇ (` pr₁ ̇ (# zero)) ̇ (` pair ̇ ` k' ̇ (` pr₂ ̇ (# zero))) ̇ (` pair ̇ ` k ̇ (` pr₂ ̇ (# zero)))
+      let λ*eq = λ (r : A) → λ*ComputationRule prover r
       return
         (λ* prover ,
           λ x r r⊩a⊔b →
@@ -91,7 +86,7 @@ module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) where
   antiSym→x⊔z≤y⊔z x y z x≤y y≤x =
     do
       (x⊨y , x⊨yProves) ← x≤y
-      let prover = ` Id ̇ (` pr₁ ̇ (# fzero)) ̇ (` pair ̇ ` k ̇ (` x⊨y ̇ (` pr₂ ̇ (# fzero)))) ̇ (` pair ̇ ` k' ̇ (` pr₂ ̇ (# fzero)))
+      let prover = ` Id ̇ (` pr₁ ̇ (# zero)) ̇ (` pair ̇ ` k ̇ (` x⊨y ̇ (` pr₂ ̇ (# zero)))) ̇ (` pair ̇ ` k' ̇ (` pr₂ ̇ (# zero)))
       return
         (λ* prover ,
           λ x' a a⊩x⊔zx' →
@@ -105,7 +100,7 @@ module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) where
                       (λ { (pr₁⨾a≡k , pr₂⨾a⊩xx') →
                         inl
                           (((pr₁ ⨾ (λ* prover ⨾ a))
-                             ≡⟨ cong (λ x → pr₁ ⨾ x) (λ*ComputationRule prover (a ∷ [])) ⟩
+                             ≡⟨ cong (λ x → pr₁ ⨾ x) (λ*ComputationRule prover a) ⟩
                             (pr₁ ⨾ (Id ⨾ (pr₁ ⨾ a) ⨾ (pair ⨾ k ⨾ (x⊨y ⨾ (pr₂ ⨾ a))) ⨾ (pair ⨾ k' ⨾ (pr₂ ⨾ a))))
                              ≡⟨ cong (λ x → (pr₁ ⨾ (Id ⨾ x ⨾ (pair ⨾ k ⨾ (x⊨y ⨾ (pr₂ ⨾ a))) ⨾ (pair ⨾ k' ⨾ (pr₂ ⨾ a))))) pr₁⨾a≡k ⟩
                             (pr₁ ⨾ (Id ⨾ k ⨾ (pair ⨾ k ⨾ (x⊨y ⨾ (pr₂ ⨾ a))) ⨾ (pair ⨾ k' ⨾ (pr₂ ⨾ a))))
@@ -118,7 +113,7 @@ module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) where
                                (λ r → r ⊩ ∣ y ∣ x')
                                (sym
                                  (pr₂ ⨾ (λ* prover ⨾ a)
-                                   ≡⟨ cong (λ x → pr₂ ⨾ x) (λ*ComputationRule prover (a ∷ [])) ⟩
+                                   ≡⟨ cong (λ x → pr₂ ⨾ x) (λ*ComputationRule prover a) ⟩
                                   pr₂ ⨾ (Id ⨾ (pr₁ ⨾ a) ⨾ (pair ⨾ k ⨾ (x⊨y ⨾ (pr₂ ⨾ a))) ⨾ (pair ⨾ k' ⨾ (pr₂ ⨾ a)))
                                    ≡⟨ cong (λ x → (pr₂ ⨾ (Id ⨾ x ⨾ (pair ⨾ k ⨾ (x⊨y ⨾ (pr₂ ⨾ a))) ⨾ (pair ⨾ k' ⨾ (pr₂ ⨾ a))))) pr₁⨾a≡k ⟩
                                   pr₂ ⨾ (Id ⨾ k ⨾ (pair ⨾ k ⨾ (x⊨y ⨾ (pr₂ ⨾ a))) ⨾ (pair ⨾ k' ⨾ (pr₂ ⨾ a)))
@@ -131,7 +126,7 @@ module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) where
                       (λ { (pr₁⨾a≡k' , pr₂a⊩zx') →
                         inr
                          ((((pr₁ ⨾ (λ* prover ⨾ a))
-                             ≡⟨ cong (λ x → pr₁ ⨾ x) (λ*ComputationRule prover (a ∷ [])) ⟩
+                             ≡⟨ cong (λ x → pr₁ ⨾ x) (λ*ComputationRule prover a) ⟩
                             (pr₁ ⨾ (Id ⨾ (pr₁ ⨾ a) ⨾ (pair ⨾ k ⨾ (x⊨y ⨾ (pr₂ ⨾ a))) ⨾ (pair ⨾ k' ⨾ (pr₂ ⨾ a))))
                              ≡⟨ cong (λ x → (pr₁ ⨾ (Id ⨾ x ⨾ (pair ⨾ k ⨾ (x⊨y ⨾ (pr₂ ⨾ a))) ⨾ (pair ⨾ k' ⨾ (pr₂ ⨾ a))))) pr₁⨾a≡k' ⟩
                             (pr₁ ⨾ (Id ⨾ k' ⨾ (pair ⨾ k ⨾ (x⊨y ⨾ (pr₂ ⨾ a))) ⨾ (pair ⨾ k' ⨾ (pr₂ ⨾ a))))
@@ -144,7 +139,7 @@ module _ {ℓ' ℓ''} (X : Type ℓ') (isSetX' : isSet X) where
                                  (λ r → r ⊩ ∣ z ∣ x')
                                  (sym
                                   ((pr₂ ⨾ (λ* prover ⨾ a)
-                                   ≡⟨ cong (λ x → pr₂ ⨾ x) (λ*ComputationRule prover (a ∷ [])) ⟩
+                                   ≡⟨ cong (λ x → pr₂ ⨾ x) (λ*ComputationRule prover a) ⟩
                                   pr₂ ⨾ (Id ⨾ (pr₁ ⨾ a) ⨾ (pair ⨾ k ⨾ (x⊨y ⨾ (pr₂ ⨾ a))) ⨾ (pair ⨾ k' ⨾ (pr₂ ⨾ a)))
                                    ≡⟨ cong (λ x → (pr₂ ⨾ (Id ⨾ x ⨾ (pair ⨾ k ⨾ (x⊨y ⨾ (pr₂ ⨾ a))) ⨾ (pair ⨾ k' ⨾ (pr₂ ⨾ a))))) pr₁⨾a≡k' ⟩
                                   pr₂ ⨾ (Id ⨾ k' ⨾ (pair ⨾ k ⨾ (x⊨y ⨾ (pr₂ ⨾ a))) ⨾ (pair ⨾ k' ⨾ (pr₂ ⨾ a)))
