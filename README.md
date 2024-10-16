@@ -13,4 +13,4 @@ Notable results include :
 Current formalisation targets include :
 
 * Uniform families of PERs indexed by assemblies form a small and complete fibration
-* The category of assemblies is exactly the category of double negation stable objects of the realizability topos
+* The category of assemblies is exactly the category of double negation separated objects of the realizability topos
