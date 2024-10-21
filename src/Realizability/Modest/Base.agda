@@ -27,13 +27,13 @@ open Realizability.CombinatoryAlgebra.Combinators ca renaming (i to Id; ia≡a t
 module _ {X : Type ℓ} (asmX : Assembly X) where
 
   isModest : Type _
-  isModest = ∀ (x y : X) (a : A) → a ⊩[ asmX ] x → a ⊩[ asmX ] y → x ≡ y
+  isModest = ∀ (x y : X) → ∃[ a ∈ A ] (a ⊩[ asmX ] x × a ⊩[ asmX ] y) → x ≡ y
 
   isPropIsModest : isProp isModest
-  isPropIsModest = isPropΠ3 λ x y a → isProp→ (isProp→ (asmX .isSetX x y))
+  isPropIsModest = isPropΠ2 λ x y → isProp→ (asmX .isSetX x y)
 
   isUniqueRealized : isModest → ∀ (a : A) → isProp (Σ[ x ∈ X ] (a ⊩[ asmX ] x))
-  isUniqueRealized isMod a (x , a⊩x) (y , a⊩y) = Σ≡Prop (λ x' → asmX .⊩isPropValued a x') (isMod x y a a⊩x a⊩y)
+  isUniqueRealized isMod a (x , a⊩x) (y , a⊩y) = Σ≡Prop (λ x' → asmX .⊩isPropValued a x') (isMod x y ∣ a , a⊩x , a⊩y ∣₁)
 
 ModestSet : Type ℓ → Type (ℓ-suc ℓ)
 ModestSet X = Σ[ xs ∈ Assembly X ] isModest xs

@@ -53,13 +53,7 @@ module _
   PER.isPropValued canonicalPER a b (x , a⊩x , b⊩x) (x' , a⊩x' , b⊩x') =
     Σ≡Prop
       (λ x → isProp× (asmX .⊩isPropValued a x) (asmX .⊩isPropValued b x))
-      (isModestAsmX x x' a a⊩x a⊩x')
+      (isModestAsmX x x' ∣ a , a⊩x , a⊩x' ∣₁)
   fst (PER.isPER canonicalPER) a b (x , a⊩x , b⊩x) = x , b⊩x , a⊩x
   snd (PER.isPER canonicalPER) a b c (x , a⊩x , b⊩x) (x' , b⊩x' , c⊩x') =
-    x' , subst (a ⊩[ asmX ]_) (isModestAsmX x x' b b⊩x b⊩x') a⊩x , c⊩x'
-
-CanonicalPERFunctor : Functor MOD PERCat
-Functor.F-ob CanonicalPERFunctor (X , asmX , isModestAsmX) = canonicalPER asmX isModestAsmX
-Functor.F-hom CanonicalPERFunctor {X , asmX , isModestAsmX} {Y , asmY , isModestAsmY} f = {!!}
-Functor.F-id CanonicalPERFunctor = {!!}
-Functor.F-seq CanonicalPERFunctor = {!!}
+    x' , subst (a ⊩[ asmX ]_) (isModestAsmX x x' ∣ b , b⊩x , b⊩x' ∣₁) a⊩x , c⊩x'

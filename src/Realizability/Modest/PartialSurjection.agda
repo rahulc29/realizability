@@ -132,15 +132,19 @@ module ModestSetIso (X : Type ℓ) (isCorrectHLevel : isSet X) where
     do
       ((a , s) , ≡x) ← surj .isSurjectionEnumeration x
       return (a , (s , ≡x))
-  snd (PartialSurjection→ModestSet surj) x y r (s , ≡x) (t , ≡x') =
-    x
-      ≡⟨ sym ≡x ⟩
-    surj .enumeration (r , s)
-      ≡⟨ cong (λ s → surj .enumeration (r , s)) (surj .isPropSupport r s t) ⟩
-    surj .enumeration (r , t)
-      ≡⟨ ≡x' ⟩
-    y
-      ∎
+  snd (PartialSurjection→ModestSet surj) x y ∃a =
+    PT.elim
+      (λ _ → surj .isSetX x y)
+      (λ { (r , (s , ≡x) , (t , ≡y)) →
+        x
+          ≡⟨ sym ≡x ⟩
+        surj .enumeration (r , s)
+          ≡⟨ cong (λ s → surj .enumeration (r , s)) (surj .isPropSupport r s t) ⟩
+        surj .enumeration (r , t)
+          ≡⟨ ≡y ⟩
+        y
+          ∎ })
+      ∃a
 
   opaque
     rightInv : ∀ surj → ModestSet→PartialSurjection (PartialSurjection→ModestSet surj) ≡ surj

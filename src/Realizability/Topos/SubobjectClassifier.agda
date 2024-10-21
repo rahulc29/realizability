@@ -238,6 +238,8 @@ Predicate.isPropValued truePredicate tt* r = isPropUnit*
 ⊤ = fromPredicate truePredicate
 
 -- The subobject classifier classifies subobjects represented by strict relations
+-- Since every subobject is isomorphic to one represented by a strict relation
+-- this is enough to establish that true : 1 → Ω is a subobject classifier
 module ClassifiesStrictRelations
   (X : Type ℓ)
   (perX : PartialEquivalenceRelation X)
