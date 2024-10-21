@@ -1,4 +1,4 @@
-{-# OPTIONS --cubical --allow-unsolved-metas #-}
+{-# OPTIONS --cubical #-}
 open import Cubical.Foundations.Prelude
 open import Cubical.Data.Sigma
 open import Cubical.Data.FinData hiding (eq)
@@ -22,7 +22,6 @@ _⇒_ : {A B : Type ℓ} → (as : Assembly A) → (bs : Assembly B) → Assembl
 _⇒_ {A} {B} as bs .⊩isPropValued r f = isPropTracks {X = A} {Y = B} {xs = as} {ys = bs}  r (f .map)
 (as ⇒ bs) .⊩surjective f = f .tracker
 
--- What a distinguished gentleman
 eval : {X Y : Type ℓ} → (xs : Assembly X) → (ys : Assembly Y) → AssemblyMorphism ((xs ⇒ ys) ⊗ xs) ys
 eval xs ys .map (f , x) = f .map x
 eval {X} {Y} xs ys .tracker =

@@ -19,20 +19,10 @@ More formally, we can show that ∃[ ob ∈ RTObject ] ∃[ eq ∈ RTMorphism ob
 To do this, we firstly show the universal property for the case when we have already been given the
 representatives.
 
-Since we are eliminating a set quotient into a proposition, we can choose any representatives.
-
-Thus we have shown that RT merely has equalisers.
-
-The idea of showing the mere existence of equalisers was suggested by Jon Sterling.
+It is possible to define things differently and quotient predicates by realizable equivalence but that causes type-checking time
+to explode, so we do not do that here.
 
 See also : Remark 2.7 of "Tripos Theory" by JHP
-
-──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-
-An extra note worth adding is that the code is quite difficult to read and very ugly. This is mostly due to the fact that a lot
-of the things that are "implicit" in an informal setting need to be justified here. More so than usual.
-
-There is additional bureacracy because we have to deal with eliminators of set quotients. This makes things a little more complicated.
 
 -}
 open import Realizability.ApplicativeStructure renaming (Term to ApplStrTerm)

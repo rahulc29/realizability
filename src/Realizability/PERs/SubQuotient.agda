@@ -73,21 +73,25 @@ module _
       (λ [a] → isPropPropTrunc)
       (λ { (a , a~a) → return (a , a~a) })
       [a]
-      
+
   isModestSubQuotientAssembly : isModest subQuotientAssembly
-  isModestSubQuotientAssembly x y a a⊩x a⊩y =
-    SQ.elimProp2
-      {P = λ x y → motive x y}
-      isPropMotive
-      (λ { (x , x~x) (y , y~y) a a~x a~y →
-        eq/ (x , x~x) (y , y~y) (PER.isTransitive per x a y (PER.isSymmetric per a x a~x) a~y) })
-      x y
-      a a⊩x a⊩y where
+  isModestSubQuotientAssembly x y ∃a =
+    PT.elim
+      (λ _ → squash/ x y)
+      (λ { (a , a⊩x , a⊩y) →
+        SQ.elimProp2
+          {P = motive}
+          isPropMotive
+          (λ { (x , x~x) (y , y~y) a a~x a~y →
+            eq/ (x , x~x) (y , y~y) (PER.isTransitive per x a y (PER.isSymmetric per a x a~x) a~y) })
+          x y a a⊩x a⊩y })
+      ∃a where
         motive : ∀ (x y : subQuotient) → Type ℓ
         motive x y = ∀ (a : A) (a⊩x : a ⊩[ subQuotientAssembly ] x) (a⊩y : a ⊩[ subQuotientAssembly ] y) → x ≡ y
 
         isPropMotive : ∀ x y → isProp (motive x y)
         isPropMotive x y = isPropΠ3 λ _ _ _ → squash/ x y
+      
 
 module _ (R S : PER) (f : perMorphism R S) where
   
